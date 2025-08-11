@@ -1,0 +1,89 @@
+// ignore_for_file: file_names
+
+class Reservation {
+  final int parkingService;
+  final int? partnerId;
+  final bool alreadyRegistered;
+  final bool withoutRegistration;
+  final String name;
+  final String email;
+  final String phone;
+  final String licensePlate;
+  final DateTime arriveDate;
+  final DateTime leaveDate;
+  final String? parkingArticleId;
+  final String parkingArticleVolume;
+  final int transferPersonCount;
+  final bool vip;
+  final int? suitcaseWrappingCount;
+  final String? carWashArticleId;
+  final DateTime? washDateTime;
+  final int payType;
+  final String description;
+
+  Reservation({
+    required this.parkingService,
+    this.partnerId,
+    required this.alreadyRegistered,
+    required this.withoutRegistration,
+    required this.name,
+    required this.email,
+    required this.phone,
+    required this.licensePlate,
+    required this.arriveDate,
+    required this.leaveDate,
+    this.parkingArticleId,
+    required this.parkingArticleVolume,
+    required this.transferPersonCount,
+    required this.vip,
+    this.suitcaseWrappingCount,
+    this.carWashArticleId,
+    this.washDateTime,
+    required this.payType,
+    required this.description,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      "ParkingService": parkingService,
+      "ParterId": null,
+      "AlreadyRegistered": true,
+      "WithoutRegistration": false,
+      "Name": name,
+      "Email": email,
+      "Phone": phone,
+      "LicensePlate": licensePlate,
+      "ArriveDate": arriveDate.toIso8601String(),
+      "LeaveDate": leaveDate.toIso8601String(),
+      "ParkingArticleId": "",
+      "ParkingArticleVolume": parkingArticleVolume,
+      "TransferPersonCount": transferPersonCount,
+      "VIP": false,
+      "SuitcaseWrappingCount": null,
+      "CarWashArticleId": "",
+      "WashDateTime": null,
+      "PayType": payType,
+      "Description": description,
+    };
+  }
+
+  // Ha valaha válaszként kapsz adatot, ezt bővítheted:
+  factory Reservation.fromJson(Map<String, dynamic> json) {
+    return Reservation(
+      parkingService: json['ParkingService'],
+      alreadyRegistered: json['AlreadyRegistered'],
+      withoutRegistration: json['WithoutRegistration'],
+      name: json['Name'],
+      email: json['Email'],
+      phone: json['Phone'],
+      licensePlate: json['LicensePlate'],
+      arriveDate: DateTime.parse(json['ArriveDate']),
+      leaveDate: DateTime.parse(json['LeaveDate']),
+      parkingArticleVolume: json['ParkingArticleVolume'],
+      transferPersonCount: json['TransferPersonCount'],
+      vip: json['VIP'],
+      payType: json['PayType'],
+      description: json['Description'],
+    );
+  }
+}

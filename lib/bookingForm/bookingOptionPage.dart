@@ -1,5 +1,3 @@
-// ignore_for_file: file_names
-
 import 'package:airport_test/basePage.dart';
 import 'package:airport_test/bookingForm/registrationOptionPage.dart';
 import 'package:airport_test/enums/parkingFormEnums.dart';
@@ -31,7 +29,8 @@ class _BookingOptionPageState extends State<BookingOptionPage> {
           },
         ),
         RadioListTile<BookingOption>(
-          title: const Text('Csak mosatni szeretnék'),
+          title: const Text(
+              'Csak mosatni szeretnék (Jelenleg kötelező a parkolás megadása, ne ezzel tesztelj)'),
           value: BookingOption.washing,
           groupValue: selectedBookingOption,
           onChanged: (BookingOption? value) {

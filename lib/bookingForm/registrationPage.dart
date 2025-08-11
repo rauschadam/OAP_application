@@ -1,5 +1,3 @@
-// ignore_for_file: file_names
-
 import 'package:airport_test/api_Services/api_service.dart';
 import 'package:airport_test/api_Services/registration.dart';
 import 'package:airport_test/basePage.dart';
@@ -17,6 +15,8 @@ class RegistrationPage extends StatefulWidget {
 }
 
 class _RegistrationPageState extends State<RegistrationPage> {
+  final formKey = GlobalKey<FormState>();
+
   TextEditingController nameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController emailController = TextEditingController();
@@ -34,19 +34,19 @@ class _RegistrationPageState extends State<RegistrationPage> {
   String? authToken;
 
   Future<String?> RegisterUser() async {
-    // Regisztráljuk
     final registration = Registration(
-        name: nameController.text,
-        password: passwordController.text,
-        email: emailController.text,
-        phone: phoneController.text,
-        favoriteLicensePlateNumber: favoriteLicensePlateNumberController.text);
+      name: nameController.text,
+      password: passwordController.text,
+      email: emailController.text,
+      phone: phoneController.text,
+      favoriteLicensePlateNumber: favoriteLicensePlateNumberController.text,
+    );
 
     await ApiService().registerUser(registration);
 
-    // Bejelentkeztetjük
     final api = ApiService();
-    final token = await api.loginUser('abc@valami.hu', 'asdasd');
+    final token =
+        await api.loginUser(emailController.text, passwordController.text);
 
     if (token == null) {
       print('Nem sikerült bejelentkezni');
@@ -56,8 +56,55 @@ class _RegistrationPageState extends State<RegistrationPage> {
         print(authToken);
       });
     }
-
     return token;
+  }
+
+  void _onNextPressed() async {
+    if (formKey.currentState!.validate()) {
+      final token = await RegisterUser();
+      if (token != null) {
+        Widget nextPage;
+        switch (widget.bookingOption) {
+          case BookingOption.parking:
+          case BookingOption.both:
+            nextPage = ParkOrderPage(
+              authToken: authToken!,
+              bookingOption: widget.bookingOption,
+              emailController: emailController,
+              licensePlateController: favoriteLicensePlateNumberController,
+              nameController: nameController,
+              phoneController: phoneController,
+            );
+            break;
+          case BookingOption.washing:
+            nextPage = WashOrderPage(
+              authToken: authToken!,
+              bookingOption: widget.bookingOption,
+              emailController: emailController,
+              licensePlateController: favoriteLicensePlateNumberController,
+              nameController: nameController,
+              phoneController: phoneController,
+            );
+            break;
+        }
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => BasePage(
+              title: widget.bookingOption == BookingOption.washing
+                  ? "Mosás foglalás"
+                  : "Parkolás foglalás",
+              child: nextPage,
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sikertelen regisztráció!')),
+        );
+      }
+    }
   }
 
   @override
@@ -65,152 +112,104 @@ class _RegistrationPageState extends State<RegistrationPage> {
     super.initState();
     // Kis késleltetéssel adunk fókuszt, hogy a build lefusson
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      FocusScope.of(context).requestFocus(nameFocus);
+      FocusScope.of(context).requestFocus(emailFocus);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextField(
-          controller: nameController,
-          focusNode: nameFocus,
-          textInputAction: TextInputAction.next,
-          onSubmitted: (_) {
-            FocusScope.of(context).requestFocus(passwordFocus);
-          },
-          decoration: const InputDecoration(labelText: 'Felhasználó név'),
-        ),
-        TextField(
-          controller: passwordController,
-          obscureText: true,
-          focusNode: passwordFocus,
-          textInputAction: TextInputAction.next,
-          onSubmitted: (_) {
-            FocusScope.of(context).requestFocus(emailFocus);
-          },
-          decoration: const InputDecoration(labelText: 'Jelszó'),
-        ),
-        TextField(
-          controller: emailController,
-          focusNode: emailFocus,
-          textInputAction: TextInputAction.next,
-          onSubmitted: (_) {
-            FocusScope.of(context).requestFocus(phoneFocus);
-          },
-          decoration: const InputDecoration(labelText: 'Email cím'),
-        ),
-        TextField(
-          controller: phoneController,
-          focusNode: phoneFocus,
-          textInputAction: TextInputAction.next,
-          onSubmitted: (_) {
-            FocusScope.of(context)
-                .requestFocus(favoriteLicensePlateNumberFocus);
-          },
-          decoration: const InputDecoration(labelText: 'Telefonszám'),
-        ),
-        TextField(
-          controller: favoriteLicensePlateNumberController,
-          focusNode: favoriteLicensePlateNumberFocus,
-          textInputAction: TextInputAction.done,
-          onSubmitted: (_) {
-            FocusScope.of(context).requestFocus(nextPageButtonFocus);
-          },
-          decoration: const InputDecoration(labelText: 'Kedvenc rendszám'),
-        ),
-        switch (widget.bookingOption) {
-          BookingOption.parking => NextPageButton(
-              title: "Parkolás foglalás",
-              focusNode: nextPageButtonFocus,
-              onPressed: () async {
-                final token = await RegisterUser();
-                if (token != null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => BasePage(
-                          title: "Parkolás foglalás",
-                          child: ParkOrderPage(
-                            authToken: authToken!,
-                            bookingOption: widget.bookingOption,
-                            emailController: emailController,
-                            licensePlateController:
-                                favoriteLicensePlateNumberController,
-                            nameController: nameController,
-                            phoneController: phoneController,
-                          )),
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Sikertelen regisztráció!')),
-                  );
-                }
-              },
-            ),
-          BookingOption.washing => NextPageButton(
-              title: "Mosás foglalás",
-              focusNode: nextPageButtonFocus,
-              onPressed: () async {
-                final token = await RegisterUser();
-                if (token != null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => BasePage(
-                          title: "Parkolás foglalás",
-                          child: WashOrderPage(
-                            authToken: authToken!,
-                            bookingOption: widget.bookingOption,
-                            emailController: emailController,
-                            licensePlateController:
-                                favoriteLicensePlateNumberController,
-                            nameController: nameController,
-                            phoneController: phoneController,
-                          )),
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Sikertelen regisztráció!')),
-                  );
-                }
-              },
-            ),
-          BookingOption.both => NextPageButton(
-              title: "Parkolás foglalás",
-              focusNode: nextPageButtonFocus,
-              onPressed: () async {
-                final token = await RegisterUser();
-                if (token != null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => BasePage(
-                          title: "Parkolás foglalás",
-                          child: ParkOrderPage(
-                            authToken: authToken!,
-                            bookingOption: widget.bookingOption,
-                            emailController: emailController,
-                            licensePlateController:
-                                favoriteLicensePlateNumberController,
-                            nameController: nameController,
-                            phoneController: phoneController,
-                          )),
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Sikertelen regisztráció!')),
-                  );
-                }
-              },
-            ),
-        }
-      ],
+    return Form(
+      key: formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextFormField(
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Adja meg email címét';
+              }
+              return null;
+            },
+            controller: emailController,
+            focusNode: emailFocus,
+            textInputAction: TextInputAction.next,
+            onEditingComplete: () {
+              FocusScope.of(context).requestFocus(passwordFocus);
+            },
+            decoration: const InputDecoration(labelText: 'Email cím'),
+          ),
+          TextFormField(
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Adjon meg egy jelszót';
+              }
+              return null;
+            },
+            controller: passwordController,
+            obscureText: true,
+            focusNode: passwordFocus,
+            textInputAction: TextInputAction.next,
+            onEditingComplete: () {
+              FocusScope.of(context).requestFocus(nameFocus);
+            },
+            decoration: const InputDecoration(labelText: 'Jelszó'),
+          ),
+          TextFormField(
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Adjon meg egy felhasználó nevet';
+              }
+              return null;
+            },
+            controller: nameController,
+            focusNode: nameFocus,
+            textInputAction: TextInputAction.next,
+            onEditingComplete: () {
+              FocusScope.of(context).requestFocus(phoneFocus);
+            },
+            decoration: const InputDecoration(labelText: 'Felhasználó név'),
+          ),
+          TextFormField(
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Adja meg telefonszámát';
+              }
+              return null;
+            },
+            controller: phoneController,
+            focusNode: phoneFocus,
+            textInputAction: TextInputAction.next,
+            onEditingComplete: () {
+              FocusScope.of(context)
+                  .requestFocus(favoriteLicensePlateNumberFocus);
+            },
+            decoration: const InputDecoration(labelText: 'Telefonszám'),
+          ),
+          TextFormField(
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Adja meg kedvenc rendszámát';
+              }
+              return null;
+            },
+            controller: favoriteLicensePlateNumberController,
+            focusNode: favoriteLicensePlateNumberFocus,
+            textInputAction: TextInputAction.done,
+            onEditingComplete: () {
+              FocusScope.of(context).requestFocus(nextPageButtonFocus);
+            },
+            decoration: const InputDecoration(labelText: 'Kedvenc rendszám'),
+          ),
+          SizedBox(height: 20),
+          NextPageButton(
+            title: widget.bookingOption == BookingOption.washing
+                ? "Mosás foglalás"
+                : "Parkolás foglalás",
+            focusNode: nextPageButtonFocus,
+            onPressed: _onNextPressed,
+          ),
+        ],
+      ),
     );
   }
 }

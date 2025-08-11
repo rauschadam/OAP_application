@@ -1,5 +1,3 @@
-// ignore_for_file: file_names, non_constant_identifier_names
-
 import 'package:airport_test/basePage.dart';
 import 'package:airport_test/bookingForm/invoiceOptionPage.dart';
 import 'package:airport_test/enums/parkingFormEnums.dart';

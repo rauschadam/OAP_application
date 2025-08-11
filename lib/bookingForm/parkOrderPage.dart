@@ -1,5 +1,3 @@
-// ignore_for_file: file_names, non_constant_identifier_names
-
 import 'package:airport_test/basePage.dart';
 import 'package:airport_test/bookingForm/invoiceOptionPage.dart';
 import 'package:airport_test/bookingForm/washOrderPage.dart';
@@ -28,6 +26,8 @@ class ParkOrderPage extends StatefulWidget {
 }
 
 class _ParkOrderPageState extends State<ParkOrderPage> {
+  final formKey = GlobalKey<FormState>();
+
   late final TextEditingController nameController;
   late final TextEditingController phoneController;
   late final TextEditingController licensePlateController;
@@ -361,6 +361,57 @@ class _ParkOrderPageState extends State<ParkOrderPage> {
         },
       );
 
+  void OnNextPageButtonPressed() async {
+    if (formKey.currentState!.validate()) {
+      Widget? nextPage;
+      if (widget.bookingOption == BookingOption.parking) {
+        nextPage = InvoiceOptionPage(
+          authToken: widget.authToken,
+          nameController: nameController,
+          emailController: widget.emailController,
+          phoneController: phoneController,
+          licensePlateController: licensePlateController,
+          arriveDate: selectedArriveDate,
+          leaveDate: selectedLeaveDate,
+          transferPersonCount: selectedTransferCount,
+          vip: VIPDriverRequested,
+          descriptionController: descriptionController,
+          bookingOption: widget.bookingOption,
+        );
+      } else if (widget.bookingOption == BookingOption.both) {
+        nextPage = WashOrderPage(
+          authToken: widget.authToken,
+          bookingOption: widget.bookingOption,
+          emailController: widget.emailController,
+          licensePlateController: licensePlateController,
+          nameController: nameController,
+          phoneController: phoneController,
+          descriptionController: descriptionController,
+          arriveDate: selectedArriveDate,
+          leaveDate: selectedLeaveDate,
+          transferPersonCount: selectedTransferCount,
+          vip: VIPDriverRequested,
+        );
+      }
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BasePage(
+            title: widget.bookingOption == BookingOption.parking
+                ? "Számlázás"
+                : "Mosás foglalás",
+            child: nextPage!,
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sikertelen Bejelentkezés!')),
+      );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -381,234 +432,229 @@ class _ParkOrderPageState extends State<ParkOrderPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextField(
-          controller: nameController,
-          focusNode: nameFocus,
-          textInputAction: TextInputAction.next,
-          onSubmitted: (_) {
-            FocusScope.of(context).requestFocus(phoneFocus);
-          },
-          decoration: const InputDecoration(labelText: 'Foglaló személy neve'),
-        ),
-        TextField(
-          controller: phoneController,
-          focusNode: phoneFocus,
-          textInputAction: TextInputAction.next,
-          onSubmitted: (_) {
-            FocusScope.of(context).requestFocus(licensePlateFocus);
-          },
-          decoration: const InputDecoration(labelText: 'Telefonszám'),
-        ),
-        TextField(
-          controller: licensePlateController,
-          focusNode: licensePlateFocus,
-          textInputAction: TextInputAction.next,
-          onSubmitted: (_) {
-            FocusScope.of(context).requestFocus(datePickerFocus);
-          },
-          decoration: const InputDecoration(labelText: 'Várható rendszám'),
-        ),
-        const SizedBox(height: 10),
-        Row(children: [
-          ElevatedButton(
-              onPressed: () {
-                ShowDatePickerDialog();
-                FocusScope.of(context).requestFocus(transferFocus);
-              },
-              focusNode: datePickerFocus,
-              child: const Text("Válassz dátumot")),
-          const SizedBox(
-            width: 50,
+    return Form(
+      key: formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextFormField(
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Adja meg felhasználó nevét';
+              }
+              return null;
+            },
+            controller: nameController,
+            focusNode: nameFocus,
+            textInputAction: TextInputAction.next,
+            onEditingComplete: () {
+              FocusScope.of(context).requestFocus(phoneFocus);
+            },
+            decoration:
+                const InputDecoration(labelText: 'Foglaló személy neve'),
           ),
-          Expanded(
-            flex: 2,
-            child: Text('Parkolási napok száma: $parkingDays'),
+          TextFormField(
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Adja meg telefonszámát';
+              }
+              return null;
+            },
+            controller: phoneController,
+            focusNode: phoneFocus,
+            textInputAction: TextInputAction.next,
+            onEditingComplete: () {
+              FocusScope.of(context).requestFocus(licensePlateFocus);
+            },
+            decoration: const InputDecoration(labelText: 'Telefonszám'),
           ),
-          const SizedBox(
-            width: 10,
+          TextFormField(
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Adja meg rendszámát';
+              }
+              return null;
+            },
+            controller: licensePlateController,
+            focusNode: licensePlateFocus,
+            textInputAction: TextInputAction.next,
+            onEditingComplete: () {
+              FocusScope.of(context).requestFocus(datePickerFocus);
+            },
+            decoration: const InputDecoration(labelText: 'Várható rendszám'),
           ),
-          Column(
+          const SizedBox(height: 10),
+          Row(children: [
+            ElevatedButton(
+                onPressed: () {
+                  ShowDatePickerDialog();
+                  FocusScope.of(context).requestFocus(transferFocus);
+                },
+                focusNode: datePickerFocus,
+                child: const Text("Válassz dátumot")),
+            const SizedBox(
+              width: 50,
+            ),
+            Expanded(
+              flex: 2,
+              child: Text('Parkolási napok száma: $parkingDays'),
+            ),
+            const SizedBox(
+              width: 10,
+            ),
+            Column(
+              children: [
+                Text("Érkezés: ${format(selectedArriveDate)}"),
+                Text("Távozás: ${format(selectedLeaveDate)}"),
+              ],
+            ),
+          ]),
+          const SizedBox(height: 16),
+          const Text('Parkoló zóna választás'),
+          RadioListTile<ParkingZoneOption>(
+            title: const Text('Fedett (10 000 Ft/ nap)'),
+            value: ParkingZoneOption.premium,
+            groupValue: selectedParkingZoneOption,
+            onChanged: (ParkingZoneOption? value) {
+              setState(() {
+                selectedParkingZoneOption = value;
+              });
+            },
+            dense: true,
+          ),
+          RadioListTile<ParkingZoneOption>(
+            title: const Text('Nyitott térköves (5 000 Ft/ nap)'),
+            value: ParkingZoneOption.normal,
+            groupValue: selectedParkingZoneOption,
+            onChanged: (ParkingZoneOption? value) {
+              setState(() {
+                selectedParkingZoneOption = value;
+              });
+            },
+            dense: true,
+          ),
+          RadioListTile<ParkingZoneOption>(
+            title: const Text('Nyitott murvás (2 000 Ft/ nap)'),
+            value: ParkingZoneOption.eco,
+            groupValue: selectedParkingZoneOption,
+            onChanged: (ParkingZoneOption? value) {
+              setState(() {
+                selectedParkingZoneOption = value;
+              });
+            },
+            dense: true,
+          ),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<int>(
+            value: selectedTransferCount,
+            focusNode: transferFocus,
+            onSaved: (value) {
+              FocusScope.of(context).requestFocus(VIPFocus);
+            },
+            decoration: const InputDecoration(
+              labelText: 'Transzfer - max 7 személy',
+              contentPadding: EdgeInsets.only(bottom: 10),
+              isDense: true,
+            ),
+            onChanged: (value) {
+              setState(() {
+                selectedTransferCount = value!;
+              });
+            },
+            items: List.generate(7, (index) {
+              final number = index + 1;
+              return DropdownMenuItem(
+                value: number,
+                child: Text('$number személy'),
+              );
+            }),
+          ),
+          Row(
             children: [
-              Text("Érkezés: ${format(selectedArriveDate)}"),
-              Text("Távozás: ${format(selectedLeaveDate)}"),
+              Checkbox(
+                value: VIPDriverRequested,
+                focusNode: VIPFocus,
+                onChanged: (value) {
+                  setState(() {
+                    VIPDriverRequested = value!;
+                  });
+                },
+              ),
+              const Text(
+                  'VIP sofőr igénylése (Hozza viszi az autót a parkolóba)'),
             ],
           ),
-        ]),
-        const SizedBox(height: 16),
-        const Text('Parkoló zóna választás'),
-        RadioListTile<ParkingZoneOption>(
-          title: const Text('Fedett (10 000 Ft/ nap)'),
-          value: ParkingZoneOption.premium,
-          groupValue: selectedParkingZoneOption,
-          onChanged: (ParkingZoneOption? value) {
-            setState(() {
-              selectedParkingZoneOption = value;
-            });
-          },
-          dense: true,
-        ),
-        RadioListTile<ParkingZoneOption>(
-          title: const Text('Nyitott térköves (5 000 Ft/ nap)'),
-          value: ParkingZoneOption.normal,
-          groupValue: selectedParkingZoneOption,
-          onChanged: (ParkingZoneOption? value) {
-            setState(() {
-              selectedParkingZoneOption = value;
-            });
-          },
-          dense: true,
-        ),
-        RadioListTile<ParkingZoneOption>(
-          title: const Text('Nyitott murvás (2 000 Ft/ nap)'),
-          value: ParkingZoneOption.eco,
-          groupValue: selectedParkingZoneOption,
-          onChanged: (ParkingZoneOption? value) {
-            setState(() {
-              selectedParkingZoneOption = value;
-            });
-          },
-          dense: true,
-        ),
-        const SizedBox(height: 16),
-        DropdownButtonFormField<int>(
-          value: selectedTransferCount,
-          focusNode: transferFocus,
-          onSaved: (value) {
-            FocusScope.of(context).requestFocus(VIPFocus);
-          },
-          decoration: const InputDecoration(
-            labelText: 'Transzfer - max 7 személy',
-            contentPadding: EdgeInsets.only(bottom: 10),
-            isDense: true,
+          Row(
+            children: [
+              Checkbox(
+                value: suitcaseWrappingRequested,
+                focusNode: suitcaseWrappingFocus,
+                onChanged: (value) {
+                  FocusScope.of(context).requestFocus(descriptionFocus);
+                  setState(() {
+                    suitcaseWrappingRequested = value!;
+                  });
+                },
+              ),
+              const Text('Bőrönd fóliázás igénylése'),
+            ],
           ),
-          onChanged: (value) {
-            setState(() {
-              selectedTransferCount = value!;
-            });
-          },
-          items: List.generate(7, (index) {
-            final number = index + 1;
-            return DropdownMenuItem(
-              value: number,
-              child: Text('$number személy'),
-            );
-          }),
-        ),
-        Row(
-          children: [
-            Checkbox(
-              value: VIPDriverRequested,
-              focusNode: VIPFocus,
-              onChanged: (value) {
-                setState(() {
-                  VIPDriverRequested = value!;
-                });
-              },
-            ),
-            const Text(
-                'VIP sofőr igénylése (Hozza viszi az autót a parkolóba)'),
-          ],
-        ),
-        Row(
-          children: [
-            Checkbox(
-              value: suitcaseWrappingRequested,
-              focusNode: suitcaseWrappingFocus,
-              onChanged: (value) {
-                FocusScope.of(context).requestFocus(descriptionFocus);
-                setState(() {
-                  suitcaseWrappingRequested = value!;
-                });
-              },
-            ),
-            const Text('Bőrönd fóliázás igénylése'),
-          ],
-        ),
-        const SizedBox(height: 12),
-        const Text('Fizetendő összeg: 33 000 Ft'),
-        RadioListTile<PaymentOption>(
-          title: const Text('Bankkártyával fizetek'),
-          value: PaymentOption.card,
-          groupValue: selectedPaymentOption,
-          onChanged: (PaymentOption? value) {
-            setState(() {
-              selectedPaymentOption = value;
-            });
-          },
-          dense: true,
-        ),
-        RadioListTile<PaymentOption>(
-          title: const Text(
-              'Átutalással fizetek még a parkolás megkezdése előtt 1 nappal'),
-          value: PaymentOption.transfer,
-          groupValue: selectedPaymentOption,
-          onChanged: (PaymentOption? value) {
-            setState(() {
-              selectedPaymentOption = value;
-            });
-          },
-          dense: true,
-        ),
-        RadioListTile<PaymentOption>(
-          title: const Text('Qvik'),
-          value: PaymentOption.qvik,
-          groupValue: selectedPaymentOption,
-          onChanged: (PaymentOption? value) {
-            setState(() {
-              selectedPaymentOption = value;
-            });
-          },
-          dense: true,
-        ),
-        TextField(
-          controller: descriptionController,
-          focusNode: descriptionFocus,
-          textInputAction: TextInputAction.next,
-          onSubmitted: (_) {
-            FocusScope.of(context).requestFocus(nextPageButtonFocus);
-          },
-          decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              labelText: 'Megjegyzés a recepciónak'),
-        ),
-        if (widget.bookingOption == BookingOption.both)
+          const SizedBox(height: 12),
+          const Text('Fizetendő összeg: 33 000 Ft'),
+          RadioListTile<PaymentOption>(
+            title: const Text('Bankkártyával fizetek'),
+            value: PaymentOption.card,
+            groupValue: selectedPaymentOption,
+            onChanged: (PaymentOption? value) {
+              setState(() {
+                selectedPaymentOption = value;
+              });
+            },
+            dense: true,
+          ),
+          RadioListTile<PaymentOption>(
+            title: const Text(
+                'Átutalással fizetek még a parkolás megkezdése előtt 1 nappal'),
+            value: PaymentOption.transfer,
+            groupValue: selectedPaymentOption,
+            onChanged: (PaymentOption? value) {
+              setState(() {
+                selectedPaymentOption = value;
+              });
+            },
+            dense: true,
+          ),
+          RadioListTile<PaymentOption>(
+            title: const Text('Qvik'),
+            value: PaymentOption.qvik,
+            groupValue: selectedPaymentOption,
+            onChanged: (PaymentOption? value) {
+              setState(() {
+                selectedPaymentOption = value;
+              });
+            },
+            dense: true,
+          ),
+          TextField(
+            controller: descriptionController,
+            focusNode: descriptionFocus,
+            textInputAction: TextInputAction.next,
+            onSubmitted: (_) {
+              FocusScope.of(context).requestFocus(nextPageButtonFocus);
+            },
+            decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Megjegyzés a recepciónak'),
+          ),
           NextPageButton(
-              focusNode: nextPageButtonFocus,
-              title: "Mosás foglalás",
-              nextPage: WashOrderPage(
-                authToken: widget.authToken,
-                bookingOption: widget.bookingOption,
-                emailController: widget.emailController,
-                licensePlateController: licensePlateController,
-                nameController: nameController,
-                phoneController: phoneController,
-                descriptionController: descriptionController,
-                arriveDate: selectedArriveDate,
-                leaveDate: selectedLeaveDate,
-                transferPersonCount: selectedTransferCount,
-                vip: VIPDriverRequested,
-              ))
-        else
-          NextPageButton(
-              focusNode: nextPageButtonFocus,
-              title: "Számlázás",
-              nextPage: InvoiceOptionPage(
-                authToken: widget.authToken,
-                nameController: nameController,
-                emailController: widget.emailController,
-                phoneController: phoneController,
-                licensePlateController: licensePlateController,
-                arriveDate: selectedArriveDate,
-                leaveDate: selectedLeaveDate,
-                transferPersonCount: selectedTransferCount,
-                vip: VIPDriverRequested,
-                descriptionController: descriptionController,
-                bookingOption: widget.bookingOption,
-              ))
-      ],
+            title: widget.bookingOption == BookingOption.washing
+                ? "Mosás foglalás"
+                : "Parkolás foglalás",
+            focusNode: nextPageButtonFocus,
+            onPressed: OnNextPageButtonPressed,
+          ),
+        ],
+      ),
     );
   }
 }

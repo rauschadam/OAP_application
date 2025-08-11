@@ -1,5 +1,3 @@
-// ignore_for_file: file_names
-
 enum BookingOption {
   parking, // Parkolni szeretnék
   washing, // Csak mosatni szeretnék

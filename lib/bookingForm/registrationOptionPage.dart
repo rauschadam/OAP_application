@@ -1,5 +1,3 @@
-// ignore_for_file: file_names
-
 import 'package:airport_test/basePage.dart';
 import 'package:airport_test/bookingForm/loginPage.dart';
 import 'package:airport_test/bookingForm/registrationPage.dart';

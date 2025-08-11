@@ -1,5 +1,3 @@
-// ignore_for_file: file_names
-
 import 'package:airport_test/api_Services/api_service.dart';
 import 'package:airport_test/basePage.dart';
 import 'package:airport_test/bookingForm/parkOrderPage.dart';
@@ -16,6 +14,8 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final formKey = GlobalKey<FormState>();
+
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
@@ -25,7 +25,7 @@ class _LoginPageState extends State<LoginPage> {
 
   String? authToken;
 
-  Future<String?> tryLogin() async {
+  Future<String?> LoginUser() async {
     final api = ApiService();
     final token =
         await api.loginUser(emailController.text, passwordController.text);
@@ -41,6 +41,48 @@ class _LoginPageState extends State<LoginPage> {
     return token;
   }
 
+  void OnNextPageButtonPressed() async {
+    if (formKey.currentState!.validate()) {
+      final token = await LoginUser();
+      if (token != null) {
+        Widget nextPage;
+        switch (widget.bookingOption) {
+          case BookingOption.parking:
+          case BookingOption.both:
+            nextPage = ParkOrderPage(
+              authToken: authToken!,
+              bookingOption: widget.bookingOption,
+              emailController: emailController,
+            );
+            break;
+          case BookingOption.washing:
+            nextPage = WashOrderPage(
+              authToken: authToken!,
+              bookingOption: widget.bookingOption,
+              emailController: emailController,
+            );
+            break;
+        }
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => BasePage(
+              title: widget.bookingOption == BookingOption.washing
+                  ? "Mosás foglalás"
+                  : "Parkolás foglalás",
+              child: nextPage,
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sikertelen Bejelentkezés!')),
+        );
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -52,109 +94,47 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextField(
-          controller: emailController,
-          focusNode: emailFocus,
-          textInputAction: TextInputAction.next,
-          onSubmitted: (_) {
-            FocusScope.of(context).requestFocus(passwordFocus);
-          },
-          decoration: const InputDecoration(labelText: 'Email cím'),
-        ),
-        TextField(
-          controller: passwordController,
-          obscureText: true,
-          focusNode: passwordFocus,
-          textInputAction: TextInputAction.next,
-          onSubmitted: (_) {
-            FocusScope.of(context).requestFocus(nextPageButtonFocus);
-          },
-          decoration: const InputDecoration(labelText: 'Jelszó'),
-        ),
-        switch (widget.bookingOption) {
-          BookingOption.parking => NextPageButton(
-              focusNode: nextPageButtonFocus,
-              title: "Parkolás foglalás",
-              onPressed: () async {
-                final token = await tryLogin();
-                if (token != null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => BasePage(
-                        title: "Parkolás foglalás",
-                        child: ParkOrderPage(
-                          authToken: token,
-                          bookingOption: widget.bookingOption,
-                          emailController: emailController,
-                        ),
-                      ),
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Sikertelen bejelentkezés!')),
-                  );
-                }
-              },
-            ),
-          BookingOption.washing => NextPageButton(
-              focusNode: nextPageButtonFocus,
-              title: "Mosás foglalás",
-              onPressed: () async {
-                final token = await tryLogin();
-                if (token != null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => BasePage(
-                        title: "Mosás foglalás",
-                        child: WashOrderPage(
-                          authToken: token,
-                          bookingOption: widget.bookingOption,
-                          emailController: emailController,
-                        ),
-                      ),
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Sikertelen bejelentkezés!')),
-                  );
-                }
-              },
-            ),
-          BookingOption.both => NextPageButton(
-              focusNode: nextPageButtonFocus,
-              title: "Parkolás foglalás",
-              onPressed: () async {
-                final token = await tryLogin();
-                if (token != null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => BasePage(
-                        title: "Parkolás foglalás",
-                        child: ParkOrderPage(
-                          authToken: token,
-                          bookingOption: widget.bookingOption,
-                          emailController: emailController,
-                        ),
-                      ),
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Sikertelen bejelentkezés!')),
-                  );
-                }
-              },
-            ),
-        }
-      ],
-    );
+    return Form(
+        key: formKey,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          TextFormField(
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Adja meg email címét';
+              }
+              return null;
+            },
+            controller: emailController,
+            focusNode: emailFocus,
+            textInputAction: TextInputAction.next,
+            onEditingComplete: () {
+              FocusScope.of(context).requestFocus(passwordFocus);
+            },
+            decoration: const InputDecoration(labelText: 'Email cím'),
+          ),
+          TextFormField(
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Adjon meg egy jelszót';
+              }
+              return null;
+            },
+            controller: passwordController,
+            obscureText: true,
+            focusNode: passwordFocus,
+            textInputAction: TextInputAction.next,
+            onEditingComplete: () {
+              FocusScope.of(context).requestFocus(nextPageButtonFocus);
+            },
+            decoration: const InputDecoration(labelText: 'Jelszó'),
+          ),
+          NextPageButton(
+            title: widget.bookingOption == BookingOption.washing
+                ? "Mosás foglalás"
+                : "Parkolás foglalás",
+            focusNode: nextPageButtonFocus,
+            onPressed: OnNextPageButtonPressed,
+          ),
+        ]));
   }
 }

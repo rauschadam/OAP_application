@@ -1,17 +1,19 @@
-// ignore_for_file: non_constant_identifier_names
-
-import 'package:airport_test/parkingForm.dart';
+import 'package:airport_test/basePage.dart';
+import 'package:airport_test/homePage.dart';
 import 'package:flutter/material.dart';
 
-void main() => runApp(const ParkingApp());
+void main() => runApp(const MainApp());
 
-class ParkingApp extends StatelessWidget {
-  const ParkingApp({super.key});
+class MainApp extends StatelessWidget {
+  const MainApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      home: ParkingFormWizard(),
+      home: BasePage(
+        title: "Menü",
+        child: HomePage(),
+      ),
     );
   }
 }

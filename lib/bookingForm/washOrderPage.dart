@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class WashOrderPage extends StatefulWidget {
+  final String? authToken;
   final BookingOption bookingOption;
   final TextEditingController emailController;
   final TextEditingController? nameController;
@@ -19,6 +20,7 @@ class WashOrderPage extends StatefulWidget {
   final bool? vip;
   const WashOrderPage({
     super.key,
+    required this.authToken,
     required this.bookingOption,
     required this.emailController,
     this.nameController,
@@ -493,6 +495,7 @@ class _WashOrderPageState extends State<WashOrderPage> {
             focusNode: nextPageButtonFocus,
             title: "Számlázás",
             nextPage: InvoiceOptionPage(
+              authToken: widget.authToken,
               nameController: nameController,
               emailController: widget.emailController,
               phoneController: phoneController,

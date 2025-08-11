@@ -19,9 +19,20 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        print('Sikeres Regisztráció!');
         final json = jsonDecode(response.body);
-        return json['responseContent']['authorizationToken'];
+
+        final responseCode = json['responseCode'];
+        final responseMessage = json['responseMessage'];
+
+        if (responseCode != null) {
+          // Feltételezve, hogy 0 a sikeres kód
+          print('Regisztrációs hiba: $responseMessage');
+          return null;
+        } else {
+          print('Sikeres Regisztráció!');
+          final json = jsonDecode(response.body);
+          return json['responseContent']['authorizationToken'];
+        }
       } else {
         print('Regisztrációs hiba: ${response.statusCode}');
         print(response.body);
@@ -63,7 +74,7 @@ class ApiService {
   }
 
   /// Foglalás
-  Future<void> submitReservation(Reservation reservation, String token) async {
+  Future<void> submitReservation(Reservation reservation, String? token) async {
     final uri = Uri.http(baseUrl, '/service/v1/airport/reserve');
 
     try {

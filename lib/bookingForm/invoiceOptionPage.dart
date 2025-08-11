@@ -1,11 +1,14 @@
 // ignore_for_file: file_names
 
+import 'package:airport_test/api_Services/api_service.dart';
+import 'package:airport_test/api_Services/reservation.dart';
 import 'package:airport_test/basePage.dart';
 import 'package:airport_test/enums/parkingFormEnums.dart';
 import 'package:airport_test/homePage.dart';
 import 'package:flutter/material.dart';
 
 class InvoiceOptionPage extends StatefulWidget {
+  final String? authToken;
   final BookingOption bookingOption;
   // final int parkingService;
   // final bool alreadyRegistered;
@@ -26,6 +29,7 @@ class InvoiceOptionPage extends StatefulWidget {
   final TextEditingController descriptionController;
   const InvoiceOptionPage(
       {super.key,
+      required this.authToken,
       required this.nameController,
       required this.emailController,
       required this.phoneController,
@@ -72,22 +76,37 @@ class _InvoiceOptionPageState extends State<InvoiceOptionPage> {
         ),
         NextPageButton(
             text: "Foglalás küldése",
-            onPressedExtra: () {
-              print('bookingOption: ${widget.bookingOption}\n'
-                  'name: ${widget.nameController.text}\n'
-                  'email: ${widget.emailController.text}\n'
-                  'phone: ${widget.phoneController.text}\n'
-                  'licensePlate: ${widget.licensePlateController.text}\n'
-                  'arriveDate: ${widget.arriveDate}\n'
-                  'leaveDate: ${widget.leaveDate}\n'
-                  'transferPersonCount: ${widget.transferPersonCount}\n'
-                  'vip: ${widget.vip}\n'
-                  'washDateTime: ${widget.washDateTime}\n'
-                  'description: ${widget.descriptionController.text}');
+            onPressed: () {
+              submitReservation();
             },
             title: "Menü",
             nextPage: const HomePage())
       ],
     );
+  }
+
+  void submitReservation() async {
+    final reservation = Reservation(
+      parkingService: 1,
+      alreadyRegistered: true,
+      withoutRegistration: false,
+      name: widget.nameController.text,
+      email: widget.emailController.text,
+      phone: widget.phoneController.text,
+      licensePlate: widget.licensePlateController.text,
+      arriveDate: widget.arriveDate!,
+      leaveDate: widget.leaveDate!,
+      parkingArticleId: "",
+      parkingArticleVolume: "1",
+      transferPersonCount: 3,
+      vip: widget.vip!,
+      suitcaseWrappingCount: null,
+      carWashArticleId: "",
+      washDateTime: null,
+      payType: 1,
+      description: widget.descriptionController.text,
+    );
+
+    await ApiService().submitReservation(reservation, widget.authToken);
   }
 }

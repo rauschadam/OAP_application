@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class ParkOrderPage extends StatefulWidget {
+  final String? authToken;
   final BookingOption bookingOption;
   final TextEditingController emailController;
   final TextEditingController? nameController;
@@ -15,6 +16,7 @@ class ParkOrderPage extends StatefulWidget {
   final TextEditingController? licensePlateController;
   const ParkOrderPage(
       {super.key,
+      required this.authToken,
       required this.bookingOption,
       required this.emailController,
       this.nameController,
@@ -413,7 +415,7 @@ class _ParkOrderPageState extends State<ParkOrderPage> {
         Row(children: [
           ElevatedButton(
               onPressed: () {
-                ShowDatePickerDialog;
+                ShowDatePickerDialog();
                 FocusScope.of(context).requestFocus(transferFocus);
               },
               focusNode: datePickerFocus,
@@ -577,6 +579,7 @@ class _ParkOrderPageState extends State<ParkOrderPage> {
               focusNode: nextPageButtonFocus,
               title: "Mosás foglalás",
               nextPage: WashOrderPage(
+                authToken: widget.authToken,
                 bookingOption: widget.bookingOption,
                 emailController: widget.emailController,
                 licensePlateController: licensePlateController,
@@ -593,6 +596,7 @@ class _ParkOrderPageState extends State<ParkOrderPage> {
               focusNode: nextPageButtonFocus,
               title: "Számlázás",
               nextPage: InvoiceOptionPage(
+                authToken: widget.authToken,
                 nameController: nameController,
                 emailController: widget.emailController,
                 phoneController: phoneController,

@@ -33,37 +33,41 @@ class BasePage extends StatelessWidget {
 class NextPageButton extends StatelessWidget {
   final String text;
   final String title;
-  final Widget nextPage;
-  final VoidCallback? onPressedExtra;
+  final Widget? nextPage;
+  final VoidCallback? onPressed;
   final FocusNode? focusNode;
 
   const NextPageButton(
       {super.key,
       this.text = "Tovább",
       required this.title,
-      required this.nextPage,
-      this.onPressedExtra,
+      this.nextPage,
+      this.onPressed,
       this.focusNode});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8.0),
-      child: Align(
-        alignment: Alignment.centerRight,
-        child: ElevatedButton(
-          focusNode: focusNode,
-          onPressed: () {
-            if (onPressedExtra != null) {
-              onPressedExtra!();
-            }
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => BasePage(title: title, child: nextPage)),
-            );
-          },
-          child: Text(text),
+    return Material(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 8.0),
+        child: Align(
+          alignment: Alignment.centerRight,
+          child: ElevatedButton(
+            focusNode: focusNode,
+            onPressed: () {
+              if (onPressed != null) {
+                onPressed!();
+              }
+              if (nextPage != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => BasePage(title: title, child: nextPage!)),
+                );
+              }
+            },
+            child: Text(text),
+          ),
         ),
       ),
     );

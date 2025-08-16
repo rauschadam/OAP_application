@@ -1,4 +1,4 @@
-import 'package:airport_test/basePage.dart';
+import 'package:airport_test/constantWidgets.dart';
 import 'package:airport_test/bookingForm/invoiceOptionPage.dart';
 import 'package:airport_test/bookingForm/washOrderPage.dart';
 import 'package:airport_test/enums/parkingFormEnums.dart';
@@ -47,9 +47,9 @@ class _ParkOrderPageState extends State<ParkOrderPage> {
   DateTime now = DateTime.now();
 
   // Az enumok / kiválasztható lehetőségek default értékei
-  BookingOption? selectedBookingOption = BookingOption.parking;
-  ParkingZoneOption? selectedParkingZoneOption = ParkingZoneOption.premium;
-  PaymentOption? selectedPaymentOption = PaymentOption.card;
+  BookingOption selectedBookingOption = BookingOption.parking;
+  ParkingZoneOption selectedParkingZoneOption = ParkingZoneOption.premium;
+  PaymentOption selectedPaymentOption = PaymentOption.card;
 
   /// Transzferrel szállított személyek száma
   int selectedTransferCount = 1;
@@ -393,18 +393,23 @@ class _ParkOrderPageState extends State<ParkOrderPage> {
           vip: VIPDriverRequested,
         );
       }
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => BasePage(
-            title: widget.bookingOption == BookingOption.parking
-                ? "Számlázás"
-                : "Mosás foglalás",
-            child: nextPage!,
+      if (selectedArriveDate != null && selectedLeaveDate != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => BasePage(
+              title: widget.bookingOption == BookingOption.parking
+                  ? "Számlázás"
+                  : "Mosás foglalás",
+              child: nextPage!,
+            ),
           ),
-        ),
-      );
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Válassz ki Parkolási intervallumot!')),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Sikertelen Bejelentkezés!')),
@@ -511,35 +516,38 @@ class _ParkOrderPageState extends State<ParkOrderPage> {
           ]),
           const SizedBox(height: 16),
           const Text('Parkoló zóna választás'),
-          RadioListTile<ParkingZoneOption>(
-            title: const Text('Fedett (10 000 Ft/ nap)'),
+          MyRadioListTile<ParkingZoneOption>(
+            title: 'Fedett',
+            subtitle: '10 000 Ft/ nap',
             value: ParkingZoneOption.premium,
             groupValue: selectedParkingZoneOption,
             onChanged: (ParkingZoneOption? value) {
               setState(() {
-                selectedParkingZoneOption = value;
+                selectedParkingZoneOption = value!;
               });
             },
             dense: true,
           ),
-          RadioListTile<ParkingZoneOption>(
-            title: const Text('Nyitott térköves (5 000 Ft/ nap)'),
+          MyRadioListTile<ParkingZoneOption>(
+            title: 'Nyitott térköves',
+            subtitle: '5 000 Ft/ nap',
             value: ParkingZoneOption.normal,
             groupValue: selectedParkingZoneOption,
             onChanged: (ParkingZoneOption? value) {
               setState(() {
-                selectedParkingZoneOption = value;
+                selectedParkingZoneOption = value!;
               });
             },
             dense: true,
           ),
-          RadioListTile<ParkingZoneOption>(
-            title: const Text('Nyitott murvás (2 000 Ft/ nap)'),
+          MyRadioListTile<ParkingZoneOption>(
+            title: 'Nyitott murvás',
+            subtitle: '2 000 Ft / nap',
             value: ParkingZoneOption.eco,
             groupValue: selectedParkingZoneOption,
             onChanged: (ParkingZoneOption? value) {
               setState(() {
-                selectedParkingZoneOption = value;
+                selectedParkingZoneOption = value!;
               });
             },
             dense: true,
@@ -601,36 +609,36 @@ class _ParkOrderPageState extends State<ParkOrderPage> {
           ),
           const SizedBox(height: 12),
           const Text('Fizetendő összeg: 33 000 Ft'),
-          RadioListTile<PaymentOption>(
-            title: const Text('Bankkártyával fizetek'),
+          MyRadioListTile<PaymentOption>(
+            title: 'Bankkártyával fizetek',
             value: PaymentOption.card,
             groupValue: selectedPaymentOption,
             onChanged: (PaymentOption? value) {
               setState(() {
-                selectedPaymentOption = value;
+                selectedPaymentOption = value!;
               });
             },
             dense: true,
           ),
-          RadioListTile<PaymentOption>(
-            title: const Text(
-                'Átutalással fizetek még a parkolás megkezdése előtt 1 nappal'),
+          MyRadioListTile<PaymentOption>(
+            title:
+                'Átutalással fizetek még a parkolás megkezdése előtt 1 nappal',
             value: PaymentOption.transfer,
             groupValue: selectedPaymentOption,
             onChanged: (PaymentOption? value) {
               setState(() {
-                selectedPaymentOption = value;
+                selectedPaymentOption = value!;
               });
             },
             dense: true,
           ),
-          RadioListTile<PaymentOption>(
-            title: const Text('Qvik'),
+          MyRadioListTile<PaymentOption>(
+            title: 'Qvik',
             value: PaymentOption.qvik,
             groupValue: selectedPaymentOption,
             onChanged: (PaymentOption? value) {
               setState(() {
-                selectedPaymentOption = value;
+                selectedPaymentOption = value!;
               });
             },
             dense: true,

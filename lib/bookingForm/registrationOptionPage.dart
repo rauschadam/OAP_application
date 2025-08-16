@@ -1,4 +1,4 @@
-import 'package:airport_test/basePage.dart';
+import 'package:airport_test/constantWidgets.dart';
 import 'package:airport_test/bookingForm/loginPage.dart';
 import 'package:airport_test/bookingForm/registrationPage.dart';
 import 'package:airport_test/enums/parkingFormEnums.dart';
@@ -13,45 +13,66 @@ class RegistrationOptionPage extends StatefulWidget {
 }
 
 class _RegistrationOptionPageState extends State<RegistrationOptionPage> {
-  RegistrationOption? selectedRegistrationOption =
-      RegistrationOption.registered;
+  RegistrationOption selectedRegistrationOption = RegistrationOption.registered;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        RadioListTile<RegistrationOption>(
-          title: const Text('Regisztrált partner vagyok'),
-          value: RegistrationOption.registered,
-          groupValue: selectedRegistrationOption,
-          onChanged: (RegistrationOption? value) {
-            setState(() {
-              selectedRegistrationOption = value;
-            });
-          },
+        Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: MyRadioListTile<RegistrationOption>(
+            title: 'Regisztrált partner vagyok',
+            value: RegistrationOption.registered,
+            groupValue: selectedRegistrationOption,
+            onChanged: (RegistrationOption? value) {
+              setState(() {
+                selectedRegistrationOption = value!;
+              });
+            },
+            leading: Icon(
+              Icons.login_rounded,
+              color: selectedRegistrationOption == RegistrationOption.registered
+                  ? Colors.blue
+                  : Colors.grey,
+            ),
+          ),
         ),
-        RadioListTile<RegistrationOption>(
-          title: const Text('Most szeretnék regisztrálni'),
+        MyRadioListTile<RegistrationOption>(
+          title: 'Most szeretnék regisztrálni',
           value: RegistrationOption.registerNow,
           groupValue: selectedRegistrationOption,
           onChanged: (RegistrationOption? value) {
             setState(() {
-              selectedRegistrationOption = value;
+              selectedRegistrationOption = value!;
             });
           },
+          leading: Icon(
+            Icons.app_registration_rounded,
+            color: selectedRegistrationOption == RegistrationOption.registerNow
+                ? Colors.green
+                : Colors.grey,
+          ),
         ),
-        RadioListTile<RegistrationOption>(
-          title: const Text('Regisztráció nélkül vásárolok'),
+        MyRadioListTile<RegistrationOption>(
+          title: 'Regisztráció nélkül vásárolok',
           value: RegistrationOption.withoutRegistration,
           groupValue: selectedRegistrationOption,
           onChanged: (RegistrationOption? value) {
             setState(() {
-              selectedRegistrationOption = value;
+              selectedRegistrationOption = value!;
             });
           },
+          leading: Icon(
+            Icons.no_accounts_rounded,
+            color: selectedRegistrationOption ==
+                    RegistrationOption.withoutRegistration
+                ? Colors.grey[700]
+                : Colors.grey,
+          ),
         ),
-        switch (selectedRegistrationOption!) {
+        switch (selectedRegistrationOption) {
           RegistrationOption.registerNow => NextPageButton(
               title: "Regisztráció",
               nextPage: RegistrationPage(
@@ -69,7 +90,7 @@ class _RegistrationOptionPageState extends State<RegistrationOptionPage> {
               nextPage: LoginPage(
                 bookingOption: widget.bookingOption,
               ),
-            ), // Később más lesz...
+            ),
         },
       ],
     );

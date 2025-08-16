@@ -1,4 +1,4 @@
-import 'package:airport_test/basePage.dart';
+import 'package:airport_test/constantWidgets.dart';
 import 'package:airport_test/bookingForm/invoiceOptionPage.dart';
 import 'package:airport_test/enums/parkingFormEnums.dart';
 import 'package:flutter/material.dart';
@@ -36,6 +36,9 @@ class WashOrderPage extends StatefulWidget {
 }
 
 class _WashOrderPageState extends State<WashOrderPage> {
+  final formKey = GlobalKey<FormState>();
+
+  // initState-ben átadjuk nekik az előző page-ben megadott adatokat
   late final TextEditingController nameController;
   late final TextEditingController phoneController;
   late final TextEditingController licensePlateController;
@@ -48,8 +51,9 @@ class _WashOrderPageState extends State<WashOrderPage> {
   FocusNode descriptionFocus = FocusNode();
   FocusNode nextPageButtonFocus = FocusNode();
 
-  WashOption? selectedWashOption = WashOption.basic;
-  PaymentOption? selectedPaymentOption = PaymentOption.card;
+  // Default értékek
+  WashOption selectedWashOption = WashOption.basic;
+  PaymentOption selectedPaymentOption = PaymentOption.card;
 
   /// Aktuális idő
   DateTime now = DateTime.now();
@@ -73,22 +77,20 @@ class _WashOrderPageState extends State<WashOrderPage> {
 
   int hoveredIndex = -1;
 
+  /// Lekéri az aktuális dátumot, és default beállítja a selectedWashArriveHour-t erre a dátumra.
   void GetCurrentDate() {
     DateTime now = DateTime.now();
 
-    /// Nem jó mert nem vált dátumot
-    if (now.hour < 23) {
-      selectedWashArriveHour = now.hour + 1;
-    } else {
-      selectedWashArriveHour = 0;
-    }
+    selectedWashArriveHour = now.hour;
 
     selectedWashArriveDate =
-        DateTime(now.year, now.month, now.day, selectedWashArriveHour, 0);
+        DateTime(now.year, now.month, now.day, selectedWashArriveHour, 0)
+            .add(const Duration(hours: 1));
     selectedWashLeaveDate =
         selectedWashArriveDate!.add(const Duration(minutes: 30));
   }
 
+  /// Frissíti a telített foglalású napokat, ezekre már nem lehet foglalni.
   void updateBlackoutDays() {
     if (tempWashArriveDate == null) {
       blackoutDays = [];
@@ -113,8 +115,9 @@ class _WashOrderPageState extends State<WashOrderPage> {
     );
 
     //Szűrjük, hogy a fullyBookedDates-ben lévő időpont beleessen az intervallumba
-    final filtered = fullyBookedDates.where((d) {
-      return !d.isBefore(startDateTime) && !d.isAfter(endDateTime);
+    final filtered = fullyBookedDates.where((bookedDate) {
+      return !bookedDate.isBefore(startDateTime) &&
+          !bookedDate.isAfter(endDateTime);
     });
 
     //A blackoutDays csak a dátum (év, hónap, nap), idő nélkül
@@ -129,9 +132,10 @@ class _WashOrderPageState extends State<WashOrderPage> {
       : '–';
 
   /// Az aktuálisan kiválasztott időpont (óra+perc) TimeOfDay típusként
-  TimeOfDay get selectedWashArriveTime =>
-      TimeOfDay(hour: selectedWashArriveHour, minute: selectedWashArriveMinute);
+  // TimeOfDay get selectedWashArriveTime =>
+  //     TimeOfDay(hour: selectedWashArriveHour, minute: selectedWashArriveMinute);
 
+  /// Dátum választó pop-up dialog
   void ShowDatePickerDialog() {
     tempWashArriveDate = selectedWashArriveDate;
     tempWashLeaveDate = selectedWashLeaveDate;
@@ -143,16 +147,16 @@ class _WashOrderPageState extends State<WashOrderPage> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
-            // időpont választó kártyák widgetje, hogy setStateDialog használjon
+            // időpont választó kártyák widgetje
             Widget buildTimeSlotPicker() {
               final timeSlots = generateHalfHourTimeSlots();
 
               return SizedBox(
-                height: 200, // Több sor miatt megnövelve
+                height: 200,
                 child: GridView.builder(
                   scrollDirection: Axis.vertical,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4, // 4 kártya egy sorban
+                    crossAxisCount: 4,
                     mainAxisSpacing: 8,
                     crossAxisSpacing: 8,
                     childAspectRatio: 2.5,
@@ -323,6 +327,7 @@ class _WashOrderPageState extends State<WashOrderPage> {
     );
   }
 
+  /// Hiba megjelenítő pop-up dialog
   void ShowError(String msg) => showDialog(
         context: context,
         builder: (ctx) {
@@ -343,6 +348,7 @@ class _WashOrderPageState extends State<WashOrderPage> {
   void initState() {
     super.initState();
 
+    // Beállítjuk az előző page-ről a TextFormField-ek controller-eit
     nameController = widget.nameController ?? TextEditingController();
     phoneController = widget.phoneController ?? TextEditingController();
     licensePlateController =
@@ -350,168 +356,221 @@ class _WashOrderPageState extends State<WashOrderPage> {
     descriptionController =
         widget.descriptionController ?? TextEditingController();
 
+    // Kis késleltetéssel adunk fókuszt, hogy a build lefusson
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).requestFocus(nameFocus);
+    });
+
     GetCurrentDate();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextField(
-          controller: nameController,
-          focusNode: nameFocus,
-          decoration: const InputDecoration(labelText: 'Foglaló személy neve'),
-        ),
-        TextField(
-          controller: phoneController,
-          focusNode: phoneFocus,
-          decoration: const InputDecoration(labelText: 'Telefonszám'),
-        ),
-        TextField(
-          controller: licensePlateController,
-          focusNode: licensePlateFocus,
-          decoration: const InputDecoration(labelText: 'Várható rendszám'),
-        ),
-        const SizedBox(height: 16),
-        Row(children: [
-          ElevatedButton(
-              focusNode: datePickerFocus,
-              onPressed: ShowDatePickerDialog,
-              child: const Text("Válassz dátumot")),
-          const SizedBox(
-            width: 10,
+    return Form(
+      key: formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextFormField(
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Adja meg felhasználó nevét';
+              }
+              return null;
+            },
+            controller: nameController,
+            focusNode: nameFocus,
+            textInputAction: TextInputAction.next,
+            onEditingComplete: () {
+              FocusScope.of(context).requestFocus(phoneFocus);
+            },
+            decoration:
+                const InputDecoration(labelText: 'Foglaló személy neve'),
           ),
-          Column(
-            children: [
-              Text("Érkezés: ${format(selectedWashArriveDate)}"),
-              Text("Távozás: ${format(selectedWashLeaveDate)}"),
-            ],
+          TextFormField(
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Adja meg telefonszámát';
+              }
+              return null;
+            },
+            controller: phoneController,
+            focusNode: phoneFocus,
+            textInputAction: TextInputAction.next,
+            onEditingComplete: () {
+              FocusScope.of(context).requestFocus(licensePlateFocus);
+            },
+            decoration: const InputDecoration(labelText: 'Telefonszám'),
           ),
-        ]),
-        const SizedBox(height: 12),
-        const Text('Válassza ki a kívánt programot'),
-        RadioListTile<WashOption>(
-          title: const Text('Alapmosás - 10 000 Ft'),
-          value: WashOption.basic,
-          groupValue: selectedWashOption,
-          onChanged: (WashOption? value) {
-            setState(() {
-              selectedWashOption = value;
-            });
-          },
-          dense: true,
-        ),
-        RadioListTile<WashOption>(
-          title: const Text('Mosás 2 - 20 000 Ft'),
-          value: WashOption.wash2,
-          groupValue: selectedWashOption,
-          onChanged: (WashOption? value) {
-            setState(() {
-              selectedWashOption = value;
-            });
-          },
-          dense: true,
-        ),
-        RadioListTile<WashOption>(
-          title: const Text('Mosás 3 - 30 000 Ft'),
-          value: WashOption.wash3,
-          groupValue: selectedWashOption,
-          onChanged: (WashOption? value) {
-            setState(() {
-              selectedWashOption = value;
-            });
-          },
-          dense: true,
-        ),
-        RadioListTile<WashOption>(
-          title: const Text('Mosás 4 - 40 000 Ft'),
-          value: WashOption.wash4,
-          groupValue: selectedWashOption,
-          onChanged: (WashOption? value) {
-            setState(() {
-              selectedWashOption = value;
-            });
-          },
-          dense: true,
-        ),
-        RadioListTile<WashOption>(
-          title: const Text('Szupermosás porszívóval - 50 000 Ft'),
-          value: WashOption.superWash,
-          groupValue: selectedWashOption,
-          onChanged: (WashOption? value) {
-            setState(() {
-              selectedWashOption = value;
-            });
-          },
-          dense: true,
-        ),
-        const SizedBox(height: 10),
-        const Text('Fizetendő összeg: 33 000 Ft'),
-        RadioListTile<PaymentOption>(
-          title: const Text('Bankkártyával fizetek'),
-          value: PaymentOption.card,
-          groupValue: selectedPaymentOption,
-          onChanged: (PaymentOption? value) {
-            setState(() {
-              selectedPaymentOption = value;
-            });
-          },
-          dense: true,
-        ),
-        RadioListTile<PaymentOption>(
-          title: const Text(
-              'Átutalással fizetek még a parkolás megkezdése előtt 1 nappal'),
-          value: PaymentOption.transfer,
-          groupValue: selectedPaymentOption,
-          onChanged: (PaymentOption? value) {
-            setState(() {
-              selectedPaymentOption = value;
-            });
-          },
-          dense: true,
-        ),
-        RadioListTile<PaymentOption>(
-          title: const Text('Qvik'),
-          value: PaymentOption.qvik,
-          groupValue: selectedPaymentOption,
-          onChanged: (PaymentOption? value) {
-            setState(() {
-              selectedPaymentOption = value;
-            });
-          },
-          dense: true,
-        ),
-        TextField(
-          focusNode: descriptionFocus,
-          controller: descriptionController,
-          decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              labelText: 'Megjegyzés a recepciónak'),
-        ),
-        NextPageButton(
-            focusNode: nextPageButtonFocus,
-            title: "Számlázás",
-            nextPage: InvoiceOptionPage(
-              authToken: widget.authToken,
-              nameController: nameController,
-              emailController: widget.emailController,
-              phoneController: phoneController,
-              licensePlateController: licensePlateController,
-              arriveDate: widget.arriveDate,
-              leaveDate: widget.leaveDate,
-              transferPersonCount: widget.transferPersonCount,
-              washDateTime: selectedWashArriveDate,
-              vip: widget.vip,
-              descriptionController: descriptionController,
-              bookingOption: widget.bookingOption,
-            ))
-      ],
+          TextFormField(
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Adja meg rendszámát';
+              }
+              return null;
+            },
+            controller: licensePlateController,
+            focusNode: licensePlateFocus,
+            textInputAction: TextInputAction.next,
+            onEditingComplete: () {
+              FocusScope.of(context).requestFocus(datePickerFocus);
+            },
+            decoration: const InputDecoration(labelText: 'Várható rendszám'),
+          ),
+          const SizedBox(height: 16),
+          Row(children: [
+            ElevatedButton(
+                focusNode: datePickerFocus,
+                onPressed: ShowDatePickerDialog,
+                child: const Text("Válassz dátumot")),
+            const SizedBox(
+              width: 10,
+            ),
+            Column(
+              children: [
+                Text("Érkezés: ${format(selectedWashArriveDate)}"),
+                Text("Távozás: ${format(selectedWashLeaveDate)}"),
+              ],
+            ),
+          ]),
+          const SizedBox(height: 12),
+          const Text('Válassza ki a kívánt programot'),
+          MyRadioListTile<WashOption>(
+            title: 'Alapmosás',
+            subtitle: '10 000 Ft',
+            value: WashOption.basic,
+            groupValue: selectedWashOption,
+            onChanged: (WashOption? value) {
+              setState(() {
+                selectedWashOption = value!;
+              });
+            },
+            dense: true,
+          ),
+          MyRadioListTile<WashOption>(
+            title: 'Mosás 2',
+            subtitle: '20 000 Ft',
+            value: WashOption.wash2,
+            groupValue: selectedWashOption,
+            onChanged: (WashOption? value) {
+              setState(() {
+                selectedWashOption = value!;
+              });
+            },
+            dense: true,
+          ),
+          MyRadioListTile<WashOption>(
+            title: 'Mosás 3',
+            subtitle: '30 000 Ft',
+            value: WashOption.wash3,
+            groupValue: selectedWashOption,
+            onChanged: (WashOption? value) {
+              setState(() {
+                selectedWashOption = value!;
+              });
+            },
+            dense: true,
+          ),
+          MyRadioListTile<WashOption>(
+            title: 'Mosás 4',
+            subtitle: '40 000 Ft',
+            value: WashOption.wash4,
+            groupValue: selectedWashOption,
+            onChanged: (WashOption? value) {
+              setState(() {
+                selectedWashOption = value!;
+              });
+            },
+            dense: true,
+          ),
+          MyRadioListTile<WashOption>(
+            title: 'Szupermosás porszívóval',
+            subtitle: '50 000 Ft',
+            value: WashOption.superWash,
+            groupValue: selectedWashOption,
+            onChanged: (WashOption? value) {
+              setState(() {
+                selectedWashOption = value!;
+              });
+            },
+            dense: true,
+          ),
+          const SizedBox(height: 10),
+          const Text('Fizetendő összeg: 33 000 Ft'),
+          MyRadioListTile<PaymentOption>(
+            title: 'Bankkártyával fizetek',
+            value: PaymentOption.card,
+            groupValue: selectedPaymentOption,
+            onChanged: (PaymentOption? value) {
+              setState(() {
+                selectedPaymentOption = value!;
+              });
+            },
+            dense: true,
+          ),
+          MyRadioListTile<PaymentOption>(
+            title:
+                'Átutalással fizetek még a parkolás megkezdése előtt 1 nappal',
+            value: PaymentOption.transfer,
+            groupValue: selectedPaymentOption,
+            onChanged: (PaymentOption? value) {
+              setState(() {
+                selectedPaymentOption = value!;
+              });
+            },
+            dense: true,
+          ),
+          MyRadioListTile<PaymentOption>(
+            title: 'Qvik',
+            value: PaymentOption.qvik,
+            groupValue: selectedPaymentOption,
+            onChanged: (PaymentOption? value) {
+              setState(() {
+                selectedPaymentOption = value!;
+              });
+            },
+            dense: true,
+          ),
+          TextFormField(
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Adja meg felhasználó nevét';
+              }
+              return null;
+            },
+            focusNode: descriptionFocus,
+            controller: descriptionController,
+            decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Megjegyzés a recepciónak'),
+            onEditingComplete: () {
+              FocusScope.of(context).requestFocus(nextPageButtonFocus);
+            },
+          ),
+          NextPageButton(
+              focusNode: nextPageButtonFocus,
+              title: "Számlázás",
+              nextPage: InvoiceOptionPage(
+                authToken: widget.authToken,
+                nameController: nameController,
+                emailController: widget.emailController,
+                phoneController: phoneController,
+                licensePlateController: licensePlateController,
+                arriveDate: widget.arriveDate,
+                leaveDate: widget.leaveDate,
+                transferPersonCount: widget.transferPersonCount,
+                washDateTime: selectedWashArriveDate,
+                vip: widget.vip,
+                descriptionController: descriptionController,
+                bookingOption: widget.bookingOption,
+              ))
+        ],
+      ),
     );
   }
 }
 
-// Félórás időpontok generálása 7:00 - 21:00 között
+/// Félórás időpontok generálása az időpont választáshoz 0:00 - 23:30 között
 List<TimeOfDay> generateHalfHourTimeSlots() {
   List<TimeOfDay> slots = [];
   for (int hour = 0; hour <= 23; hour++) {

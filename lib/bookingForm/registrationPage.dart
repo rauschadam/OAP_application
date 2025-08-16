@@ -1,6 +1,6 @@
 import 'package:airport_test/api_Services/api_service.dart';
 import 'package:airport_test/api_Services/registration.dart';
-import 'package:airport_test/basePage.dart';
+import 'package:airport_test/constantWidgets.dart';
 import 'package:airport_test/bookingForm/parkOrderPage.dart';
 import 'package:airport_test/bookingForm/washOrderPage.dart';
 import 'package:airport_test/enums/parkingFormEnums.dart';
@@ -59,7 +59,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     return token;
   }
 
-  void _onNextPressed() async {
+  void OnNextPageButtonPressed() async {
     if (formKey.currentState!.validate()) {
       final token = await RegisterUser();
       if (token != null) {
@@ -123,7 +123,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TextFormField(
+          MyTextFormField(
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Adja meg email címét';
@@ -133,12 +133,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
             controller: emailController,
             focusNode: emailFocus,
             textInputAction: TextInputAction.next,
-            onEditingComplete: () {
-              FocusScope.of(context).requestFocus(passwordFocus);
-            },
-            decoration: const InputDecoration(labelText: 'Email cím'),
+            nextFocus: passwordFocus,
+            labelText: 'Email cím',
           ),
-          TextFormField(
+          MyTextFormField(
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Adjon meg egy jelszót';
@@ -149,12 +147,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
             obscureText: true,
             focusNode: passwordFocus,
             textInputAction: TextInputAction.next,
-            onEditingComplete: () {
-              FocusScope.of(context).requestFocus(nameFocus);
-            },
-            decoration: const InputDecoration(labelText: 'Jelszó'),
+            nextFocus: nameFocus,
+            labelText: 'Jelszó',
           ),
-          TextFormField(
+          MyTextFormField(
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Adjon meg egy felhasználó nevet';
@@ -164,12 +160,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
             controller: nameController,
             focusNode: nameFocus,
             textInputAction: TextInputAction.next,
-            onEditingComplete: () {
-              FocusScope.of(context).requestFocus(phoneFocus);
-            },
-            decoration: const InputDecoration(labelText: 'Felhasználó név'),
+            nextFocus: phoneFocus,
+            labelText: 'Felhasználó név',
           ),
-          TextFormField(
+          MyTextFormField(
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Adja meg telefonszámát';
@@ -179,13 +173,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
             controller: phoneController,
             focusNode: phoneFocus,
             textInputAction: TextInputAction.next,
-            onEditingComplete: () {
-              FocusScope.of(context)
-                  .requestFocus(favoriteLicensePlateNumberFocus);
-            },
-            decoration: const InputDecoration(labelText: 'Telefonszám'),
+            nextFocus: favoriteLicensePlateNumberFocus,
+            labelText: 'Telefonszám',
           ),
-          TextFormField(
+          MyTextFormField(
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Adja meg kedvenc rendszámát';
@@ -195,10 +186,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
             controller: favoriteLicensePlateNumberController,
             focusNode: favoriteLicensePlateNumberFocus,
             textInputAction: TextInputAction.done,
-            onEditingComplete: () {
-              FocusScope.of(context).requestFocus(nextPageButtonFocus);
-            },
-            decoration: const InputDecoration(labelText: 'Kedvenc rendszám'),
+            nextFocus: nextPageButtonFocus,
+            labelText: 'Kedvenc rendszám',
+            forceUppercase: true,
           ),
           SizedBox(height: 20),
           NextPageButton(
@@ -206,7 +196,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 ? "Mosás foglalás"
                 : "Parkolás foglalás",
             focusNode: nextPageButtonFocus,
-            onPressed: _onNextPressed,
+            onPressed: OnNextPageButtonPressed,
           ),
         ],
       ),

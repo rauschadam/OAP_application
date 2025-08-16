@@ -1,5 +1,5 @@
 import 'package:airport_test/api_Services/api_service.dart';
-import 'package:airport_test/basePage.dart';
+import 'package:airport_test/constantWidgets.dart';
 import 'package:airport_test/bookingForm/parkOrderPage.dart';
 import 'package:airport_test/bookingForm/washOrderPage.dart';
 import 'package:airport_test/enums/parkingFormEnums.dart';
@@ -97,7 +97,8 @@ class _LoginPageState extends State<LoginPage> {
     return Form(
         key: formKey,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          TextFormField(
+          SizedBox(height: 20),
+          MyTextFormField(
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Adja meg email címét';
@@ -107,12 +108,13 @@ class _LoginPageState extends State<LoginPage> {
             controller: emailController,
             focusNode: emailFocus,
             textInputAction: TextInputAction.next,
-            onEditingComplete: () {
-              FocusScope.of(context).requestFocus(passwordFocus);
-            },
-            decoration: const InputDecoration(labelText: 'Email cím'),
+            nextFocus: passwordFocus,
+            labelText: 'Email cím',
           ),
-          TextFormField(
+          SizedBox(
+            height: 10,
+          ),
+          MyTextFormField(
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Adjon meg egy jelszót';
@@ -123,10 +125,8 @@ class _LoginPageState extends State<LoginPage> {
             obscureText: true,
             focusNode: passwordFocus,
             textInputAction: TextInputAction.next,
-            onEditingComplete: () {
-              FocusScope.of(context).requestFocus(nextPageButtonFocus);
-            },
-            decoration: const InputDecoration(labelText: 'Jelszó'),
+            nextFocus: nextPageButtonFocus,
+            labelText: 'Jelszó',
           ),
           NextPageButton(
             title: widget.bookingOption == BookingOption.washing

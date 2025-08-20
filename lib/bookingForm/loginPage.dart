@@ -109,11 +109,9 @@ class _LoginPageState extends State<LoginPage> {
             focusNode: emailFocus,
             textInputAction: TextInputAction.next,
             nextFocus: passwordFocus,
-            labelText: 'Email cím',
+            hintText: 'Email cím',
           ),
-          SizedBox(
-            height: 10,
-          ),
+          SizedBox(height: 10),
           MyTextFormField(
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -126,7 +124,7 @@ class _LoginPageState extends State<LoginPage> {
             focusNode: passwordFocus,
             textInputAction: TextInputAction.next,
             nextFocus: nextPageButtonFocus,
-            labelText: 'Jelszó',
+            hintText: 'Jelszó',
           ),
           NextPageButton(
             title: widget.bookingOption == BookingOption.washing

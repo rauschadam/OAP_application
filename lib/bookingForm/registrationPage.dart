@@ -134,7 +134,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
             focusNode: emailFocus,
             textInputAction: TextInputAction.next,
             nextFocus: passwordFocus,
-            labelText: 'Email cím',
+            hintText: 'Email cím',
           ),
           MyTextFormField(
             validator: (value) {
@@ -148,7 +148,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
             focusNode: passwordFocus,
             textInputAction: TextInputAction.next,
             nextFocus: nameFocus,
-            labelText: 'Jelszó',
+            hintText: 'Jelszó',
           ),
           MyTextFormField(
             validator: (value) {
@@ -161,7 +161,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
             focusNode: nameFocus,
             textInputAction: TextInputAction.next,
             nextFocus: phoneFocus,
-            labelText: 'Felhasználó név',
+            hintText: 'Felhasználó név',
           ),
           MyTextFormField(
             validator: (value) {
@@ -174,7 +174,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
             focusNode: phoneFocus,
             textInputAction: TextInputAction.next,
             nextFocus: favoriteLicensePlateNumberFocus,
-            labelText: 'Telefonszám',
+            hintText: 'Telefonszám',
           ),
           MyTextFormField(
             validator: (value) {
@@ -187,7 +187,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
             focusNode: favoriteLicensePlateNumberFocus,
             textInputAction: TextInputAction.done,
             nextFocus: nextPageButtonFocus,
-            labelText: 'Kedvenc rendszám',
+            hintText: 'Kedvenc rendszám',
             forceUppercase: true,
           ),
           SizedBox(height: 20),

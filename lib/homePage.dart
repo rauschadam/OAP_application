@@ -1,5 +1,6 @@
 import 'package:airport_test/constantWidgets.dart';
 import 'package:airport_test/bookingForm/bookingOptionPage.dart';
+import 'package:airport_test/perview_example.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {
@@ -8,31 +9,21 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: ElevatedButton.icon(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue[50], // gomb háttérszíne
-        ),
-        icon: const Icon(
-          Icons.add,
-          color: Colors.blue, // ikon színe
-        ),
-        label: const Text(
-          "Foglalás",
-          style: TextStyle(color: Colors.blue),
-        ),
-        onPressed: () {
-          BasePage.defaultColorEnum = BackGroundColor.blue;
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const BasePage(
-                title: 'Foglalási Opciók',
-                child: BookingOptionPage(),
-              ),
-            ),
-          );
-        },
-      ),
-    );
+        child: MyIconButton(
+      icon: Icons.add_rounded,
+      labelText: "Foglalás rögzítése",
+      onPressed: () {
+        BasePage.defaultColors = AppColors.blue;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const BasePage(
+                title: 'Foglalási Opciók', child: PerviewExample()
+                //BookingOptionPage(),
+                ),
+          ),
+        );
+      },
+    ));
   }
 }

@@ -11,7 +11,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       home: BasePage(
-        title: "Menü",
+        // title: "Menü",
         child: HomePage(),
       ),
     );

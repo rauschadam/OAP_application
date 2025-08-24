@@ -26,16 +26,18 @@ class AppColors {
   );
 }
 
+abstract class PageWithTitle {
+  String get pageTitle;
+}
+
 class BasePage extends StatelessWidget {
   static AppColors defaultColors = AppColors.blue;
 
-  final String title;
   final Widget child;
   final AppColors? colors;
 
   const BasePage({
     super.key,
-    required this.title,
     required this.child,
     this.colors,
   });
@@ -44,9 +46,16 @@ class BasePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final effectiveColors = colors ?? defaultColors;
 
+    String getTitle() {
+      if (child is PageWithTitle) {
+        return (child as PageWithTitle).pageTitle;
+      }
+      return 'Alapértelmezett';
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        title: Text(getTitle()),
         backgroundColor: effectiveColors.background,
         foregroundColor: effectiveColors.text,
         bottom: PreferredSize(
@@ -74,7 +83,6 @@ class BasePage extends StatelessWidget {
 
 class NextPageButton extends StatelessWidget {
   final String text;
-  final String title;
   final Widget? nextPage;
   final VoidCallback? onPressed;
   final FocusNode? focusNode;
@@ -82,7 +90,6 @@ class NextPageButton extends StatelessWidget {
   const NextPageButton(
       {super.key,
       this.text = "Tovább",
-      required this.title,
       this.nextPage,
       this.onPressed,
       this.focusNode});
@@ -110,9 +117,7 @@ class NextPageButton extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                     builder: (_) => BasePage(
-                        title: title,
-                        colors: BasePage.defaultColors,
-                        child: nextPage!)),
+                        colors: BasePage.defaultColors, child: nextPage!)),
               );
             }
           },

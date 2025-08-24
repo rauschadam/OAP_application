@@ -5,7 +5,10 @@ import 'package:airport_test/enums/parkingFormEnums.dart';
 import 'package:airport_test/homePage.dart';
 import 'package:flutter/material.dart';
 
-class InvoiceOptionPage extends StatefulWidget {
+class InvoiceOptionPage extends StatefulWidget implements PageWithTitle {
+  @override
+  String get pageTitle => 'Számlázás';
+
   final String? authToken;
   final BookingOption bookingOption;
   // final int parkingService;
@@ -77,7 +80,6 @@ class _InvoiceOptionPageState extends State<InvoiceOptionPage> {
             onPressed: () {
               submitReservation();
             },
-            title: "Menü",
             nextPage: const HomePage())
       ],
     );

@@ -4,7 +4,10 @@ import 'package:airport_test/bookingForm/registrationPage.dart';
 import 'package:airport_test/enums/parkingFormEnums.dart';
 import 'package:flutter/material.dart';
 
-class RegistrationOptionPage extends StatefulWidget {
+class RegistrationOptionPage extends StatefulWidget implements PageWithTitle {
+  @override
+  String get pageTitle => 'Bejelentkezési lehetőségek';
+
   final BookingOption bookingOption;
   const RegistrationOptionPage({super.key, required this.bookingOption});
 
@@ -74,19 +77,16 @@ class _RegistrationOptionPageState extends State<RegistrationOptionPage> {
         ),
         switch (selectedRegistrationOption) {
           RegistrationOption.registerNow => NextPageButton(
-              title: "Regisztráció",
               nextPage: RegistrationPage(
                 bookingOption: widget.bookingOption,
               ),
             ),
           RegistrationOption.registered => NextPageButton(
-              title: "Bejelentkezés",
               nextPage: LoginPage(
                 bookingOption: widget.bookingOption,
               ),
             ),
           RegistrationOption.withoutRegistration => NextPageButton(
-              title: "Bejelentkezés",
               nextPage: LoginPage(
                 bookingOption: widget.bookingOption,
               ),

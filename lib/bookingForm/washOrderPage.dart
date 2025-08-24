@@ -587,7 +587,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
-class WashOrderPage extends StatefulWidget {
+class WashOrderPage extends StatefulWidget implements PageWithTitle {
+  @override
+  String get pageTitle => 'Mosás foglalás';
+
   final String? authToken;
   final BookingOption bookingOption;
   final TextEditingController emailController;
@@ -987,7 +990,7 @@ class WashOrderPageState extends State<WashOrderPage> {
           context,
           MaterialPageRoute(
             builder: (_) => BasePage(
-              title: "Számlázás",
+              // title: "Számlázás",
               child: InvoiceOptionPage(
                 authToken: widget.authToken,
                 nameController: nameController,
@@ -1234,7 +1237,6 @@ class WashOrderPageState extends State<WashOrderPage> {
               ),
               NextPageButton(
                 focusNode: nextPageButtonFocus,
-                title: "Számlázás",
                 onPressed: OnNextPageButtonPressed,
               )
             ],

@@ -2,7 +2,10 @@ import 'package:airport_test/constantWidgets.dart';
 import 'package:airport_test/bookingForm/bookingOptionPage.dart';
 import 'package:flutter/material.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatelessWidget implements PageWithTitle {
+  @override
+  String get pageTitle => 'Menü';
+
   const HomePage({super.key});
 
   @override
@@ -17,7 +20,7 @@ class HomePage extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (_) => const BasePage(
-              title: 'Foglalási Opciók',
+              // title: 'Foglalási Opciók',
               child: BookingOptionPage(),
             ),
           ),

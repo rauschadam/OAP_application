@@ -6,7 +6,10 @@ import 'package:airport_test/bookingForm/washOrderPage.dart';
 import 'package:airport_test/enums/parkingFormEnums.dart';
 import 'package:flutter/material.dart';
 
-class RegistrationPage extends StatefulWidget {
+class RegistrationPage extends StatefulWidget implements PageWithTitle {
+  @override
+  String get pageTitle => 'Regisztráció';
+
   final BookingOption bookingOption;
   const RegistrationPage({super.key, required this.bookingOption});
 
@@ -92,9 +95,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
           context,
           MaterialPageRoute(
             builder: (_) => BasePage(
-              title: widget.bookingOption == BookingOption.washing
-                  ? "Mosás foglalás"
-                  : "Parkolás foglalás",
+              // title: widget.bookingOption == BookingOption.washing
+              //     ? "Mosás foglalás"
+              //     : "Parkolás foglalás",
               child: nextPage,
             ),
           ),
@@ -123,6 +126,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          SizedBox(height: 10),
           MyTextFormField(
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -136,6 +140,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
             nextFocus: passwordFocus,
             hintText: 'Email cím',
           ),
+          SizedBox(height: 10),
           MyTextFormField(
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -150,6 +155,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
             nextFocus: nameFocus,
             hintText: 'Jelszó',
           ),
+          SizedBox(height: 10),
           MyTextFormField(
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -163,6 +169,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
             nextFocus: phoneFocus,
             hintText: 'Felhasználó név',
           ),
+          SizedBox(height: 10),
           MyTextFormField(
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -176,6 +183,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
             nextFocus: favoriteLicensePlateNumberFocus,
             hintText: 'Telefonszám',
           ),
+          SizedBox(height: 10),
           MyTextFormField(
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -190,11 +198,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
             hintText: 'Kedvenc rendszám',
             forceUppercase: true,
           ),
-          SizedBox(height: 20),
+          SizedBox(height: 10),
           NextPageButton(
-            title: widget.bookingOption == BookingOption.washing
-                ? "Mosás foglalás"
-                : "Parkolás foglalás",
             focusNode: nextPageButtonFocus,
             onPressed: OnNextPageButtonPressed,
           ),

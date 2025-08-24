@@ -853,7 +853,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
-class ParkOrderPage extends StatefulWidget {
+class ParkOrderPage extends StatefulWidget implements PageWithTitle {
+  @override
+  String get pageTitle => 'Parkolás foglalás';
+
   final String? authToken;
   final BookingOption bookingOption;
   final TextEditingController emailController;
@@ -1401,9 +1404,9 @@ class ParkOrderPageState extends State<ParkOrderPage> {
           context,
           MaterialPageRoute(
             builder: (_) => BasePage(
-              title: widget.bookingOption == BookingOption.parking
-                  ? "Számlázás"
-                  : "Mosás foglalás",
+              // title: widget.bookingOption == BookingOption.parking
+              //     ? "Számlázás"
+              //     : "Mosás foglalás",
               child: nextPage!,
             ),
           ),
@@ -1804,7 +1807,6 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                 hintText: 'Megjegyzés a recepciónak',
               ),
               NextPageButton(
-                title: "Parkolás foglalás",
                 focusNode: nextPageButtonFocus,
                 onPressed: OnNextPageButtonPressed,
               ),

@@ -1,8 +1,10 @@
 import 'package:airport_test/constantWidgets.dart';
 import 'package:airport_test/bookingForm/invoiceOptionPage.dart';
+import 'package:airport_test/bookingForm/washOrderPage.dart';
 import 'package:airport_test/enums/parkingFormEnums.dart';
 import 'package:airport_test/homePage.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class PerviewExample extends StatefulWidget {
@@ -17,200 +19,311 @@ class PerviewExample extends StatefulWidget {
 class PerviewExampleState extends State<PerviewExample> {
   final formKey = GlobalKey<FormState>();
 
-  // initState-ben átadjuk nekik az előző page-ben megadott adatokat
   late final TextEditingController nameController;
   late final TextEditingController phoneController;
   late final TextEditingController licensePlateController;
   late final TextEditingController descriptionController;
-  final ScrollController WashOptionsScrollController = ScrollController();
 
   FocusNode nameFocus = FocusNode();
   FocusNode phoneFocus = FocusNode();
   FocusNode licensePlateFocus = FocusNode();
-  FocusNode datePickerFocus = FocusNode();
   FocusNode descriptionFocus = FocusNode();
+  FocusNode datePickerFocus = FocusNode();
+  FocusNode VIPFocus = FocusNode();
+  FocusNode suitcaseWrappingFocus = FocusNode();
   FocusNode nextPageButtonFocus = FocusNode();
-
-  // Default értékek
-  WashOption selectedWashOption = WashOption.basic;
-  PaymentOption selectedPaymentOption = PaymentOption.card;
+  FocusNode transferFocus = FocusNode();
 
   /// Aktuális idő
   DateTime now = DateTime.now();
 
-  /// Érkezési / Távozási dátum
-  late DateTime? selectedWashArriveDate, selectedWashLeaveDate;
-  late int selectedWashArriveHour;
-  int selectedWashArriveMinute = 0;
+  // Az enumok / kiválasztható lehetőségek default értékei
+  BookingOption selectedBookingOption = BookingOption.parking;
+  ParkingZoneOption selectedParkingZoneOption = ParkingZoneOption.eco;
+  PaymentOption selectedPaymentOption = PaymentOption.card;
 
-  DateTime? tempWashArriveDate, tempWashLeaveDate;
+  /// Transzferrel szállított személyek száma
+  int transferCount = 1;
+
+  /// Kér-e VIP sofőrt
+  bool VIPDriverRequested = false;
+
+  /// Kér-e Bőrönd fóliázást
+  bool suitcaseWrappingRequested = false;
+
+  /// Fóliázásra váró bőröndök száma
+  int suitcasesToWrap = 0;
+
+  /// Érkezési / Távozási dátum
+  DateTime? selectedArriveDate, selectedLeaveDate;
+
+  /// Érkezés időpontja
+  TimeOfDay? selectedArriveTime;
+
+  /// Parkolással töltött napok száma
+  int parkingDays = 0;
+
+  /// A teljes fizetendő összeg
+  int totalCost = 0;
+
+  /// Teljes összeg kalkulálása, az árakat később adatbázisból fogja előhívni.
+  void CalculateTotalCost() {
+    int baseCost = 0;
+
+    switch (selectedParkingZoneOption) {
+      case ParkingZoneOption.eco:
+        baseCost = 2000 * parkingDays;
+        break;
+      case ParkingZoneOption.normal:
+        baseCost = 5000 * parkingDays;
+        break;
+      case ParkingZoneOption.premium:
+        baseCost = 10000 * parkingDays;
+        break;
+    }
+
+    if (VIPDriverRequested) {
+      baseCost += 5000;
+    }
+    baseCost += suitcasesToWrap * 1000;
+
+    setState(() {
+      totalCost = baseCost;
+    });
+  }
+
+  /// A DatePicker még le nem okézott, kiválasztott dátumai.
+  /// Ezeken nézi meg hogy megfelelnek-e a feltételeknek,
+  /// majd beállítja selectedArriveDate/selectedLeaveDate-nek
+  DateTime? tempArriveDate, tempLeaveDate;
 
   //Teljes időpont pontos foglalt időpontok
-  List<DateTime> fullyBookedDates = [
+  List<DateTime> fullyBookedDateTimes = [
     DateTime(2025, 8, 10, 8, 0),
     DateTime(2025, 8, 15, 15, 30),
     DateTime(2025, 9, 1, 18, 30),
   ];
 
-  // Csak a blackout napok (dátumok)
+  /// Azok a napok amelyek beleesnek a kiválasztott intervallumba,
+  /// de van benne olyan időpont, amikor már nincs hely az adott parkoló zónában.
   List<DateTime> blackoutDays = [];
 
-  int hoveredIndex = -1;
-
-  /// Lekéri az aktuális dátumot, és default beállítja a selectedWashArriveHour-t erre a dátumra.
-  void GetCurrentDate() {
-    DateTime now = DateTime.now();
-
-    selectedWashArriveHour = now.hour;
-
-    selectedWashArriveDate =
-        DateTime(now.year, now.month, now.day, selectedWashArriveHour, 0)
-            .add(const Duration(hours: 1));
-    selectedWashLeaveDate =
-        selectedWashArriveDate!.add(const Duration(minutes: 30));
+  /// A parkolási napok számát frissíti.
+  void UpdateParkingDays() {
+    parkingDays = selectedLeaveDate!.difference(selectedArriveDate!).inDays;
   }
 
-  /// Frissíti a telített foglalású napokat, ezekre már nem lehet foglalni.
+  /// A foglalt napokat frissíti.
   void updateBlackoutDays() {
-    if (tempWashArriveDate == null) {
+    if (tempArriveDate == null || tempLeaveDate == null) {
       blackoutDays = [];
       return;
     }
 
-    //Az érkezési és távozási időpont az óra+perc alapján
+    /// Az érkezési és távozási időpont
     DateTime startDateTime = DateTime(
-      tempWashArriveDate!.year,
-      tempWashArriveDate!.month,
-      tempWashArriveDate!.day,
-      selectedWashArriveHour,
-      selectedWashArriveMinute,
+      tempArriveDate!.year,
+      tempArriveDate!.month,
+      tempArriveDate!.day,
+      selectedArriveTime!.hour,
+      selectedArriveTime!.minute,
     );
 
     DateTime endDateTime = DateTime(
-      tempWashLeaveDate!.year,
-      tempWashLeaveDate!.month,
-      tempWashLeaveDate!.day,
-      selectedWashArriveHour,
-      selectedWashArriveMinute,
+      tempLeaveDate!.year,
+      tempLeaveDate!.month,
+      tempLeaveDate!.day,
+      selectedArriveTime!.hour,
+      selectedArriveTime!.minute,
     );
 
-    //Szűrjük, hogy a fullyBookedDates-ben lévő időpont beleessen az intervallumba
-    final filtered = fullyBookedDates.where((bookedDate) {
-      return !bookedDate.isBefore(startDateTime) &&
-          !bookedDate.isAfter(endDateTime);
+    /// Megnézi, hogy bele a foglalt időpontok beleesnek-e a foglalni kívánt intervallumba.
+    final filtered = fullyBookedDateTimes.where((d) {
+      return !d.isBefore(startDateTime) && !d.isAfter(endDateTime);
     });
 
-    //A blackoutDays csak a dátum (év, hónap, nap), idő nélkül
+    /// A blackoutDays csak a dátum (év, hónap, nap), időpont nélkül
     blackoutDays =
         filtered.map((d) => DateTime(d.year, d.month, d.day)).toSet().toList();
   }
 
   /// Dátum kiíratásának a formátuma
   String format(DateTime? d) => d != null
-      ? "${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')} "
+      ? "${d.year}. ${d.month.toString().padLeft(2, '0')}. ${d.day.toString().padLeft(2, '0')}. "
           "${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}"
-      : '–';
+      : '-';
 
-  /// Az aktuálisan kiválasztott időpont (óra+perc) TimeOfDay típusként
-  // TimeOfDay get selectedWashArriveTime =>
-  //     TimeOfDay(hour: selectedWashArriveHour, minute: selectedWashArriveMinute);
-
-  /// Dátum választó pop-up dialog
+  /// Időpont választó dialógus a parkolási intervallum kiválasztásához.
   void ShowDatePickerDialog() {
-    tempWashArriveDate = selectedWashArriveDate;
-    tempWashLeaveDate = selectedWashLeaveDate;
+    tempArriveDate = selectedArriveDate;
+    tempLeaveDate = selectedLeaveDate;
 
+    // Alapból frissítjük a blackoutDays-et a már beállított temp értékek alapján
     updateBlackoutDays();
+
+    /// Megadja, hogy melyik időpontos Expansion Tile-ban hovereljük az időpontot.
+    Map<String, int> hoveredIndexMap = {
+      "Hajnal": -1,
+      "Reggel": -1,
+      "Nap": -1,
+      "Este": -1,
+      "Éjszaka": -1,
+    };
 
     showDialog(
       context: context,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
-            // időpont választó kártyák widgetje
-            Widget buildTimeSlotPicker() {
-              final timeSlots = generateHalfHourTimeSlots();
+            final allSlots = generateHalfHourTimeSlots();
+            final today = DateTime.now();
+            final currentTime = TimeOfDay.fromDateTime(today);
 
-              return SizedBox(
-                height: 200,
-                child: GridView.builder(
+            final availableSlots = allSlots.where((time) {
+              if (tempArriveDate != null &&
+                  tempArriveDate!.year == today.year &&
+                  tempArriveDate!.month == today.month &&
+                  tempArriveDate!.day == today.day) {
+                if (time.hour < currentTime.hour ||
+                    (time.hour == currentTime.hour &&
+                        time.minute <= currentTime.minute)) {
+                  return false;
+                }
+              }
+
+              bool isBooked = fullyBookedDateTimes.any((d) =>
+                  d.year == (tempArriveDate?.year ?? 0) &&
+                  d.month == (tempArriveDate?.month ?? 0) &&
+                  d.day == (tempArriveDate?.day ?? 0) &&
+                  d.hour == time.hour &&
+                  d.minute == time.minute);
+
+              return !isBooked;
+            }).toList();
+
+            /// Időpont választó kártyák widgetje
+            Widget buildTimeSlotPicker(List<TimeOfDay> slots) {
+              Map<String, List<TimeOfDay>> groupedSlots = {
+                "Hajnal": [],
+                "Reggel": [],
+                "Nappal": [],
+                "Este": [],
+                "Éjszaka": [],
+              };
+
+              for (var time in slots) {
+                if (time.hour < 6) {
+                  groupedSlots["Hajnal"]!.add(time);
+                } else if (time.hour >= 6 && time.hour < 12) {
+                  groupedSlots["Reggel"]!.add(time);
+                } else if (time.hour >= 12 && time.hour < 18) {
+                  groupedSlots["Nappal"]!.add(time);
+                } else if (time.hour >= 18 && time.hour < 22) {
+                  groupedSlots["Este"]!.add(time);
+                } else {
+                  groupedSlots["Éjszaka"]!.add(time);
+                }
+              }
+
+              return Expanded(
+                child: SingleChildScrollView(
                   scrollDirection: Axis.vertical,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4,
-                    mainAxisSpacing: 8,
-                    crossAxisSpacing: 8,
-                    childAspectRatio: 2.5,
-                  ),
-                  itemCount: timeSlots.length,
-                  itemBuilder: (context, index) {
-                    final time = timeSlots[index];
-
-                    bool isBooked = fullyBookedDates.any((d) =>
-                        d.year == (tempWashArriveDate?.year ?? 0) &&
-                        d.month == (tempWashArriveDate?.month ?? 0) &&
-                        d.day == (tempWashArriveDate?.day ?? 0) &&
-                        d.hour == time.hour &&
-                        d.minute == time.minute);
-
-                    bool isSelected = selectedWashArriveHour == time.hour &&
-                        selectedWashArriveMinute == time.minute;
-
-                    bool isHovered = hoveredIndex == index;
-
-                    Color bgColor;
-                    if (isBooked) {
-                      bgColor = Colors.red[300]!;
-                    } else if (isSelected) {
-                      bgColor = Colors.deepPurple;
-                    } else if (isHovered) {
-                      bgColor = Colors.grey[400]!;
-                    } else {
-                      bgColor = Colors.grey[200]!;
-                    }
-
-                    return MouseRegion(
-                      onEnter: (_) {
-                        setStateDialog(() {
-                          hoveredIndex = index;
-                        });
-                      },
-                      onExit: (_) {
-                        setStateDialog(() {
-                          hoveredIndex = -1;
-                        });
-                      },
-                      cursor: isBooked
-                          ? SystemMouseCursors.basic
-                          : SystemMouseCursors.click,
-                      child: GestureDetector(
-                        onTap: isBooked
-                            ? null
-                            : () {
-                                setStateDialog(() {
-                                  selectedWashArriveHour = time.hour;
-                                  selectedWashArriveMinute = time.minute;
-                                  updateBlackoutDays();
-                                });
-                              },
-                        child: Card(
-                          color: bgColor,
-                          child: Center(
-                            child: Text(
-                              time.format(context),
-                              style: TextStyle(
-                                color: isBooked || isSelected
-                                    ? Colors.white
-                                    : Colors.black,
-                                fontWeight: isSelected
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                              ),
-                            ),
-                          ),
+                  child: Column(
+                    children: groupedSlots.entries
+                        .where((entry) => entry.value.isNotEmpty)
+                        .map((entry) {
+                      return Theme(
+                        data: Theme.of(context).copyWith(
+                          dividerColor: Colors.transparent,
+                          splashColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          hoverColor: Colors.transparent,
                         ),
-                      ),
-                    );
-                  },
+                        child: ExpansionTile(
+                          iconColor: Colors.grey.shade700,
+                          title: Text(entry.key,
+                              style: TextStyle(
+                                color: Colors.grey.shade700,
+                              )),
+                          initiallyExpanded: true,
+                          children: [
+                            GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 4,
+                                mainAxisSpacing: 8,
+                                crossAxisSpacing: 8,
+                                childAspectRatio: 3,
+                              ),
+                              itemCount: entry.value.length,
+                              itemBuilder: (context, index) {
+                                final time = entry.value[index];
+                                bool isSelected = selectedArriveTime == time;
+                                bool isHovered =
+                                    hoveredIndexMap[entry.key] == index;
+
+                                Color cardColor;
+                                if (isSelected) {
+                                  cardColor = BasePage
+                                      .defaultColors.primary; //Colors.black;
+                                } else if (isHovered) {
+                                  cardColor = Colors.grey.shade400;
+                                } else {
+                                  cardColor = Colors.grey.shade300;
+                                }
+
+                                return MouseRegion(
+                                  onEnter: (_) {
+                                    setStateDialog(() {
+                                      hoveredIndexMap[entry.key] = index;
+                                    });
+                                  },
+                                  onExit: (_) {
+                                    setStateDialog(() {
+                                      hoveredIndexMap[entry.key] = -1;
+                                    });
+                                  },
+                                  cursor: SystemMouseCursors.click,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setStateDialog(() {
+                                        selectedArriveTime = time;
+                                        if (selectedArriveTime != null) {
+                                          updateBlackoutDays();
+                                        }
+                                      });
+                                    },
+                                    child: Card(
+                                      elevation: 0,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      color: cardColor,
+                                      child: Center(
+                                        child: Text(
+                                          time.format(context),
+                                          style: TextStyle(
+                                            color: isSelected
+                                                ? Colors.white
+                                                : Colors.black,
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ),
               );
             }
@@ -220,15 +333,20 @@ class PerviewExampleState extends State<PerviewExample> {
                   borderRadius: BorderRadius.circular(20)),
               child: Container(
                 width: 600,
-                height: 600,
+                height: 800,
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
                     SfDateRangePicker(
-                      selectionMode: DateRangePickerSelectionMode.single,
+                      initialSelectedRange:
+                          tempArriveDate != null && tempLeaveDate != null
+                              ? PickerDateRange(tempArriveDate, tempLeaveDate)
+                              : null,
+                      selectionMode: DateRangePickerSelectionMode.range,
                       todayHighlightColor: BasePage.defaultColors.primary,
-                      selectionColor: BasePage.defaultColors.primary,
-                      showNavigationArrow: true,
+                      startRangeSelectionColor: BasePage.defaultColors.primary,
+                      endRangeSelectionColor: BasePage.defaultColors.primary,
+                      rangeSelectionColor: BasePage.defaultColors.secondary,
                       enablePastDates: false,
                       maxDate: DateTime.now().add(const Duration(days: 120)),
                       monthCellStyle: DateRangePickerMonthCellStyle(
@@ -238,8 +356,9 @@ class PerviewExampleState extends State<PerviewExample> {
                         ),
                         blackoutDatesDecoration: BoxDecoration(
                           color: Colors.red,
-                          border: Border.all(color: Colors.redAccent, width: 1),
-                          borderRadius: BorderRadius.circular(32),
+                          shape: BoxShape.circle,
+                          // border: Border.all(color: Colors.redAccent, width: 1),
+                          // borderRadius: BorderRadius.circular(32),
                         ),
                       ),
                       monthViewSettings: DateRangePickerMonthViewSettings(
@@ -249,56 +368,118 @@ class PerviewExampleState extends State<PerviewExample> {
                             DateTime(date.year, date.month, date.day));
                       },
                       onSelectionChanged: (args) {
-                        if (args.value is DateTime) {
+                        if (args.value is PickerDateRange) {
+                          final start = args.value.startDate;
+                          final end = args.value.endDate;
+
                           setStateDialog(() {
-                            tempWashArriveDate = args.value;
-                            updateBlackoutDays();
+                            tempArriveDate = start;
+                            tempLeaveDate = end;
+                            if (selectedArriveTime != null) {
+                              updateBlackoutDays();
+                            }
                           });
+
+                          if (selectedLeaveDate != null) {
+                            setState(() {
+                              UpdateParkingDays();
+                            });
+                          }
                         }
                       },
                     ),
-                    const Text("Érkezési idő:",
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    buildTimeSlotPicker(),
+                    buildTimeSlotPicker(availableSlots),
                     const SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () {
-                            if (tempWashArriveDate != null) {
-                              final arriveDateTime = DateTime(
-                                tempWashArriveDate!.year,
-                                tempWashArriveDate!.month,
-                                tempWashArriveDate!.day,
-                                selectedWashArriveHour,
-                                selectedWashArriveMinute,
-                              );
+                    (tempArriveDate != null &&
+                            tempLeaveDate != null &&
+                            selectedArriveTime != null)
+                        ? SizedBox(
+                            height: 50,
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ButtonStyle(
+                                  backgroundColor: WidgetStateProperty.all(
+                                      BasePage
+                                          .defaultColors.primary //Colors.black
+                                      ),
+                                  foregroundColor: WidgetStateProperty.all(
+                                      BasePage.defaultColors.background
+                                      // BasePage.defaultColors.background
+                                      )),
+                              onPressed: () {
+                                if (tempArriveDate != null &&
+                                    tempLeaveDate != null) {
+                                  final diff = tempLeaveDate!
+                                      .difference(tempArriveDate!)
+                                      .inDays;
+                                  if (diff < 1) {
+                                    ShowError(
+                                        "A választott tartománynak legalább 1 napnak kell lennie.");
+                                    return;
+                                  }
+                                  if (diff > 30) {
+                                    ShowError(
+                                        "A választott tartomány legfeljebb 30 nap lehet.");
+                                    return;
+                                  }
 
-                              bool containsBlackout = fullyBookedDates.any((b) {
-                                return b.isAtSameMomentAs(arriveDateTime);
-                              });
+                                  bool containsBlackout =
+                                      fullyBookedDateTimes.any((b) {
+                                    final bDate = DateTime(b.year, b.month,
+                                        b.day, b.hour, b.minute);
+                                    final startDateTime = DateTime(
+                                      tempArriveDate!.year,
+                                      tempArriveDate!.month,
+                                      tempArriveDate!.day,
+                                      selectedArriveTime!.hour,
+                                      selectedArriveTime!.minute,
+                                    );
+                                    final endDateTime = DateTime(
+                                      tempLeaveDate!.year,
+                                      tempLeaveDate!.month,
+                                      tempLeaveDate!.day,
+                                      selectedArriveTime!.hour,
+                                      selectedArriveTime!.minute,
+                                    );
 
-                              if (containsBlackout) {
-                                ShowError("A kiválasztott időpont foglalt!");
-                                return;
-                              }
+                                    return !bDate.isBefore(startDateTime) &&
+                                        !bDate.isAfter(endDateTime);
+                                  });
 
-                              setState(() {
-                                selectedWashArriveDate = arriveDateTime;
-                                selectedWashLeaveDate = arriveDateTime
-                                    .add(const Duration(minutes: 30));
-                              });
+                                  if (containsBlackout) {
+                                    ShowError(
+                                        "A kiválasztott tartomány tartalmaz foglalt napot!");
+                                    return;
+                                  }
 
-                              Navigator.of(context).pop();
-                            } else {
-                              ShowError("Kérlek válassz ki egy dátumot!");
-                            }
-                          },
-                          child: const Text("OK"),
-                        ),
-                      ],
-                    )
+                                  final arriveDateTime = DateTime(
+                                    tempArriveDate!.year,
+                                    tempArriveDate!.month,
+                                    tempArriveDate!.day,
+                                    selectedArriveTime!.hour,
+                                    selectedArriveTime!.minute,
+                                  );
+
+                                  final leaveDateTime = DateTime(
+                                    tempLeaveDate!.year,
+                                    tempLeaveDate!.month,
+                                    tempLeaveDate!.day,
+                                    selectedArriveTime!.hour,
+                                    selectedArriveTime!.minute,
+                                  );
+
+                                  setState(() {
+                                    selectedArriveDate = arriveDateTime;
+                                    selectedLeaveDate = leaveDateTime;
+                                  });
+
+                                  Navigator.of(context).pop();
+                                }
+                              },
+                              child: const Text("Időpont kiválasztása"),
+                            ),
+                          )
+                        : Container(),
                   ],
                 ),
               ),
@@ -309,7 +490,6 @@ class PerviewExampleState extends State<PerviewExample> {
     );
   }
 
-  /// Hiba megjelenítő pop-up dialog
   void ShowError(String msg) => showDialog(
         context: context,
         builder: (ctx) {
@@ -326,11 +506,72 @@ class PerviewExampleState extends State<PerviewExample> {
         },
       );
 
+  void OnNextPageButtonPressed() async {
+    if (formKey.currentState!.validate()) {
+      Widget? nextPage;
+      // if (widget.bookingOption == BookingOption.parking) {
+      //   nextPage = InvoiceOptionPage(
+      //     authToken: widget.authToken,
+      //     nameController: nameController,
+      //     emailController: widget.emailController,
+      //     phoneController: phoneController,
+      //     licensePlateController: licensePlateController,
+      //     arriveDate: selectedArriveDate,
+      //     leaveDate: selectedLeaveDate,
+      //     transferPersonCount: transferCount,
+      //     vip: VIPDriverRequested,
+      //     descriptionController: descriptionController,
+      //     bookingOption: widget.bookingOption,
+      //   );
+      // } else if (widget.bookingOption == BookingOption.both) {
+      //   nextPage = WashOrderPage(
+      //     authToken: widget.authToken,
+      //     bookingOption: widget.bookingOption,
+      //     emailController: widget.emailController,
+      //     licensePlateController: licensePlateController,
+      //     nameController: nameController,
+      //     phoneController: phoneController,
+      //     descriptionController: descriptionController,
+      //     arriveDate: selectedArriveDate,
+      //     leaveDate: selectedLeaveDate,
+      //     transferPersonCount: transferCount,
+      //     vip: VIPDriverRequested,
+      //   );
+      // }
+      nextPage = HomePage();
+      if (selectedArriveDate != null && selectedLeaveDate != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => BasePage(
+              // title: widget.bookingOption == BookingOption.parking
+              //     ? "Számlázás"
+              //     : "Mosás foglalás",
+              title: "Menü",
+              child: nextPage!,
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Válassz ki Parkolási intervallumot!')),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sikertelen Bejelentkezés!')),
+      );
+    } // ???
+  }
+
   @override
   void initState() {
     super.initState();
 
-    // Beállítjuk az előző page-ről a TextFormField-ek controller-eit
+    // nameController = widget.nameController ?? TextEditingController();
+    // phoneController = widget.phoneController ?? TextEditingController();
+    // licensePlateController =
+    //     widget.licensePlateController ?? TextEditingController();
     nameController = TextEditingController();
     phoneController = TextEditingController();
     licensePlateController = TextEditingController();
@@ -340,8 +581,6 @@ class PerviewExampleState extends State<PerviewExample> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(nameFocus);
     });
-
-    GetCurrentDate();
   }
 
   @override
@@ -356,194 +595,370 @@ class PerviewExampleState extends State<PerviewExample> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               MyTextFormField(
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Adja meg felhasználó nevét';
-                    }
-                    return null;
-                  },
-                  controller: nameController,
-                  focusNode: nameFocus,
-                  textInputAction: TextInputAction.next,
-                  nextFocus: phoneFocus,
-                  hintText: 'Foglaló személy neve'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Adja meg felhasználó nevét';
+                  }
+                  return null;
+                },
+                controller: nameController,
+                focusNode: nameFocus,
+                textInputAction: TextInputAction.next,
+                nextFocus: phoneFocus,
+                hintText: 'Foglaló személy neve',
+              ),
               const SizedBox(height: 10),
               MyTextFormField(
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Adja meg telefonszámát';
-                    }
-                    return null;
-                  },
-                  controller: phoneController,
-                  focusNode: phoneFocus,
-                  textInputAction: TextInputAction.next,
-                  nextFocus: licensePlateFocus,
-                  hintText: 'Telefonszám'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Adja meg telefonszámát';
+                  }
+                  return null;
+                },
+                controller: phoneController,
+                focusNode: phoneFocus,
+                textInputAction: TextInputAction.next,
+                nextFocus: licensePlateFocus,
+                hintText: 'Telefonszám',
+              ),
               const SizedBox(height: 10),
               MyTextFormField(
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Adja meg rendszámát';
-                    }
-                    return null;
-                  },
-                  controller: licensePlateController,
-                  focusNode: licensePlateFocus,
-                  textInputAction: TextInputAction.next,
-                  nextFocus: datePickerFocus,
-                  hintText: 'Várható rendszám'),
-              const SizedBox(height: 16),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Adja meg rendszámát';
+                  }
+                  return null;
+                },
+                controller: licensePlateController,
+                focusNode: licensePlateFocus,
+                textInputAction: TextInputAction.next,
+                nextFocus: datePickerFocus,
+                hintText: 'Várható rendszám',
+              ),
+              const SizedBox(height: 10),
               Row(children: [
                 MyIconButton(
-                    icon: Icons.calendar_month_rounded,
-                    labelText: 'Válassz dátumot',
-                    onPressed: ShowDatePickerDialog),
-                // ElevatedButton(
-                //     focusNode: datePickerFocus,
-                //     onPressed: ShowDatePickerDialog,
-                //     child: const Text("Válassz dátumot")),
-                // const SizedBox(
-                //   width: 10,
-                // ),
-
-                const SizedBox(width: 50),
-                Column(
-                  children: [
-                    Text('Érkezés'),
-                    Text(format(selectedWashArriveDate))
-                  ],
+                  icon: Icons.calendar_month_rounded,
+                  labelText: "Válassz dátumot",
+                  focusNode: datePickerFocus,
+                  onPressed: () {
+                    ShowDatePickerDialog();
+                    CalculateTotalCost();
+                    FocusScope.of(context).requestFocus(transferFocus);
+                  },
                 ),
                 const SizedBox(width: 50),
                 Column(
-                  children: [
-                    Text('Távozás'),
-                    Text(format(selectedWashLeaveDate))
-                  ],
+                  children: [Text('Érkezés'), Text(format(selectedArriveDate))],
+                ),
+                const SizedBox(width: 50),
+                Column(
+                  children: [Text('Távozás'), Text(format(selectedLeaveDate))],
                 ),
               ]),
-              const SizedBox(height: 12),
-              const Text('Válassza ki a kívánt programot'),
-              GestureDetector(
-                onHorizontalDragUpdate: (details) {
-                  WashOptionsScrollController.jumpTo(
-                    WashOptionsScrollController.position.pixels -
-                        details.delta.dx,
-                  );
-                },
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  controller: WashOptionsScrollController,
-                  padding: EdgeInsets.all(8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      WashOptionSelectionCard(
-                        title: 'Alapmosás',
-                        washCost: 10000,
-                        selected: selectedWashOption == WashOption.basic,
-                        onTap: () {
-                          setState(() => selectedWashOption = WashOption.basic);
-                        },
-                      ),
-                      WashOptionSelectionCard(
-                        title: 'Mosás 2',
-                        washCost: 20000,
-                        selected: selectedWashOption == WashOption.wash2,
-                        onTap: () {
-                          setState(() => selectedWashOption = WashOption.wash2);
-                        },
-                      ),
-                      WashOptionSelectionCard(
-                        title: 'Mosás 3',
-                        washCost: 30000,
-                        selected: selectedWashOption == WashOption.wash3,
-                        onTap: () {
-                          setState(() => selectedWashOption = WashOption.wash3);
-                        },
-                      ),
-                      WashOptionSelectionCard(
-                        title: 'Mosás 4',
-                        washCost: 40000,
-                        selected: selectedWashOption == WashOption.wash4,
-                        onTap: () {
-                          setState(() => selectedWashOption = WashOption.wash4);
-                        },
-                      ),
-                      WashOptionSelectionCard(
-                        title: 'Szupermosás porszívóval',
-                        washCost: 50000,
-                        selected: selectedWashOption == WashOption.superWash,
-                        onTap: () {
-                          setState(
-                              () => selectedWashOption = WashOption.superWash);
-                        },
-                      ),
-                    ],
+              const SizedBox(height: 8),
+              Text('Válassz parkoló zónát - $parkingDays napra',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: ParkingZoneSelectionCard(
+                      title: "Eco",
+                      subtitle: "Nyitott murvás",
+                      costPerDay: 2000,
+                      parkingDays: parkingDays,
+                      selected:
+                          selectedParkingZoneOption == ParkingZoneOption.eco,
+                      onTap: () {
+                        setState(() =>
+                            selectedParkingZoneOption = ParkingZoneOption.eco);
+                        CalculateTotalCost();
+                      },
+                    ),
                   ),
-                ),
+                  Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: ParkingZoneSelectionCard(
+                      title: "Normal",
+                      subtitle: "Nyitott térköves",
+                      costPerDay: 5000,
+                      parkingDays: parkingDays,
+                      selected:
+                          selectedParkingZoneOption == ParkingZoneOption.normal,
+                      onTap: () {
+                        setState(() => selectedParkingZoneOption =
+                            ParkingZoneOption.normal);
+                        CalculateTotalCost();
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: ParkingZoneSelectionCard(
+                      title: "Premium",
+                      subtitle: "Fedett téköves",
+                      costPerDay: 10000,
+                      parkingDays: parkingDays,
+                      selected: selectedParkingZoneOption ==
+                          ParkingZoneOption.premium,
+                      onTap: () {
+                        setState(() => selectedParkingZoneOption =
+                            ParkingZoneOption.premium);
+                        CalculateTotalCost();
+                      },
+                    ),
+                  )
+                ],
               ),
-              const SizedBox(height: 10),
-              const Text('Fizetendő összeg: 33 000 Ft'),
-              MyRadioListTile<PaymentOption>(
-                title: 'Bankkártyával fizetek',
-                value: PaymentOption.card,
-                groupValue: selectedPaymentOption,
-                onChanged: (PaymentOption? value) {
-                  setState(() {
-                    selectedPaymentOption = value!;
-                  });
-                },
-                dense: true,
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  // MyCheckBox(
+                  //     value: transferRequested,
+                  //     focusNode: transferFocus,
+                  //     onChanged: (value) {
+                  //       setState(() {
+                  //         transferRequested = value;
+                  //       });
+                  //     }),
+                  Text('Transzferre váró személyek száma'),
+                  SizedBox(width: 15),
+                  IconButton.filled(
+                    onPressed: () {
+                      setState(() {
+                        if (transferCount > 0) {
+                          transferCount--;
+                        }
+                        CalculateTotalCost();
+                      });
+                    },
+                    icon: Icon(Icons.remove,
+                        color: transferCount > 0
+                            ? Colors.black
+                            : Colors.grey.shade400,
+                        size: 16),
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.grey.shade300,
+                      hoverColor: transferCount > 0
+                          ? Colors.grey.shade400
+                          : Colors.grey.shade300,
+                      minimumSize: const Size(24, 24),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      padding: EdgeInsets.zero,
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Text('$transferCount',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  SizedBox(width: 8),
+                  IconButton.filled(
+                    onPressed: () {
+                      setState(() {
+                        if (transferCount < 7) {
+                          transferCount++;
+                        }
+                        CalculateTotalCost();
+                      });
+                    },
+                    icon: Icon(Icons.add,
+                        color: transferCount < 7
+                            ? Colors.black
+                            : Colors.grey.shade400,
+                        size: 16),
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.grey.shade300,
+                      hoverColor: transferCount < 7
+                          ? Colors.grey.shade400
+                          : Colors.grey.shade300,
+                      minimumSize: const Size(24, 24),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      padding: EdgeInsets.zero,
+                    ),
+                  ),
+                ],
               ),
-              MyRadioListTile<PaymentOption>(
-                title:
-                    'Átutalással fizetek még a parkolás megkezdése előtt 1 nappal',
-                value: PaymentOption.transfer,
-                groupValue: selectedPaymentOption,
-                onChanged: (PaymentOption? value) {
-                  setState(() {
-                    selectedPaymentOption = value!;
-                  });
-                },
-                dense: true,
+              Row(
+                children: [
+                  MyCheckBox(
+                    value: VIPDriverRequested,
+                    focusNode: VIPFocus,
+                    onChanged: (value) {
+                      setState(() {
+                        VIPDriverRequested = value ?? false;
+                        CalculateTotalCost();
+                      });
+                    },
+                  ),
+                  Text('VIP sofőr igénylése (Hozza viszi az autót a parkolóba)')
+                ],
               ),
-              MyRadioListTile<PaymentOption>(
-                title: 'Qvik',
-                value: PaymentOption.qvik,
-                groupValue: selectedPaymentOption,
-                onChanged: (PaymentOption? value) {
-                  setState(() {
-                    selectedPaymentOption = value!;
-                  });
-                },
-                dense: true,
+              Row(
+                children: [
+                  MyCheckBox(
+                    value: suitcaseWrappingRequested,
+                    focusNode: suitcaseWrappingFocus,
+                    nextFocus: descriptionFocus,
+                    onChanged: (value) {
+                      setState(() {
+                        suitcaseWrappingRequested = value ?? false;
+                        if (suitcaseWrappingRequested) {
+                          suitcasesToWrap = 1;
+                        } else {
+                          suitcasesToWrap = 0;
+                        }
+
+                        CalculateTotalCost();
+                      });
+                    },
+                  ),
+                  Text('Bőrönd fóliázás igénylése'),
+                  suitcaseWrappingRequested
+                      ? Row(
+                          children: [
+                            SizedBox(width: 15),
+                            IconButton.filled(
+                              onPressed: () {
+                                setState(() {
+                                  if (suitcasesToWrap > 0) {
+                                    suitcasesToWrap--;
+                                    if (suitcasesToWrap == 0) {
+                                      suitcaseWrappingRequested = false;
+                                    }
+
+                                    CalculateTotalCost();
+                                  }
+                                });
+                              },
+                              icon: Icon(Icons.remove,
+                                  color: suitcasesToWrap > 0
+                                      ? Colors.black
+                                      : Colors.grey.shade400,
+                                  size: 16),
+                              style: IconButton.styleFrom(
+                                backgroundColor: Colors.grey.shade300,
+                                hoverColor: suitcasesToWrap > 0
+                                    ? Colors.grey.shade400
+                                    : Colors.grey.shade300,
+                                minimumSize: const Size(24, 24),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                padding: EdgeInsets.zero,
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Text('$suitcasesToWrap',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            SizedBox(width: 8),
+                            IconButton.filled(
+                              onPressed: () {
+                                setState(() {
+                                  if (suitcasesToWrap < 9) {
+                                    suitcasesToWrap++;
+                                  }
+                                  CalculateTotalCost();
+                                });
+                              },
+                              icon: Icon(Icons.add,
+                                  color: suitcasesToWrap < 9
+                                      ? Colors.black
+                                      : Colors.grey.shade400,
+                                  size: 16),
+                              style: IconButton.styleFrom(
+                                backgroundColor: Colors.grey.shade300,
+                                hoverColor: suitcasesToWrap < 9
+                                    ? Colors.grey.shade400
+                                    : Colors.grey.shade300,
+                                minimumSize: const Size(24, 24),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                padding: EdgeInsets.zero,
+                              ),
+                            ),
+                          ],
+                        )
+                      : Container()
+                ],
               ),
+              const SizedBox(height: 12),
+              selectedBookingOption == BookingOption.parking
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text.rich(
+                          TextSpan(
+                            text: 'Fizetendő összeg: ',
+                            style: TextStyle(fontSize: 16),
+                            children: [
+                              TextSpan(
+                                text:
+                                    '${NumberFormat('#,###', 'hu_HU').format(totalCost)} Ft',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                        MyRadioListTile<PaymentOption>(
+                          title: 'Bankkártyával fizetek',
+                          value: PaymentOption.card,
+                          groupValue: selectedPaymentOption,
+                          onChanged: (PaymentOption? value) {
+                            setState(() {
+                              selectedPaymentOption = value!;
+                            });
+                          },
+                          dense: true,
+                        ),
+                        MyRadioListTile<PaymentOption>(
+                          title:
+                              'Átutalással fizetek még a parkolás megkezdése előtt 1 nappal',
+                          value: PaymentOption.transfer,
+                          groupValue: selectedPaymentOption,
+                          onChanged: (PaymentOption? value) {
+                            setState(() {
+                              selectedPaymentOption = value!;
+                            });
+                          },
+                          dense: true,
+                        ),
+                        MyRadioListTile<PaymentOption>(
+                          title: 'Qvik',
+                          value: PaymentOption.qvik,
+                          groupValue: selectedPaymentOption,
+                          onChanged: (PaymentOption? value) {
+                            setState(() {
+                              selectedPaymentOption = value!;
+                            });
+                          },
+                          dense: true,
+                        ),
+                      ],
+                    )
+                  : Container(),
+              SizedBox(height: 10),
               MyTextFormField(
-                focusNode: descriptionFocus,
                 controller: descriptionController,
-                hintText: 'Megjegyzés a recepciónak',
+                focusNode: descriptionFocus,
+                textInputAction: TextInputAction.next,
                 nextFocus: nextPageButtonFocus,
+                hintText: 'Megjegyzés a recepciónak',
               ),
               NextPageButton(
+                title: "Parkolás foglalás",
                 focusNode: nextPageButtonFocus,
-                title: "Számlázás",
-                nextPage: HomePage(),
-              )
+                onPressed: OnNextPageButtonPressed,
+              ),
             ],
           ),
         ),
       ),
     );
   }
-}
-
-/// Félórás időpontok generálása az időpont választáshoz 0:00 - 23:30 között
-List<TimeOfDay> generateHalfHourTimeSlots() {
-  List<TimeOfDay> slots = [];
-  for (int hour = 0; hour <= 23; hour++) {
-    slots.add(TimeOfDay(hour: hour, minute: 0));
-    slots.add(TimeOfDay(hour: hour, minute: 30));
-  }
-  return slots;
 }

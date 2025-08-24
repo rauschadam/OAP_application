@@ -1,6 +1,5 @@
 import 'package:airport_test/constantWidgets.dart';
 import 'package:airport_test/bookingForm/bookingOptionPage.dart';
-import 'package:airport_test/perview_example.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {
@@ -18,9 +17,9 @@ class HomePage extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (_) => const BasePage(
-                title: 'Foglalási Opciók', child: PerviewExample()
-                //BookingOptionPage(),
-                ),
+              title: 'Foglalási Opciók',
+              child: BookingOptionPage(),
+            ),
           ),
         );
       },

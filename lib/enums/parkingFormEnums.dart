@@ -34,3 +34,5 @@ enum InvoiceOption {
   no, // Nem kérek számlát
   yes, // Kérek számlát
 }
+
+enum TimeOfDayPeriod { morning, days, night, nighttime }

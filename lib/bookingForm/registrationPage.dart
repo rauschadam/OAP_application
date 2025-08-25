@@ -4,6 +4,7 @@ import 'package:airport_test/constantWidgets.dart';
 import 'package:airport_test/bookingForm/parkOrderPage.dart';
 import 'package:airport_test/bookingForm/washOrderPage.dart';
 import 'package:airport_test/enums/parkingFormEnums.dart';
+import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 
 class RegistrationPage extends StatefulWidget implements PageWithTitle {
@@ -22,6 +23,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   TextEditingController nameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+  TextEditingController confirmPasswordController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
   TextEditingController favoriteLicensePlateNumberController =
@@ -29,12 +31,15 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   FocusNode nameFocus = FocusNode();
   FocusNode passwordFocus = FocusNode();
+  FocusNode confirmPasswordFocus = FocusNode();
   FocusNode emailFocus = FocusNode();
   FocusNode phoneFocus = FocusNode();
   FocusNode favoriteLicensePlateNumberFocus = FocusNode();
   FocusNode nextPageButtonFocus = FocusNode();
 
   String? authToken;
+
+  bool obscurePassword = true;
 
   Future<String?> RegisterUser() async {
     final registration = Registration(
@@ -95,9 +100,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
           context,
           MaterialPageRoute(
             builder: (_) => BasePage(
-              // title: widget.bookingOption == BookingOption.washing
-              //     ? "Mosás foglalás"
-              //     : "Parkolás foglalás",
               child: nextPage,
             ),
           ),
@@ -129,8 +131,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
           SizedBox(height: 10),
           MyTextFormField(
             validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Adja meg email címét';
+              if (value == null || value.trim().isEmpty) {
+                return 'Adja meg email-címét';
+              } else if (!EmailValidator.validate(value.trim())) {
+                return 'Érvénytelen email-cím';
               }
               return null;
             },
@@ -149,11 +153,39 @@ class _RegistrationPageState extends State<RegistrationPage> {
               return null;
             },
             controller: passwordController,
-            obscureText: true,
+            obscureText: obscurePassword,
+            onObscureToggle: () {
+              setState(() {
+                obscurePassword = !obscurePassword;
+              });
+            },
             focusNode: passwordFocus,
             textInputAction: TextInputAction.next,
-            nextFocus: nameFocus,
+            nextFocus: confirmPasswordFocus,
             hintText: 'Jelszó',
+          ),
+          SizedBox(height: 10),
+          MyTextFormField(
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Adjon meg egy jelszót';
+              } else if (confirmPasswordController.text !=
+                  passwordController.text) {
+                return 'A jelszó nem egyezik';
+              }
+              return null;
+            },
+            controller: confirmPasswordController,
+            obscureText: obscurePassword,
+            onObscureToggle: () {
+              setState(() {
+                obscurePassword = !obscurePassword;
+              });
+            },
+            focusNode: confirmPasswordFocus,
+            textInputAction: TextInputAction.next,
+            nextFocus: nameFocus,
+            hintText: 'Jelszó megerősítése',
           ),
           SizedBox(height: 10),
           MyTextFormField(
@@ -171,18 +203,18 @@ class _RegistrationPageState extends State<RegistrationPage> {
           ),
           SizedBox(height: 10),
           MyTextFormField(
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Adja meg telefonszámát';
-              }
-              return null;
-            },
-            controller: phoneController,
-            focusNode: phoneFocus,
-            textInputAction: TextInputAction.next,
-            nextFocus: favoriteLicensePlateNumberFocus,
-            hintText: 'Telefonszám',
-          ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Adja meg telefonszámát';
+                }
+                return null;
+              },
+              controller: phoneController,
+              focusNode: phoneFocus,
+              textInputAction: TextInputAction.next,
+              nextFocus: favoriteLicensePlateNumberFocus,
+              hintText: 'Telefonszám',
+              selectedTextFormFieldType: MyTextFormFieldType.phone),
           SizedBox(height: 10),
           MyTextFormField(
             validator: (value) {
@@ -196,7 +228,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
             textInputAction: TextInputAction.done,
             nextFocus: nextPageButtonFocus,
             hintText: 'Kedvenc rendszám',
-            forceUppercase: true,
+            selectedTextFormFieldType: MyTextFormFieldType.licensePlate,
           ),
           SizedBox(height: 10),
           NextPageButton(

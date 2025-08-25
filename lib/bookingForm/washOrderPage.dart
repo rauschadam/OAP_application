@@ -1070,30 +1070,34 @@ class WashOrderPageState extends State<WashOrderPage> {
                   hintText: 'Foglaló személy neve'),
               const SizedBox(height: 10),
               MyTextFormField(
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Adja meg telefonszámát';
-                    }
-                    return null;
-                  },
-                  controller: phoneController,
-                  focusNode: phoneFocus,
-                  textInputAction: TextInputAction.next,
-                  nextFocus: licensePlateFocus,
-                  hintText: 'Telefonszám'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Adja meg telefonszámát';
+                  }
+                  return null;
+                },
+                controller: phoneController,
+                focusNode: phoneFocus,
+                textInputAction: TextInputAction.next,
+                nextFocus: licensePlateFocus,
+                hintText: 'Telefonszám',
+                selectedTextFormFieldType: MyTextFormFieldType.phone,
+              ),
               const SizedBox(height: 10),
               MyTextFormField(
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Adja meg rendszámát';
-                    }
-                    return null;
-                  },
-                  controller: licensePlateController,
-                  focusNode: licensePlateFocus,
-                  textInputAction: TextInputAction.next,
-                  nextFocus: datePickerFocus,
-                  hintText: 'Várható rendszám'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Adja meg rendszámát';
+                  }
+                  return null;
+                },
+                controller: licensePlateController,
+                focusNode: licensePlateFocus,
+                textInputAction: TextInputAction.next,
+                nextFocus: datePickerFocus,
+                hintText: 'Várható rendszám',
+                selectedTextFormFieldType: MyTextFormFieldType.licensePlate,
+              ),
               const SizedBox(height: 16),
               Row(children: [
                 MyIconButton(

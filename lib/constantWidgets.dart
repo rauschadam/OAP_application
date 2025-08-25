@@ -1,4 +1,7 @@
+import 'package:airport_test/enums/parkingFormEnums.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_multi_formatter/formatters/masked_input_formatter.dart';
 import 'package:intl/intl.dart';
 
 class AppColors {
@@ -188,7 +191,8 @@ class MyTextFormField extends StatelessWidget {
   final TextInputAction textInputAction;
   final String? Function(String?)? validator;
   final bool obscureText;
-  final bool forceUppercase;
+  final Function? onObscureToggle;
+  final MyTextFormFieldType? selectedTextFormFieldType;
 
   const MyTextFormField(
       {super.key,
@@ -199,46 +203,83 @@ class MyTextFormField extends StatelessWidget {
       this.textInputAction = TextInputAction.next,
       this.validator,
       this.obscureText = false,
-      this.forceUppercase = false});
+      this.onObscureToggle,
+      this.selectedTextFormFieldType});
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      focusNode: focusNode,
-      textInputAction: textInputAction,
-      validator: validator,
-      cursorColor: BasePage.defaultColors.primary,
-      onEditingComplete: () {
-        if (nextFocus != null) {
-          FocusScope.of(context).requestFocus(nextFocus);
-        } else {
-          FocusScope.of(context).unfocus();
-        }
-      },
-      onChanged: forceUppercase
-          ? (text) {
-              final upper = text.toUpperCase();
-              if (text != upper) {
-                controller.value = controller.value.copyWith(
-                  text: upper,
-                  selection: TextSelection.collapsed(offset: upper.length),
-                );
-              }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 2.0, bottom: 2.0),
+          child: Text(hintText,
+              style: TextStyle(color: BasePage.defaultColors.primary)),
+        ),
+        TextFormField(
+          controller: controller,
+          focusNode: focusNode,
+          textInputAction: textInputAction,
+          validator: validator,
+          cursorColor: BasePage.defaultColors.primary,
+          cursorErrorColor: BasePage.defaultColors.primary,
+          onEditingComplete: () {
+            if (nextFocus != null) {
+              FocusScope.of(context).requestFocus(nextFocus);
+            } else {
+              FocusScope.of(context).unfocus();
             }
-          : null,
-      decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: TextStyle(color: BasePage.defaultColors.primary),
-          filled: true,
-          fillColor: BasePage.defaultColors.secondary,
-          border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none
-              //BorderSide(
-              //color: TextFieldColorMap(BasePage.defaultColorEnum)!),
-              )),
-      obscureText: obscureText,
+          },
+          onChanged: selectedTextFormFieldType ==
+                  MyTextFormFieldType.licensePlate
+              ? (text) {
+                  final upper = text.toUpperCase();
+                  if (text != upper) {
+                    controller.value = controller.value.copyWith(
+                      text: upper,
+                      selection: TextSelection.collapsed(offset: upper.length),
+                    );
+                  }
+                }
+              : null,
+          decoration: InputDecoration(
+            // hintText: hintText,
+            // hintStyle: TextStyle(color: BasePage.defaultColors.primary),
+            prefixText: selectedTextFormFieldType == MyTextFormFieldType.phone
+                ? '+'
+                : null,
+            prefixStyle: selectedTextFormFieldType == MyTextFormFieldType.phone
+                ? TextStyle(color: Colors.black)
+                : null,
+            filled: true,
+            fillColor: BasePage.defaultColors.secondary,
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none),
+            suffixIcon: onObscureToggle != null
+                ? Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: IconButton(
+                      icon: Icon(
+                        obscureText ? Icons.visibility_off : Icons.visibility,
+                        color: obscureText
+                            ? Colors.grey.shade800
+                            : Colors.grey.shade900,
+                      ),
+                      onPressed: () {
+                        onObscureToggle!();
+                      },
+                    ),
+                  )
+                : null,
+          ),
+          obscureText: obscureText,
+          inputFormatters:
+              selectedTextFormFieldType == MyTextFormFieldType.phone
+                  ? [MaskedInputFormatter('00 00 000 0000')]
+                  : null,
+        ),
+      ],
     );
   }
 }

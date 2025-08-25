@@ -36,3 +36,8 @@ enum InvoiceOption {
 }
 
 enum TimeOfDayPeriod { morning, days, night, nighttime }
+
+enum MyTextFormFieldType {
+  licensePlate,
+  phone,
+}

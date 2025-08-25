@@ -3,6 +3,7 @@ import 'package:airport_test/constantWidgets.dart';
 import 'package:airport_test/bookingForm/parkOrderPage.dart';
 import 'package:airport_test/bookingForm/washOrderPage.dart';
 import 'package:airport_test/enums/parkingFormEnums.dart';
+import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 
 class LoginPage extends StatefulWidget implements PageWithTitle {
@@ -27,6 +28,8 @@ class _LoginPageState extends State<LoginPage> {
   FocusNode nextPageButtonFocus = FocusNode();
 
   String? authToken;
+
+  bool obscurePassword = true;
 
   Future<String?> LoginUser() async {
     final api = ApiService();
@@ -100,8 +103,10 @@ class _LoginPageState extends State<LoginPage> {
           SizedBox(height: 10),
           MyTextFormField(
             validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Adja meg email címét';
+              if (value == null || value.trim().isEmpty) {
+                return 'Adja meg email-címét';
+              } else if (!EmailValidator.validate(value.trim())) {
+                return 'Érvénytelen email-cím';
               }
               return null;
             },
@@ -120,7 +125,12 @@ class _LoginPageState extends State<LoginPage> {
               return null;
             },
             controller: passwordController,
-            obscureText: true,
+            obscureText: obscurePassword,
+            onObscureToggle: () {
+              setState(() {
+                obscurePassword = !obscurePassword;
+              });
+            },
             focusNode: passwordFocus,
             textInputAction: TextInputAction.next,
             nextFocus: nextPageButtonFocus,

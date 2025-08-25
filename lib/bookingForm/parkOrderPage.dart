@@ -1476,6 +1476,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                 textInputAction: TextInputAction.next,
                 nextFocus: licensePlateFocus,
                 hintText: 'Telefonszám',
+                selectedTextFormFieldType: MyTextFormFieldType.phone,
               ),
               const SizedBox(height: 10),
               MyTextFormField(
@@ -1490,6 +1491,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                 textInputAction: TextInputAction.next,
                 nextFocus: datePickerFocus,
                 hintText: 'Várható rendszám',
+                selectedTextFormFieldType: MyTextFormFieldType.licensePlate,
               ),
               const SizedBox(height: 10),
               Row(children: [

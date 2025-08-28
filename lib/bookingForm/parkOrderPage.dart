@@ -1,4 +1,5 @@
 import 'package:airport_test/api_Services/api_service.dart';
+import 'package:airport_test/api_Services/reservation.dart';
 import 'package:airport_test/constantWidgets.dart';
 import 'package:airport_test/bookingForm/invoiceOptionPage.dart';
 import 'package:airport_test/bookingForm/washOrderPage.dart';
@@ -62,8 +63,8 @@ class ParkOrderPageState extends State<ParkOrderPage> {
     } else {
       setState(() {
         reservations = data;
-        fullyBookedDateTimes = generateFullyBookedDateTimes(reservations!);
       });
+      fetchServiceTemplates();
     }
   }
 
@@ -80,6 +81,8 @@ class ParkOrderPageState extends State<ParkOrderPage> {
     } else {
       setState(() {
         serviceTemplates = data;
+        fullyBookedDateTimes =
+            mapBookedDateTimesByZones(reservations!, serviceTemplates!);
       });
     }
   }
@@ -89,7 +92,6 @@ class ParkOrderPageState extends State<ParkOrderPage> {
 
   // Az enumok / kiválasztható lehetőségek default értékei
   BookingOption selectedBookingOption = BookingOption.parking;
-  //ParkingZoneOption selectedParkingZoneOption = ParkingZoneOption.eco;
   int selectedParkingZoneId = 1;
   PaymentOption selectedPaymentOption = PaymentOption.card;
 
@@ -153,38 +155,59 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   DateTime? tempArriveDate, tempLeaveDate;
 
   //Teljes időpontos foglalt időpontok
-  List<DateTime> fullyBookedDateTimes = [];
+  Map<int, List<DateTime>> fullyBookedDateTimes = {};
 
-  List<DateTime> generateFullyBookedDateTimes(List<dynamic> reservations) {
-    Map<DateTime, int> counter = {}; // időpont → előfordulások száma
+  Map<int, List<DateTime>> mapBookedDateTimesByZones(
+      List<dynamic> reservations, List<dynamic> serviceTemplates) {
+    // építsük fel a zóna kapacitásokat serviceTemplates alapján
+    final Map<int, int> zoneCapacities = {};
+    for (var template in serviceTemplates) {
+      if (template['ParkingServiceType'] != 1) continue;
+      final int id = template['ParkingTemplateId'];
+      final int capacity = template['ZoneCapacity'] ?? 1;
+      zoneCapacities[id] = capacity;
+    }
 
-    for (var r in reservations) {
-      final arrive = DateTime.parse(r['ArriveDate']);
-      final leave = DateTime.parse(r['LeaveDate']);
+    // időpont számláló zónánként
+    Map<int, Map<DateTime, int>> counters = {};
+
+    for (var reservation in reservations) {
+      /// A szerveren van egy olyan foglalás aminek 0 a ParkingService-e
+      final zoneId = reservation['ParkingService'] == 0
+          ? 1
+          : reservation['ParkingService'];
+
+      final arrive = DateTime.parse(reservation['ArriveDate']);
+      final leave = DateTime.parse(reservation['LeaveDate']);
+
+      counters.putIfAbsent(zoneId, () => {});
 
       DateTime current = DateTime(
         arrive.year,
         arrive.month,
         arrive.day,
         arrive.hour,
-        arrive.minute - (arrive.minute % 30), // kerekítés
+        arrive.minute - (arrive.minute % 30),
       );
 
       while (current.isBefore(leave)) {
-        counter[current] = (counter[current] ?? 0) + 1;
+        counters[zoneId]![current] = (counters[zoneId]![current] ?? 0) + 1;
         current = current.add(const Duration(minutes: 30));
       }
     }
 
-    // Csak azok kerüljenek be, ahol pontosan 2 foglalás van
-    List<DateTime> fullyBooked = [];
-    counter.forEach((time, count) {
-      if (count >= 2) {
-        fullyBooked.add(time);
-      }
+    // fully booked időpontok zónánként
+    Map<int, List<DateTime>> fullyBookedDateTimesByZone = {};
+
+    counters.forEach((zoneId, counter) {
+      final capacity = zoneCapacities[zoneId];
+      fullyBookedDateTimesByZone[zoneId] = counter.entries
+          .where((entry) => entry.value >= capacity!)
+          .map((entry) => entry.key)
+          .toList();
     });
 
-    return fullyBooked;
+    return fullyBookedDateTimesByZone;
   }
 
   /// Azok a napok amelyek beleesnek a kiválasztott intervallumba,
@@ -221,10 +244,13 @@ class ParkOrderPageState extends State<ParkOrderPage> {
       selectedArriveTime!.minute,
     );
 
+    // A kiválasztott parkoló zóna telített időpontjai
+    final zoneTimes = fullyBookedDateTimes[selectedParkingZoneId] ?? [];
+
     /// Megnézi, hogy bele a foglalt időpontok beleesnek-e a foglalni kívánt intervallumba.
-    final filtered = fullyBookedDateTimes.where((d) {
+    final filtered = zoneTimes.where((d) {
       return !d.isBefore(startDateTime) && !d.isAfter(endDateTime);
-    });
+    }).toList();
 
     /// A blackoutDays csak a dátum (év, hónap, nap), időpont nélkül
     blackoutDays =
@@ -324,8 +350,11 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                 }
               }
 
+              final zoneTimes =
+                  fullyBookedDateTimes[selectedParkingZoneId] ?? [];
+
               // Ellenőrizzük, hogy az adott időpont foglalt-e (érkezéshez)
-              bool isArriveDateBooked = fullyBookedDateTimes.any((d) =>
+              bool isArriveDateBooked = zoneTimes.any((d) =>
                   d.year == (tempArriveDate?.year ?? 0) &&
                   d.month == (tempArriveDate?.month ?? 0) &&
                   d.day == (tempArriveDate?.day ?? 0) &&
@@ -333,7 +362,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                   d.minute == time.minute);
 
               // Ellenőrizzük, hogy az adott időpont foglalt-e (távozáshoz)
-              bool isLeaveDateBooked = fullyBookedDateTimes.any((d) =>
+              bool isLeaveDateBooked = zoneTimes.any((d) =>
                   d.year == (tempLeaveDate?.year ?? 0) &&
                   d.month == (tempLeaveDate?.month ?? 0) &&
                   d.day == (tempLeaveDate?.day ?? 0) &&
@@ -558,8 +587,11 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                                     return;
                                   }
 
-                                  bool containsBlackout =
-                                      fullyBookedDateTimes.any((b) {
+                                  final zoneTimes = fullyBookedDateTimes[
+                                          selectedParkingZoneId] ??
+                                      [];
+
+                                  bool containsBlackout = zoneTimes.any((b) {
                                     final bDate = DateTime(b.year, b.month,
                                         b.day, b.hour, b.minute);
                                     final startDateTime = DateTime(
@@ -712,7 +744,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
     });
 
     fetchReservations();
-    fetchServiceTemplates();
+    //fetchServiceTemplates();
   }
 
   @override

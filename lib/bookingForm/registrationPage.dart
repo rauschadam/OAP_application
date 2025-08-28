@@ -96,6 +96,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
             break;
         }
 
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sikeres regisztráció!')),
+        );
+
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -206,6 +210,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Adja meg telefonszámát';
+                } else if (phoneController.text.length < 10) {
+                  return 'Hibás telefonszám';
                 }
                 return null;
               },

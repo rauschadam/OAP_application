@@ -10,11 +10,11 @@ enum RegistrationOption {
   withoutRegistration, // Regisztráció nélkül vásárolok
 }
 
-enum ParkingZoneOption {
-  premium, // Fedett
-  normal, // Nyitott térköves
-  eco // Nyitott murvás
-}
+// enum ParkingZoneOption {
+//   premium, // Fedett
+//   normal, // Nyitott térköves
+//   eco // Nyitott murvás
+// }
 
 enum WashOption {
   basic, // Alapmosás

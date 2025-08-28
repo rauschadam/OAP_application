@@ -4,7 +4,7 @@ import 'package:airport_test/api_Services/registration.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  final String baseUrl = '192.168.100.3:9013';
+  final String baseUrl = '81.183.212.64:9006';
   final http.Client client = http.Client();
 
   /// Regisztráció
@@ -98,5 +98,67 @@ class ApiService {
     } finally {
       client.close();
     }
+  }
+
+  /// Foglalások lekérdezése
+  Future<List<dynamic>?> getReservations(String? token) async {
+    final uri = Uri.http(baseUrl, '/service/v1/airport/webparkings');
+
+    try {
+      final response = await client.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '$token',
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        print('Foglalások lekérdezése sikeres!');
+
+        final List reservations = data['responseContent'];
+        return reservations;
+      } else {
+        print('Hiba történt: ${response.statusCode}');
+        print(response.body);
+      }
+    } catch (e) {
+      print('Hálózati hiba: $e');
+    } finally {
+      client.close();
+    }
+    return null;
+  }
+
+  /// Szolgáltatások lekérdezése
+  Future<List<dynamic>?> getServiceTemplates(String? token) async {
+    final uri = Uri.http(baseUrl, '/service/v1/airport/templates');
+
+    try {
+      final response = await client.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '$token',
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        print('Szolgáltatások lekérdezése sikeres!');
+
+        final List serviceTemplates = data['responseContent'];
+        return serviceTemplates;
+      } else {
+        print('Hiba történt: ${response.statusCode}');
+        print(response.body);
+      }
+    } catch (e) {
+      print('Hálózati hiba: $e');
+    } finally {
+      client.close();
+    }
+    return null;
   }
 }

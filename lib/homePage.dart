@@ -20,7 +20,6 @@ class HomePage extends StatelessWidget implements PageWithTitle {
           context,
           MaterialPageRoute(
             builder: (_) => const BasePage(
-              // title: 'Foglalási Opciók',
               child: BookingOptionPage(),
             ),
           ),

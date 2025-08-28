@@ -92,7 +92,7 @@ class _InvoiceOptionPageState extends State<InvoiceOptionPage> {
       withoutRegistration: false,
       name: widget.nameController.text,
       email: widget.emailController.text,
-      phone: widget.phoneController.text,
+      phone: '+${widget.phoneController.text}',
       licensePlate: widget.licensePlateController.text,
       arriveDate: widget.arriveDate!,
       leaveDate: widget.leaveDate!,

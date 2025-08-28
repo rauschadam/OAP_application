@@ -925,7 +925,10 @@ class WashOrderPageState extends State<WashOrderPage> {
                         }
                       },
                     ),
-                    buildTimeSlotPicker(availableSlots),
+                    tempWashDate != null
+                        ? buildTimeSlotPicker(availableSlots)
+                        : Text(
+                            'Válasszon ki mosási dátumot, az időpontok megtekintéséhez'),
                     const SizedBox(height: 10),
                     (tempWashDate != null && selectedWashTime != null)
                         ? SizedBox(
@@ -1020,7 +1023,7 @@ class WashOrderPageState extends State<WashOrderPage> {
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sikertelen Bejelentkezés!')),
+        const SnackBar(content: Text('Sikertelen foglalás!')),
       );
     }
   }
@@ -1073,6 +1076,8 @@ class WashOrderPageState extends State<WashOrderPage> {
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Adja meg telefonszámát';
+                  } else if (phoneController.text.length < 10) {
+                    return 'Hibás telefonszám';
                   }
                   return null;
                 },

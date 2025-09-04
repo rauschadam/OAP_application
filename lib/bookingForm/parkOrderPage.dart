@@ -37,7 +37,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   late final TextEditingController phoneController;
   late final TextEditingController licensePlateController;
   late final TextEditingController descriptionController;
-  final ScrollController ParkZoneOptionsScrollController = ScrollController();
+  final ScrollController ParkOptionsScrollController = ScrollController();
 
   FocusNode nameFocus = FocusNode();
   FocusNode phoneFocus = FocusNode();
@@ -91,7 +91,6 @@ class ParkOrderPageState extends State<ParkOrderPage> {
 
   // Az enumok / kiválasztható lehetőségek default értékei
   BookingOption selectedBookingOption = BookingOption.parking;
-  int? selectedParkingZoneId;
   PaymentOption selectedPaymentOption = PaymentOption.card;
 
   /// Parkolási zóna cikkszáma
@@ -122,6 +121,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   int totalCost = 0;
 
   /// Kiválasztott parkolózóna napijegy ára
+  /// EZT AUTOMATIKUSAN KÉNE
   int getCostForZone(String articleId) {
     switch (articleId) {
       case "1-95426": // Premium
@@ -168,10 +168,12 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   // parkoló zóna -> telített időpontok
   Map<String, List<DateTime>> mapBookedDateTimesByZones(
       List<dynamic> reservations, List<dynamic> serviceTemplates) {
-    // Kiveszi a zónák 5kapacitását a Templates-ekből
+    // Kiveszi a zónák kapacitását a Templates-ekből
     final Map<String, int> zoneCapacities = {}; // parkoló zóna -> kapacitás
     for (var template in serviceTemplates) {
-      if (template['ParkingServiceType'] != 1) continue;
+      if (template['ParkingServiceType'] != 1) {
+        continue; // Csak a parkolásokat nézze
+      }
       final String articleId = template['ArticleId'];
       final int capacity = template['ZoneCapacity'] ?? 1;
       zoneCapacities[articleId] = capacity;
@@ -182,8 +184,6 @@ class ParkOrderPageState extends State<ParkOrderPage> {
         {}; // parkoló zóna -> (egy időpont hányszor szerepel)
 
     for (var reservation in reservations) {
-      /// A szerveren van egy olyan foglalás aminek 0 a ParkingService-e, ezt ki kell majd szedni
-      if (reservation['ParkingService'] == 0) continue;
       final parkingArticleId = reservation['ParkingArticleId'];
 
       final arrive = DateTime.parse(reservation['ArriveDate']);
@@ -211,19 +211,17 @@ class ParkOrderPageState extends State<ParkOrderPage> {
     Map<String, List<DateTime>> fullyBookedDateTimesByZone = {};
 
     counters.forEach((parkingArticleId, counter) {
-      final capacity = zoneCapacities[parkingArticleId];
-      fullyBookedDateTimesByZone[parkingArticleId] = counter.entries
-          .where((entry) => entry.value >= capacity!)
-          .map((entry) => entry.key)
-          .toList();
+      if (parkingArticleId != "") {
+        final capacity = zoneCapacities[parkingArticleId];
+        fullyBookedDateTimesByZone[parkingArticleId] = counter.entries
+            .where((entry) => entry.value >= capacity!)
+            .map((entry) => entry.key)
+            .toList();
+      }
     });
 
     return fullyBookedDateTimesByZone;
   }
-
-  /// Azok a napok amelyek beleesnek a kiválasztott intervallumba,
-  /// de van benne olyan időpont, amikor már nincs hely az adott parkoló zónában.
-  List<DateTime> blackoutDays = [];
 
   /// A parkolási napok számát frissíti.
   void UpdateParkingDays() {
@@ -261,12 +259,6 @@ class ParkOrderPageState extends State<ParkOrderPage> {
         return !d.isBefore(startDateTime) && !d.isAfter(endDateTime);
       });
 
-      if (hasForbidden) {
-        print('parkingArticleId: $parkingArticleId is forbidden');
-      } else {
-        print('parkingArticleId: $parkingArticleId is NOT forbidden');
-      }
-
       // Ha van tiltott időpont -> false, különben true
       zoneAvailability[parkingArticleId] = !hasForbidden;
     });
@@ -293,13 +285,13 @@ class ParkOrderPageState extends State<ParkOrderPage> {
 
     return GestureDetector(
       onHorizontalDragUpdate: (details) {
-        ParkZoneOptionsScrollController.jumpTo(
-          ParkZoneOptionsScrollController.position.pixels - details.delta.dx,
+        ParkOptionsScrollController.jumpTo(
+          ParkOptionsScrollController.position.pixels - details.delta.dx,
         );
       },
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        controller: ParkZoneOptionsScrollController,
+        controller: ParkOptionsScrollController,
         padding: EdgeInsets.all(8),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -321,7 +313,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                 subtitle: subtitle,
                 costPerDay: getCostForZone(articleId),
                 parkingDays: parkingDays,
-                selected: selectedParkingZoneId == articleId,
+                selected: selectedParkingArticleId == articleId,
                 onTap: () => onZoneSelected(articleId),
                 available: isAvailable,
               ),
@@ -337,8 +329,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
     tempArriveDate = selectedArriveDate;
     tempLeaveDate = selectedLeaveDate;
 
-    // Alapból frissítjük a blackoutDays-et a már beállított temp értékek alapján
-    //updateBlackoutDays();
+    List<TimeOfDay> availableSlots = [];
 
     /// Megadja, hogy melyik időpontos Expansion Tile-ban hovereljük az időpontot.
     Map<String, int> hoveredIndexMap = {
@@ -357,41 +348,6 @@ class ParkOrderPageState extends State<ParkOrderPage> {
             final allSlots = generateHalfHourTimeSlots();
             final today = DateTime.now();
             final currentTime = TimeOfDay.fromDateTime(today);
-
-            final availableSlots = allSlots.where((time) {
-              // Múltbeli időpontokat kiszűrjük
-              if (tempArriveDate != null &&
-                  tempArriveDate!.year == today.year &&
-                  tempArriveDate!.month == today.month &&
-                  tempArriveDate!.day == today.day) {
-                if (time.hour < currentTime.hour ||
-                    (time.hour == currentTime.hour &&
-                        time.minute <= currentTime.minute)) {
-                  return false;
-                }
-              }
-
-              // Ellenőrizzük, hogy az adott időpont foglalt-e (érkezéshez)
-              bool isArriveFullyBookedEverywhere = fullyBookedDateTimes.values
-                  .every((zoneTimes) => zoneTimes.any((d) =>
-                      d.year == (tempArriveDate?.year ?? 0) &&
-                      d.month == (tempArriveDate?.month ?? 0) &&
-                      d.day == (tempArriveDate?.day ?? 0) &&
-                      d.hour == time.hour &&
-                      d.minute == time.minute));
-
-              // Ellenőrizzük, hogy az adott időpont foglalt-e (távozáshoz)
-              bool isLeaveFullyBookedEverywhere = fullyBookedDateTimes.values
-                  .every((zoneTimes) => zoneTimes.any((d) =>
-                      d.year == (tempLeaveDate?.year ?? 0) &&
-                      d.month == (tempLeaveDate?.month ?? 0) &&
-                      d.day == (tempLeaveDate?.day ?? 0) &&
-                      d.hour == time.hour &&
-                      d.minute == time.minute));
-
-              return !isArriveFullyBookedEverywhere &&
-                  !isLeaveFullyBookedEverywhere;
-            }).toList();
 
             /// Időpont választó kártyák widgetje
             Widget buildTimeSlotPicker(List<TimeOfDay> slots) {
@@ -545,8 +501,51 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                           setStateDialog(() {
                             tempArriveDate = start;
                             tempLeaveDate = end;
-                            if (selectedArriveTime != null) {
-                              //updateBlackoutDays();
+
+                            if (tempArriveDate != null &&
+                                tempLeaveDate != null) {
+                              availableSlots = allSlots.where((time) {
+                                // Múltbeli időpontokat kiszűrjük
+                                if (tempArriveDate != null &&
+                                    tempArriveDate!.year == today.year &&
+                                    tempArriveDate!.month == today.month &&
+                                    tempArriveDate!.day == today.day) {
+                                  if (time.hour < currentTime.hour ||
+                                      (time.hour == currentTime.hour &&
+                                          time.minute <= currentTime.minute)) {
+                                    return false;
+                                  }
+                                }
+
+                                // Ellenőrizzük, hogy az adott időpont foglalt-e (érkezéshez)
+                                bool isArriveFullyBookedEverywhere =
+                                    fullyBookedDateTimes.values.any(
+                                        (zoneTimes) => zoneTimes.any((d) =>
+                                            d.year ==
+                                                (tempArriveDate?.year ?? 0) &&
+                                            d.month ==
+                                                (tempArriveDate?.month ?? 0) &&
+                                            d.day ==
+                                                (tempArriveDate?.day ?? 0) &&
+                                            d.hour == time.hour &&
+                                            d.minute == time.minute));
+
+                                // Ellenőrizzük, hogy az adott időpont foglalt-e (távozáshoz)
+                                bool isLeaveFullyBookedEverywhere =
+                                    fullyBookedDateTimes.values.any(
+                                        (zoneTimes) => zoneTimes.any((d) =>
+                                            d.year ==
+                                                (tempLeaveDate?.year ?? 0) &&
+                                            d.month ==
+                                                (tempLeaveDate?.month ?? 0) &&
+                                            d.day ==
+                                                (tempLeaveDate?.day ?? 0) &&
+                                            d.hour == time.hour &&
+                                            d.minute == time.minute));
+
+                                return !isArriveFullyBookedEverywhere &&
+                                    !isLeaveFullyBookedEverywhere;
+                              }).toList();
                             }
                           });
                         }
@@ -681,6 +680,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
           transferPersonCount: transferCount,
           vip: VIPDriverRequested,
           parkingCost: totalCost,
+          suitcaseWrappingCount: suitcaseWrappingCount,
         );
       }
       if (selectedArriveDate != null && selectedLeaveDate != null) {
@@ -720,7 +720,6 @@ class ParkOrderPageState extends State<ParkOrderPage> {
     });
 
     fetchReservations();
-    //fetchServiceTemplates();
   }
 
   @override
@@ -815,7 +814,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                         });
                         CalculateTotalCost();
                       },
-                      zoneAvailability: CheckZonesForAvailability()),
+                      zoneAvailability: zoneAvailability),
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -827,8 +826,8 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                         if (transferCount > 0) {
                           transferCount--;
                         }
-                        CalculateTotalCost();
                       });
+                      CalculateTotalCost();
                     },
                     icon: Icon(Icons.remove,
                         color: transferCount > 0
@@ -857,8 +856,8 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                         if (transferCount < 7) {
                           transferCount++;
                         }
-                        CalculateTotalCost();
                       });
+                      CalculateTotalCost();
                     },
                     icon: Icon(Icons.add,
                         color: transferCount < 7
@@ -887,8 +886,8 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                     onChanged: (value) {
                       setState(() {
                         VIPDriverRequested = value ?? false;
-                        CalculateTotalCost();
                       });
+                      CalculateTotalCost();
                     },
                   ),
                   Text('VIP sofőr igénylése (Hozza viszi az autót a parkolóba)')
@@ -908,9 +907,8 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                         } else {
                           suitcaseWrappingCount = 0;
                         }
-
-                        CalculateTotalCost();
                       });
+                      CalculateTotalCost();
                     },
                   ),
                   Text('Bőrönd fóliázás igénylése'),
@@ -926,10 +924,9 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                                     if (suitcaseWrappingCount == 0) {
                                       suitcaseWrappingRequested = false;
                                     }
-
-                                    CalculateTotalCost();
                                   }
                                 });
+                                CalculateTotalCost();
                               },
                               icon: Icon(Icons.remove,
                                   color: suitcaseWrappingCount > 0
@@ -958,8 +955,8 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                                   if (suitcaseWrappingCount < 9) {
                                     suitcaseWrappingCount++;
                                   }
-                                  CalculateTotalCost();
                                 });
+                                CalculateTotalCost();
                               },
                               icon: Icon(Icons.add,
                                   color: suitcaseWrappingCount < 9

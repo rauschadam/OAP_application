@@ -168,7 +168,7 @@ class MyRadioListTile<T> extends StatelessWidget {
             return BasePage.defaultColors.secondary
                 .withValues(alpha: 0.3); // splash szín
           }
-          return null; // alapértelmezett
+          return null;
         },
       ),
       activeColor: BasePage.defaultColors.primary,
@@ -454,57 +454,85 @@ class ParkingZoneSelectionCard extends StatelessWidget {
 
 class WashOptionSelectionCard extends StatelessWidget {
   final String title;
-  final String? subtitle;
   final int washCost;
   final bool selected;
   final VoidCallback onTap;
+  final bool available;
 
-  const WashOptionSelectionCard({
-    super.key,
-    required this.title,
-    this.subtitle,
-    required this.washCost,
-    required this.selected,
-    required this.onTap,
-  });
+  const WashOptionSelectionCard(
+      {super.key,
+      required this.title,
+      required this.washCost,
+      required this.selected,
+      required this.onTap,
+      this.available = true});
+
+  void ShowUnavailableZoneDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Nem foglalható"),
+          content: SizedBox(
+            width: 300,
+            height: 100,
+            child: const Text(
+                "A foglalni kívánt időpont foglalt ebben a zónában. Válasszon másik típusú mosást vagy változtasson az időponton."),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("OK"),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final formattedWashCost = NumberFormat('#,###', 'hu_HU').format(washCost);
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            color: selected ? Colors.white : Colors.white,
-            border: Border.all(
-              color: selected
-                  ? BasePage.defaultColors.primary
-                  : Colors.transparent,
-              width: 2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 8,
-                offset: Offset(0, 4),
-              ),
-            ],
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () {
+        if (available) {
+          onTap();
+        } else {
+          ShowUnavailableZoneDialog(context);
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: selected ? Colors.white : Colors.white,
+          border: Border.all(
+            color:
+                selected ? BasePage.defaultColors.primary : Colors.transparent,
+            width: 2,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 8,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Opacity(
+          opacity: available ? 1.0 : 0.3,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
+                height: 30,
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
                   color: selected
                       ? BasePage.defaultColors.secondary
                       : Colors.grey[200],
-                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   title,
@@ -516,16 +544,6 @@ class WashOptionSelectionCard extends StatelessWidget {
                   ),
                 ),
               ),
-              subtitle != null ? const SizedBox(height: 4) : Container(),
-              subtitle != null
-                  ? Text(
-                      subtitle!,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.black54,
-                      ),
-                    )
-                  : Container(),
               const SizedBox(height: 16),
               Text(
                 "$formattedWashCost Ft",

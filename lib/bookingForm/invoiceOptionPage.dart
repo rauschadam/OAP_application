@@ -25,7 +25,7 @@ class InvoiceOptionPage extends StatefulWidget implements PageWithTitle {
   final int? transferPersonCount;
   final bool? vip;
   final int? suitcaseWrappingCount;
-  //final String carWashArticleId;
+  final String? carWashArticleId;
   final DateTime? washDateTime;
   final TextEditingController descriptionController;
   const InvoiceOptionPage(
@@ -43,7 +43,8 @@ class InvoiceOptionPage extends StatefulWidget implements PageWithTitle {
       required this.descriptionController,
       required this.bookingOption,
       this.parkingArticleId,
-      this.suitcaseWrappingCount});
+      this.suitcaseWrappingCount,
+      this.carWashArticleId});
 
   @override
   State<InvoiceOptionPage> createState() => _InvoiceOptionPageState();
@@ -89,25 +90,24 @@ class _InvoiceOptionPageState extends State<InvoiceOptionPage> {
 
   void submitReservation() async {
     final reservation = Reservation(
-      parkingService: 1,
-      alreadyRegistered: true,
-      withoutRegistration: false,
-      name: widget.nameController.text,
-      email: widget.emailController.text,
-      phone: '+${widget.phoneController.text}',
-      licensePlate: widget.licensePlateController.text,
-      arriveDate: widget.arriveDate!,
-      leaveDate: widget.leaveDate!,
-      parkingArticleId: widget.parkingArticleId,
-      parkingArticleVolume: "1",
-      transferPersonCount: widget.transferPersonCount,
-      vip: widget.vip!,
-      suitcaseWrappingCount: widget.suitcaseWrappingCount,
-      carWashArticleId: "",
-      washDateTime: null,
-      payType: 1,
-      description: widget.descriptionController.text,
-    );
+        parkingService: 1,
+        alreadyRegistered: true,
+        withoutRegistration: false,
+        name: widget.nameController.text,
+        email: widget.emailController.text,
+        phone: '+${widget.phoneController.text}',
+        licensePlate: widget.licensePlateController.text,
+        arriveDate: widget.arriveDate!,
+        leaveDate: widget.leaveDate!,
+        parkingArticleId: widget.parkingArticleId,
+        parkingArticleVolume: "1",
+        transferPersonCount: widget.transferPersonCount,
+        vip: widget.vip!,
+        suitcaseWrappingCount: widget.suitcaseWrappingCount,
+        washDateTime: widget.washDateTime,
+        payType: 1,
+        description: widget.descriptionController.text,
+        carWashArticleId: widget.carWashArticleId);
 
     await ApiService().submitReservation(reservation, widget.authToken);
   }

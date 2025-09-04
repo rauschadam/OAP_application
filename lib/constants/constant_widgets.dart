@@ -28,8 +28,9 @@ class AppColors {
   );
 }
 
-abstract class PageWithTitle {
+mixin PageWithTitle {
   String get pageTitle;
+  bool get showBackButton => true;
 }
 
 class BasePage extends StatelessWidget {
@@ -38,11 +39,7 @@ class BasePage extends StatelessWidget {
   final Widget child;
   final AppColors? colors;
 
-  const BasePage({
-    super.key,
-    required this.child,
-    this.colors,
-  });
+  const BasePage({super.key, required this.child, this.colors});
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +55,7 @@ class BasePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(getTitle()),
+        automaticallyImplyLeading: (child as PageWithTitle).showBackButton,
         backgroundColor: effectiveColors.background,
         foregroundColor: effectiveColors.text,
         bottom: PreferredSize(
@@ -88,13 +86,15 @@ class NextPageButton extends StatelessWidget {
   final Widget? nextPage;
   final VoidCallback? onPressed;
   final FocusNode? focusNode;
+  final bool showBackButton;
 
   const NextPageButton(
       {super.key,
       this.text = "Tovább",
       this.nextPage,
       this.onPressed,
-      this.focusNode});
+      this.focusNode,
+      this.showBackButton = true});
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +119,9 @@ class NextPageButton extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                     builder: (_) => BasePage(
-                        colors: BasePage.defaultColors, child: nextPage!)),
+                          colors: BasePage.defaultColors,
+                          child: nextPage!,
+                        )),
               );
             }
           },
@@ -192,6 +194,7 @@ class MyTextFormField extends StatelessWidget {
   final bool obscureText;
   final Function? onObscureToggle;
   final MyTextFormFieldType? selectedTextFormFieldType;
+  final VoidCallback? onEditingComplete;
 
   const MyTextFormField(
       {super.key,
@@ -203,7 +206,8 @@ class MyTextFormField extends StatelessWidget {
       this.validator,
       this.obscureText = false,
       this.onObscureToggle,
-      this.selectedTextFormFieldType});
+      this.selectedTextFormFieldType,
+      this.onEditingComplete});
 
   @override
   Widget build(BuildContext context) {
@@ -227,6 +231,9 @@ class MyTextFormField extends StatelessWidget {
               FocusScope.of(context).requestFocus(nextFocus);
             } else {
               FocusScope.of(context).unfocus();
+            }
+            if (onEditingComplete != null) {
+              onEditingComplete!();
             }
           },
           onChanged: selectedTextFormFieldType ==

@@ -1,13 +1,13 @@
 import 'package:airport_test/api_Services/api_service.dart';
 import 'package:airport_test/api_Services/registration.dart';
-import 'package:airport_test/constantWidgets.dart';
+import 'package:airport_test/constants/constant_widgets.dart';
 import 'package:airport_test/bookingForm/parkOrderPage.dart';
 import 'package:airport_test/bookingForm/washOrderPage.dart';
 import 'package:airport_test/enums/parkingFormEnums.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 
-class RegistrationPage extends StatefulWidget implements PageWithTitle {
+class RegistrationPage extends StatefulWidget with PageWithTitle {
   @override
   String get pageTitle => 'Regisztráció';
 
@@ -235,6 +235,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
             nextFocus: nextPageButtonFocus,
             hintText: 'Kedvenc rendszám',
             selectedTextFormFieldType: MyTextFormFieldType.licensePlate,
+            onEditingComplete: OnNextPageButtonPressed,
           ),
           SizedBox(height: 10),
           NextPageButton(

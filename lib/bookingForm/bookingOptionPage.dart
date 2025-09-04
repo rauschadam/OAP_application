@@ -1,9 +1,9 @@
-import 'package:airport_test/constantWidgets.dart';
+import 'package:airport_test/constants/constant_widgets.dart';
 import 'package:airport_test/bookingForm/registrationOptionPage.dart';
 import 'package:airport_test/enums/parkingFormEnums.dart';
 import 'package:flutter/material.dart';
 
-class BookingOptionPage extends StatefulWidget implements PageWithTitle {
+class BookingOptionPage extends StatefulWidget with PageWithTitle {
   @override
   String get pageTitle => 'Foglalási lehetőségek';
 

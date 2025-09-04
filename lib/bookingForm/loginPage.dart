@@ -1,12 +1,12 @@
 import 'package:airport_test/api_Services/api_service.dart';
-import 'package:airport_test/constantWidgets.dart';
+import 'package:airport_test/constants/constant_widgets.dart';
 import 'package:airport_test/bookingForm/parkOrderPage.dart';
 import 'package:airport_test/bookingForm/washOrderPage.dart';
 import 'package:airport_test/enums/parkingFormEnums.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 
-class LoginPage extends StatefulWidget implements PageWithTitle {
+class LoginPage extends StatefulWidget with PageWithTitle {
   @override
   String get pageTitle => 'Bejelentkezés';
 
@@ -133,8 +133,8 @@ class _LoginPageState extends State<LoginPage> {
             },
             focusNode: passwordFocus,
             textInputAction: TextInputAction.next,
-            nextFocus: nextPageButtonFocus,
             hintText: 'Jelszó',
+            onEditingComplete: OnNextPageButtonPressed,
           ),
           NextPageButton(
             focusNode: nextPageButtonFocus,

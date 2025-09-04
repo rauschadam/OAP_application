@@ -1,10 +1,12 @@
-import 'package:airport_test/constantWidgets.dart';
+import 'package:airport_test/constants/constant_widgets.dart';
 import 'package:airport_test/bookingForm/bookingOptionPage.dart';
 import 'package:flutter/material.dart';
 
-class HomePage extends StatelessWidget implements PageWithTitle {
+class HomePage extends StatelessWidget with PageWithTitle {
   @override
   String get pageTitle => 'Menü';
+  @override
+  bool get showBackButton => false;
 
   const HomePage({super.key});
 

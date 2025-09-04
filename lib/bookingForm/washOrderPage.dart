@@ -1,12 +1,13 @@
 import 'package:airport_test/api_Services/api_service.dart';
-import 'package:airport_test/constantWidgets.dart';
+import 'package:airport_test/constants/constant_widgets.dart';
 import 'package:airport_test/bookingForm/invoiceOptionPage.dart';
+import 'package:airport_test/constants/constant_functions.dart';
 import 'package:airport_test/enums/parkingFormEnums.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
-class WashOrderPage extends StatefulWidget implements PageWithTitle {
+class WashOrderPage extends StatefulWidget with PageWithTitle {
   @override
   String get pageTitle => 'Mosás foglalás';
 
@@ -62,15 +63,27 @@ class WashOrderPageState extends State<WashOrderPage> {
   FocusNode descriptionFocus = FocusNode();
   FocusNode nextPageButtonFocus = FocusNode();
 
+  /// Aktuális idő
+  DateTime now = DateTime.now();
+
+  /// Érkezési / Távozási dátum
+  DateTime? selectedWashDate;
+  TimeOfDay? selectedWashTime;
+
+  /// Ideiglenes dátum a datePicker-ben, ellenőrzés -> selectedWashDate
+  DateTime? tempWashDate;
+
+  /// Ideiglenes időpont a datePicker-ben, ellenőrzés -> selectedWashTime
+  TimeOfDay? tempWashTime;
+
+  /// Parkolási zóna cikkszáma
+  String? selectedCarWashArticleId;
+
   // Default értékek
-  WashOption selectedWashOption = WashOption.basic;
   PaymentOption selectedPaymentOption = PaymentOption.card;
 
   /// Lekérdezett foglalások
   List<dynamic>? reservations;
-
-  /// Parkolási zóna cikkszáma
-  String? selectedCarWashArticleId;
 
   /// Foglalások lekérdezése
   Future<void> fetchReservations() async {
@@ -164,6 +177,9 @@ class WashOrderPageState extends State<WashOrderPage> {
     return fullyBookedDateTimesByZone;
   }
 
+  /// A teljes fizetendő összeg
+  int totalCost = 0;
+
   /// Kiválasztott parkolózóna napijegy ára
   /// EZT AUTOMATIKUSAN KÉNE
   int getCostForZone(String articleId) {
@@ -183,9 +199,6 @@ class WashOrderPageState extends State<WashOrderPage> {
     }
   }
 
-  /// A teljes fizetendő összeg
-  int totalCost = 0;
-
   /// Teljes összeg kalkulálása, az árakat később adatbázisból fogja előhívni.
   void CalculateTotalCost() {
     int baseCost = 0;
@@ -197,16 +210,6 @@ class WashOrderPageState extends State<WashOrderPage> {
       totalCost = baseCost;
     });
   }
-
-  /// Aktuális idő
-  DateTime now = DateTime.now();
-
-  /// Érkezési / Távozási dátum
-  DateTime? selectedWashDate;
-  TimeOfDay? selectedWashTime;
-
-  DateTime? tempWashDate;
-  TimeOfDay? tempWashTime;
 
   Map<String, bool> zoneAvailability = {};
 
@@ -690,79 +693,6 @@ class WashOrderPageState extends State<WashOrderPage> {
                         CalculateTotalCost();
                       },
                       zoneAvailability: zoneAvailability),
-              // GestureDetector(
-              //   onHorizontalDragUpdate: (details) {
-              //     WashOptionsScrollController.jumpTo(
-              //       WashOptionsScrollController.position.pixels -
-              //           details.delta.dx,
-              //     );
-              //   },
-              //   child: SingleChildScrollView(
-              //     scrollDirection: Axis.horizontal,
-              //     controller: WashOptionsScrollController,
-              //     padding: EdgeInsets.all(8),
-              //     child: Row(
-              //       mainAxisAlignment: MainAxisAlignment.spaceAround,
-              //       children: [
-              //         WashOptionSelectionCard(
-              //           title: 'Alapmosás',
-              //           washCost: 10000,
-              //           selected: selectedWashOption == WashOption.basic,
-              //           onTap: () {
-              //             setState(() {
-              //               selectedWashOption = WashOption.basic;
-              //             });
-              //             CalculateTotalCost();
-              //           },
-              //         ),
-              //         WashOptionSelectionCard(
-              //           title: 'Mosás 2',
-              //           washCost: 20000,
-              //           selected: selectedWashOption == WashOption.wash2,
-              //           onTap: () {
-              //             setState(() {
-              //               selectedWashOption = WashOption.wash2;
-              //             });
-              //             CalculateTotalCost();
-              //           },
-              //         ),
-              //         WashOptionSelectionCard(
-              //           title: 'Mosás 3',
-              //           washCost: 30000,
-              //           selected: selectedWashOption == WashOption.wash3,
-              //           onTap: () {
-              //             setState(() {
-              //               selectedWashOption = WashOption.wash3;
-              //             });
-              //             CalculateTotalCost();
-              //           },
-              //         ),
-              //         WashOptionSelectionCard(
-              //           title: 'Mosás 4',
-              //           washCost: 40000,
-              //           selected: selectedWashOption == WashOption.wash4,
-              //           onTap: () {
-              //             setState(() {
-              //               selectedWashOption = WashOption.wash4;
-              //             });
-              //             CalculateTotalCost();
-              //           },
-              //         ),
-              //         WashOptionSelectionCard(
-              //           title: 'Szupermosás porszívóval',
-              //           washCost: 50000,
-              //           selected: selectedWashOption == WashOption.superWash,
-              //           onTap: () {
-              //             setState(() {
-              //               selectedWashOption = WashOption.superWash;
-              //             });
-              //             CalculateTotalCost();
-              //           },
-              //         ),
-              //       ],
-              //     ),
-              //   ),
-              // ),
               const SizedBox(height: 10),
               Text.rich(
                 TextSpan(
@@ -817,6 +747,7 @@ class WashOrderPageState extends State<WashOrderPage> {
                 controller: descriptionController,
                 hintText: 'Megjegyzés a recepciónak',
                 nextFocus: nextPageButtonFocus,
+                onEditingComplete: OnNextPageButtonPressed,
               ),
               NextPageButton(
                 focusNode: nextPageButtonFocus,
@@ -828,14 +759,4 @@ class WashOrderPageState extends State<WashOrderPage> {
       ),
     );
   }
-}
-
-/// Félórás időpontok generálása az időpont választáshoz 0:00 - 23:30 között
-List<TimeOfDay> generateHalfHourTimeSlots() {
-  List<TimeOfDay> slots = [];
-  for (int hour = 0; hour <= 23; hour++) {
-    slots.add(TimeOfDay(hour: hour, minute: 0));
-    slots.add(TimeOfDay(hour: hour, minute: 30));
-  }
-  return slots;
 }

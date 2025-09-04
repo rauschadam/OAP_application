@@ -1,11 +1,11 @@
 import 'package:airport_test/api_Services/api_service.dart';
 import 'package:airport_test/api_Services/reservation.dart';
-import 'package:airport_test/constantWidgets.dart';
+import 'package:airport_test/constants/constant_widgets.dart';
 import 'package:airport_test/enums/parkingFormEnums.dart';
 import 'package:airport_test/homePage.dart';
 import 'package:flutter/material.dart';
 
-class InvoiceOptionPage extends StatefulWidget implements PageWithTitle {
+class InvoiceOptionPage extends StatefulWidget with PageWithTitle {
   @override
   String get pageTitle => 'Számlázás';
 
@@ -53,6 +53,30 @@ class InvoiceOptionPage extends StatefulWidget implements PageWithTitle {
 class _InvoiceOptionPageState extends State<InvoiceOptionPage> {
   InvoiceOption? selectedInvoiceOption = InvoiceOption.no;
 
+  void submitReservation() async {
+    final reservation = Reservation(
+        parkingService: 1,
+        alreadyRegistered: true,
+        withoutRegistration: false,
+        name: widget.nameController.text,
+        email: widget.emailController.text,
+        phone: '+${widget.phoneController.text}',
+        licensePlate: widget.licensePlateController.text,
+        arriveDate: widget.arriveDate!,
+        leaveDate: widget.leaveDate!,
+        parkingArticleId: widget.parkingArticleId,
+        parkingArticleVolume: "1",
+        transferPersonCount: widget.transferPersonCount,
+        vip: widget.vip!,
+        suitcaseWrappingCount: widget.suitcaseWrappingCount,
+        washDateTime: widget.washDateTime,
+        payType: 1,
+        description: widget.descriptionController.text,
+        carWashArticleId: widget.carWashArticleId);
+
+    await ApiService().submitReservation(reservation, widget.authToken);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -79,36 +103,14 @@ class _InvoiceOptionPageState extends State<InvoiceOptionPage> {
           },
         ),
         NextPageButton(
-            text: "Foglalás küldése",
-            onPressed: () {
-              submitReservation();
-            },
-            nextPage: const HomePage())
+          text: "Foglalás küldése",
+          onPressed: () {
+            submitReservation();
+          },
+          nextPage: const HomePage(),
+          showBackButton: false,
+        )
       ],
     );
-  }
-
-  void submitReservation() async {
-    final reservation = Reservation(
-        parkingService: 1,
-        alreadyRegistered: true,
-        withoutRegistration: false,
-        name: widget.nameController.text,
-        email: widget.emailController.text,
-        phone: '+${widget.phoneController.text}',
-        licensePlate: widget.licensePlateController.text,
-        arriveDate: widget.arriveDate!,
-        leaveDate: widget.leaveDate!,
-        parkingArticleId: widget.parkingArticleId,
-        parkingArticleVolume: "1",
-        transferPersonCount: widget.transferPersonCount,
-        vip: widget.vip!,
-        suitcaseWrappingCount: widget.suitcaseWrappingCount,
-        washDateTime: widget.washDateTime,
-        payType: 1,
-        description: widget.descriptionController.text,
-        carWashArticleId: widget.carWashArticleId);
-
-    await ApiService().submitReservation(reservation, widget.authToken);
   }
 }

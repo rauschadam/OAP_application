@@ -1,10 +1,10 @@
-import 'package:airport_test/constantWidgets.dart';
+import 'package:airport_test/constants/constant_widgets.dart';
 import 'package:airport_test/bookingForm/loginPage.dart';
 import 'package:airport_test/bookingForm/registrationPage.dart';
 import 'package:airport_test/enums/parkingFormEnums.dart';
 import 'package:flutter/material.dart';
 
-class RegistrationOptionPage extends StatefulWidget implements PageWithTitle {
+class RegistrationOptionPage extends StatefulWidget with PageWithTitle {
   @override
   String get pageTitle => 'Bejelentkezési lehetőségek';
 

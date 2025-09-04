@@ -1,13 +1,14 @@
 import 'package:airport_test/api_Services/api_service.dart';
-import 'package:airport_test/constantWidgets.dart';
+import 'package:airport_test/constants/constant_widgets.dart';
 import 'package:airport_test/bookingForm/invoiceOptionPage.dart';
 import 'package:airport_test/bookingForm/washOrderPage.dart';
+import 'package:airport_test/constants/constant_functions.dart';
 import 'package:airport_test/enums/parkingFormEnums.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
-class ParkOrderPage extends StatefulWidget implements PageWithTitle {
+class ParkOrderPage extends StatefulWidget with PageWithTitle {
   @override
   String get pageTitle => 'Parkolás foglalás';
 
@@ -49,6 +50,42 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   FocusNode nextPageButtonFocus = FocusNode();
   FocusNode transferFocus = FocusNode();
 
+  /// Aktuális idő
+  DateTime now = DateTime.now();
+
+  // Az enumok / kiválasztható lehetőségek default értékei
+  PaymentOption selectedPaymentOption = PaymentOption.card;
+
+  /// Parkolási zóna cikkszáma
+  String? selectedParkingArticleId;
+
+  /// Transzferrel szállított személyek száma
+  int transferCount = 1;
+
+  /// Kér-e VIP sofőrt
+  bool VIPDriverRequested = false;
+
+  /// Kér-e Bőrönd fóliázást
+  bool suitcaseWrappingRequested = false;
+
+  /// Fóliázásra váró bőröndök száma
+  int suitcaseWrappingCount = 0;
+
+  /// Érkezési / Távozási dátum
+  DateTime? selectedArriveDate, selectedLeaveDate;
+
+  /// Érkezés időpontja
+  TimeOfDay? selectedArriveTime;
+
+  /// A DatePicker még le nem okézott, ott kiválasztott dátumai.
+  /// Ezeken nézi meg hogy megfelelnek-e a feltételeknek,
+  /// majd beállítja selectedArriveDate/selectedLeaveDate/selectedArriveDate-nek
+  DateTime? tempArriveDate, tempLeaveDate;
+  TimeOfDay? tempArriveTime;
+
+  /// Parkolással töltött napok száma
+  int parkingDays = 0;
+
   /// Lekérdezett foglalások
   List<dynamic>? reservations;
 
@@ -85,37 +122,6 @@ class ParkOrderPageState extends State<ParkOrderPage> {
       });
     }
   }
-
-  /// Aktuális idő
-  DateTime now = DateTime.now();
-
-  // Az enumok / kiválasztható lehetőségek default értékei
-  BookingOption selectedBookingOption = BookingOption.parking;
-  PaymentOption selectedPaymentOption = PaymentOption.card;
-
-  /// Parkolási zóna cikkszáma
-  String? selectedParkingArticleId;
-
-  /// Transzferrel szállított személyek száma
-  int transferCount = 1;
-
-  /// Kér-e VIP sofőrt
-  bool VIPDriverRequested = false;
-
-  /// Kér-e Bőrönd fóliázást
-  bool suitcaseWrappingRequested = false;
-
-  /// Fóliázásra váró bőröndök száma
-  int suitcaseWrappingCount = 0;
-
-  /// Érkezési / Távozási dátum
-  DateTime? selectedArriveDate, selectedLeaveDate;
-
-  /// Érkezés időpontja
-  TimeOfDay? selectedArriveTime;
-
-  /// Parkolással töltött napok száma
-  int parkingDays = 0;
 
   /// A teljes fizetendő összeg
   int totalCost = 0;
@@ -154,12 +160,6 @@ class ParkOrderPageState extends State<ParkOrderPage> {
       totalCost = baseCost;
     });
   }
-
-  /// A DatePicker még le nem okézott, kiválasztott dátumai.
-  /// Ezeken nézi meg hogy megfelelnek-e a feltételeknek,
-  /// majd beállítja selectedArriveDate/selectedLeaveDate-nek
-  DateTime? tempArriveDate, tempLeaveDate;
-  TimeOfDay? tempArriveTime;
 
   //Teljes időpontos foglalt időpontok
   Map<String, List<DateTime>> fullyBookedDateTimes =
@@ -981,7 +981,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                 ],
               ),
               const SizedBox(height: 12),
-              selectedBookingOption == BookingOption.parking
+              widget.bookingOption == BookingOption.parking
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -1042,6 +1042,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                 textInputAction: TextInputAction.next,
                 nextFocus: nextPageButtonFocus,
                 hintText: 'Megjegyzés a recepciónak',
+                onEditingComplete: OnNextPageButtonPressed,
               ),
               NextPageButton(
                 focusNode: nextPageButtonFocus,

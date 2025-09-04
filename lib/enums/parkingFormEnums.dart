@@ -10,23 +10,9 @@ enum RegistrationOption {
   withoutRegistration, // Regisztráció nélkül vásárolok
 }
 
-// enum ParkingZoneOption {
-//   premium, // Fedett
-//   normal, // Nyitott térköves
-//   eco // Nyitott murvás
-// }
-
-enum WashOption {
-  basic, // Alapmosás
-  wash2, // Mosás 2
-  wash3, // Mosás 3
-  wash4, // Mosás 4
-  superWash // Szupermosás porszívóval
-}
-
 enum PaymentOption {
   card, // Bankkártyával fizetek
-  transfer, // Átutalássaé fizetek még a parkolás megkezdése előtt 1 nappal
+  transfer, // Átutalással fizetek még a parkolás megkezdése előtt 1 nappal
   qvik // Qvik
 }
 
@@ -35,7 +21,7 @@ enum InvoiceOption {
   yes, // Kérek számlát
 }
 
-enum TimeOfDayPeriod { morning, days, night, nighttime }
+enum TimeOfDayPeriod { morning, daytime, night, nighttime }
 
 enum MyTextFormFieldType {
   licensePlate,

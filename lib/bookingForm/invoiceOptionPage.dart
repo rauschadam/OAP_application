@@ -20,11 +20,11 @@ class InvoiceOptionPage extends StatefulWidget implements PageWithTitle {
   final TextEditingController licensePlateController;
   final DateTime? arriveDate;
   final DateTime? leaveDate;
-  //final String parkingArticleId;
+  final String? parkingArticleId;
   //final String parkingArticleVolume;
   final int? transferPersonCount;
   final bool? vip;
-  //final int? suitcaseWrappingCount;
+  final int? suitcaseWrappingCount;
   //final String carWashArticleId;
   final DateTime? washDateTime;
   final TextEditingController descriptionController;
@@ -41,7 +41,9 @@ class InvoiceOptionPage extends StatefulWidget implements PageWithTitle {
       required this.vip,
       this.washDateTime,
       required this.descriptionController,
-      required this.bookingOption});
+      required this.bookingOption,
+      this.parkingArticleId,
+      this.suitcaseWrappingCount});
 
   @override
   State<InvoiceOptionPage> createState() => _InvoiceOptionPageState();
@@ -96,11 +98,11 @@ class _InvoiceOptionPageState extends State<InvoiceOptionPage> {
       licensePlate: widget.licensePlateController.text,
       arriveDate: widget.arriveDate!,
       leaveDate: widget.leaveDate!,
-      parkingArticleId: "",
+      parkingArticleId: widget.parkingArticleId,
       parkingArticleVolume: "1",
-      transferPersonCount: 3,
+      transferPersonCount: widget.transferPersonCount,
       vip: widget.vip!,
-      suitcaseWrappingCount: null,
+      suitcaseWrappingCount: widget.suitcaseWrappingCount,
       carWashArticleId: "",
       washDateTime: null,
       payType: 1,

@@ -11,7 +11,7 @@ class Reservation {
   final DateTime leaveDate;
   final String? parkingArticleId;
   final String parkingArticleVolume;
-  final int transferPersonCount;
+  final int? transferPersonCount;
   final bool vip;
   final int? suitcaseWrappingCount;
   final String? carWashArticleId;
@@ -32,7 +32,7 @@ class Reservation {
     required this.leaveDate,
     this.parkingArticleId,
     required this.parkingArticleVolume,
-    required this.transferPersonCount,
+    this.transferPersonCount,
     required this.vip,
     this.suitcaseWrappingCount,
     this.carWashArticleId,

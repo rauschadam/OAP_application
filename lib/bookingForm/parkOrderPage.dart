@@ -1,5 +1,4 @@
 import 'package:airport_test/api_Services/api_service.dart';
-import 'package:airport_test/api_Services/reservation.dart';
 import 'package:airport_test/constantWidgets.dart';
 import 'package:airport_test/bookingForm/invoiceOptionPage.dart';
 import 'package:airport_test/bookingForm/washOrderPage.dart';
@@ -92,8 +91,11 @@ class ParkOrderPageState extends State<ParkOrderPage> {
 
   // Az enumok / kiválasztható lehetőségek default értékei
   BookingOption selectedBookingOption = BookingOption.parking;
-  int selectedParkingZoneId = 1;
+  int? selectedParkingZoneId;
   PaymentOption selectedPaymentOption = PaymentOption.card;
+
+  /// Parkolási zóna cikkszáma
+  String? selectedParkingArticleId;
 
   /// Transzferrel szállított személyek száma
   int transferCount = 1;
@@ -105,7 +107,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   bool suitcaseWrappingRequested = false;
 
   /// Fóliázásra váró bőröndök száma
-  int suitcasesToWrap = 0;
+  int suitcaseWrappingCount = 0;
 
   /// Érkezési / Távozási dátum
   DateTime? selectedArriveDate, selectedLeaveDate;
@@ -119,14 +121,14 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   /// A teljes fizetendő összeg
   int totalCost = 0;
 
-  /// Parkolózóna napijegy ára
-  int getCostForZone(int templateId) {
-    switch (templateId) {
-      case 1: // Premium
+  /// Kiválasztott parkolózóna napijegy ára
+  int getCostForZone(String articleId) {
+    switch (articleId) {
+      case "1-95426": // Premium
         return 10000;
-      case 2: // Normal
+      case "1-95427": // Normal
         return 5000;
-      case 3: // Eco
+      case "1-95428": // Eco
         return 2000;
       default:
         return 0;
@@ -137,12 +139,16 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   void CalculateTotalCost() {
     int baseCost = 0;
 
-    baseCost += getCostForZone(selectedParkingZoneId) * parkingDays;
+    // Hozzáadjuk a parkolás árát
+    baseCost += getCostForZone(selectedParkingArticleId!) * parkingDays;
 
+    // Hozzáadjuk a VIP sofőr árát, amennyiben igénylik
     if (VIPDriverRequested) {
       baseCost += 5000;
     }
-    baseCost += suitcasesToWrap * 1000;
+
+    // Hozzáadjuk a bőrönd fóliázás árát, amennyiszer igénylik
+    baseCost += suitcaseWrappingCount * 1000;
 
     setState(() {
       totalCost = baseCost;
@@ -153,34 +159,37 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   /// Ezeken nézi meg hogy megfelelnek-e a feltételeknek,
   /// majd beállítja selectedArriveDate/selectedLeaveDate-nek
   DateTime? tempArriveDate, tempLeaveDate;
+  TimeOfDay? tempArriveTime;
 
   //Teljes időpontos foglalt időpontok
-  Map<int, List<DateTime>> fullyBookedDateTimes = {};
+  Map<String, List<DateTime>> fullyBookedDateTimes =
+      {}; // parkoló zóna ArticleId -> telített időpont
 
-  Map<int, List<DateTime>> mapBookedDateTimesByZones(
+  // parkoló zóna -> telített időpontok
+  Map<String, List<DateTime>> mapBookedDateTimesByZones(
       List<dynamic> reservations, List<dynamic> serviceTemplates) {
-    // építsük fel a zóna kapacitásokat serviceTemplates alapján
-    final Map<int, int> zoneCapacities = {};
+    // Kiveszi a zónák 5kapacitását a Templates-ekből
+    final Map<String, int> zoneCapacities = {}; // parkoló zóna -> kapacitás
     for (var template in serviceTemplates) {
       if (template['ParkingServiceType'] != 1) continue;
-      final int id = template['ParkingTemplateId'];
+      final String articleId = template['ArticleId'];
       final int capacity = template['ZoneCapacity'] ?? 1;
-      zoneCapacities[id] = capacity;
+      zoneCapacities[articleId] = capacity;
     }
 
     // időpont számláló zónánként
-    Map<int, Map<DateTime, int>> counters = {};
+    Map<String, Map<DateTime, int>> counters =
+        {}; // parkoló zóna -> (egy időpont hányszor szerepel)
 
     for (var reservation in reservations) {
-      /// A szerveren van egy olyan foglalás aminek 0 a ParkingService-e
-      final zoneId = reservation['ParkingService'] == 0
-          ? 1
-          : reservation['ParkingService'];
+      /// A szerveren van egy olyan foglalás aminek 0 a ParkingService-e, ezt ki kell majd szedni
+      if (reservation['ParkingService'] == 0) continue;
+      final parkingArticleId = reservation['ParkingArticleId'];
 
       final arrive = DateTime.parse(reservation['ArriveDate']);
       final leave = DateTime.parse(reservation['LeaveDate']);
 
-      counters.putIfAbsent(zoneId, () => {});
+      counters.putIfAbsent(parkingArticleId, () => {});
 
       DateTime current = DateTime(
         arrive.year,
@@ -190,18 +199,20 @@ class ParkOrderPageState extends State<ParkOrderPage> {
         arrive.minute - (arrive.minute % 30),
       );
 
+      // végig iterál az érkezéstől a távozás időpontjáig, az időpont számlálót növeli 1-el
       while (current.isBefore(leave)) {
-        counters[zoneId]![current] = (counters[zoneId]![current] ?? 0) + 1;
+        counters[parkingArticleId]![current] =
+            (counters[parkingArticleId]![current] ?? 0) + 1;
         current = current.add(const Duration(minutes: 30));
       }
     }
 
-    // fully booked időpontok zónánként
-    Map<int, List<DateTime>> fullyBookedDateTimesByZone = {};
+    /// Parkoló zóna -> telített időpontok
+    Map<String, List<DateTime>> fullyBookedDateTimesByZone = {};
 
-    counters.forEach((zoneId, counter) {
-      final capacity = zoneCapacities[zoneId];
-      fullyBookedDateTimesByZone[zoneId] = counter.entries
+    counters.forEach((parkingArticleId, counter) {
+      final capacity = zoneCapacities[parkingArticleId];
+      fullyBookedDateTimesByZone[parkingArticleId] = counter.entries
           .where((entry) => entry.value >= capacity!)
           .map((entry) => entry.key)
           .toList();
@@ -217,44 +228,50 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   /// A parkolási napok számát frissíti.
   void UpdateParkingDays() {
     parkingDays = selectedLeaveDate!.difference(selectedArriveDate!).inDays;
-    CalculateTotalCost();
+    selectedParkingArticleId != null ? CalculateTotalCost() : null;
   }
 
-  /// A foglalt napokat frissíti.
-  void updateBlackoutDays() {
+  Map<String, bool> zoneAvailability = {};
+
+  /// Zónánként ellenőrzi, hogy van-e tiltott időpont az intervallumban
+  Map<String, bool> CheckZonesForAvailability() {
     if (tempArriveDate == null || tempLeaveDate == null) {
-      blackoutDays = [];
-      return;
+      return {};
     }
 
     /// Az érkezési és távozási időpont
     DateTime startDateTime = DateTime(
-      tempArriveDate!.year,
-      tempArriveDate!.month,
-      tempArriveDate!.day,
+      selectedArriveDate!.year,
+      selectedArriveDate!.month,
+      selectedArriveDate!.day,
       selectedArriveTime!.hour,
       selectedArriveTime!.minute,
     );
 
     DateTime endDateTime = DateTime(
-      tempLeaveDate!.year,
-      tempLeaveDate!.month,
-      tempLeaveDate!.day,
+      selectedLeaveDate!.year,
+      selectedLeaveDate!.month,
+      selectedLeaveDate!.day,
       selectedArriveTime!.hour,
       selectedArriveTime!.minute,
     );
 
-    // A kiválasztott parkoló zóna telített időpontjai
-    final zoneTimes = fullyBookedDateTimes[selectedParkingZoneId] ?? [];
+    fullyBookedDateTimes.forEach((parkingArticleId, zoneTimes) {
+      final hasForbidden = zoneTimes.any((d) {
+        return !d.isBefore(startDateTime) && !d.isAfter(endDateTime);
+      });
 
-    /// Megnézi, hogy bele a foglalt időpontok beleesnek-e a foglalni kívánt intervallumba.
-    final filtered = zoneTimes.where((d) {
-      return !d.isBefore(startDateTime) && !d.isAfter(endDateTime);
-    }).toList();
+      if (hasForbidden) {
+        print('parkingArticleId: $parkingArticleId is forbidden');
+      } else {
+        print('parkingArticleId: $parkingArticleId is NOT forbidden');
+      }
 
-    /// A blackoutDays csak a dátum (év, hónap, nap), időpont nélkül
-    blackoutDays =
-        filtered.map((d) => DateTime(d.year, d.month, d.day)).toSet().toList();
+      // Ha van tiltott időpont -> false, különben true
+      zoneAvailability[parkingArticleId] = !hasForbidden;
+    });
+
+    return zoneAvailability;
   }
 
   /// Dátum kiíratásának a formátuma
@@ -266,9 +283,10 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   /// Parkoló zónák generálása ServiceTemplates-ek alapján.
   Widget buildParkingZoneSelector({
     required List<dynamic> serviceTemplates,
-    required int? selectedParkingZoneId,
+    required String? selectedParkingArticleId,
     required int parkingDays,
-    required Function(int) onZoneSelected,
+    required Function(String) onZoneSelected,
+    required Map<String, bool> zoneAvailability,
   }) {
     final parkingZones =
         serviceTemplates.where((s) => s['ParkingServiceType'] == 1).toList();
@@ -286,7 +304,9 @@ class ParkOrderPageState extends State<ParkOrderPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: parkingZones.map((zone) {
-            final id = zone['ParkingTemplateId'] as int;
+            final String articleId = zone['ArticleId'];
+            final isAvailable = zoneAvailability[articleId] ??
+                true; // ha nincs benne, akkor true
             final nameParts = (zone['ParkingServiceName'] as String).split(' ');
             final title = nameParts.isNotEmpty
                 ? nameParts.last
@@ -299,10 +319,11 @@ class ParkOrderPageState extends State<ParkOrderPage> {
               child: ParkingZoneSelectionCard(
                 title: title,
                 subtitle: subtitle,
-                costPerDay: getCostForZone(id),
+                costPerDay: getCostForZone(articleId),
                 parkingDays: parkingDays,
-                selected: selectedParkingZoneId == id,
-                onTap: () => onZoneSelected(id),
+                selected: selectedParkingZoneId == articleId,
+                onTap: () => onZoneSelected(articleId),
+                available: isAvailable,
               ),
             );
           }).toList(),
@@ -317,7 +338,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
     tempLeaveDate = selectedLeaveDate;
 
     // Alapból frissítjük a blackoutDays-et a már beállított temp értékek alapján
-    updateBlackoutDays();
+    //updateBlackoutDays();
 
     /// Megadja, hogy melyik időpontos Expansion Tile-ban hovereljük az időpontot.
     Map<String, int> hoveredIndexMap = {
@@ -350,26 +371,26 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                 }
               }
 
-              final zoneTimes =
-                  fullyBookedDateTimes[selectedParkingZoneId] ?? [];
-
               // Ellenőrizzük, hogy az adott időpont foglalt-e (érkezéshez)
-              bool isArriveDateBooked = zoneTimes.any((d) =>
-                  d.year == (tempArriveDate?.year ?? 0) &&
-                  d.month == (tempArriveDate?.month ?? 0) &&
-                  d.day == (tempArriveDate?.day ?? 0) &&
-                  d.hour == time.hour &&
-                  d.minute == time.minute);
+              bool isArriveFullyBookedEverywhere = fullyBookedDateTimes.values
+                  .every((zoneTimes) => zoneTimes.any((d) =>
+                      d.year == (tempArriveDate?.year ?? 0) &&
+                      d.month == (tempArriveDate?.month ?? 0) &&
+                      d.day == (tempArriveDate?.day ?? 0) &&
+                      d.hour == time.hour &&
+                      d.minute == time.minute));
 
               // Ellenőrizzük, hogy az adott időpont foglalt-e (távozáshoz)
-              bool isLeaveDateBooked = zoneTimes.any((d) =>
-                  d.year == (tempLeaveDate?.year ?? 0) &&
-                  d.month == (tempLeaveDate?.month ?? 0) &&
-                  d.day == (tempLeaveDate?.day ?? 0) &&
-                  d.hour == time.hour &&
-                  d.minute == time.minute);
+              bool isLeaveFullyBookedEverywhere = fullyBookedDateTimes.values
+                  .every((zoneTimes) => zoneTimes.any((d) =>
+                      d.year == (tempLeaveDate?.year ?? 0) &&
+                      d.month == (tempLeaveDate?.month ?? 0) &&
+                      d.day == (tempLeaveDate?.day ?? 0) &&
+                      d.hour == time.hour &&
+                      d.minute == time.minute));
 
-              return !isArriveDateBooked && !isLeaveDateBooked;
+              return !isArriveFullyBookedEverywhere &&
+                  !isLeaveFullyBookedEverywhere;
             }).toList();
 
             /// Időpont választó kártyák widgetje
@@ -431,7 +452,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                               itemCount: entry.value.length,
                               itemBuilder: (context, index) {
                                 final time = entry.value[index];
-                                bool isSelected = selectedArriveTime == time;
+                                bool isSelected = tempArriveTime == time;
                                 bool isHovered =
                                     hoveredIndexMap[entry.key] == index;
 
@@ -459,10 +480,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                                   child: GestureDetector(
                                     onTap: () {
                                       setStateDialog(() {
-                                        selectedArriveTime = time;
-                                        if (selectedArriveTime != null) {
-                                          updateBlackoutDays();
-                                        }
+                                        tempArriveTime = time;
                                       });
                                     },
                                     child: Card(
@@ -519,22 +537,6 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                       rangeSelectionColor: BasePage.defaultColors.secondary,
                       enablePastDates: false,
                       maxDate: DateTime.now().add(const Duration(days: 120)),
-                      monthCellStyle: DateRangePickerMonthCellStyle(
-                        blackoutDateTextStyle: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        blackoutDatesDecoration: BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      monthViewSettings: DateRangePickerMonthViewSettings(
-                          blackoutDates: blackoutDays),
-                      selectableDayPredicate: (date) {
-                        return !blackoutDays.contains(
-                            DateTime(date.year, date.month, date.day));
-                      },
                       onSelectionChanged: (args) {
                         if (args.value is PickerDateRange) {
                           final start = args.value.startDate;
@@ -544,7 +546,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                             tempArriveDate = start;
                             tempLeaveDate = end;
                             if (selectedArriveTime != null) {
-                              updateBlackoutDays();
+                              //updateBlackoutDays();
                             }
                           });
                         }
@@ -552,6 +554,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                     ),
                     // Amíg nincs kiválasztva dátum addig ne tudjunk időpontot választani
                     (tempArriveDate != null && tempLeaveDate != null)
+                        // Ha nincs szabad időpont, akkor tudatjuk.
                         ? (availableSlots.isNotEmpty
                             ? buildTimeSlotPicker(availableSlots)
                             : Text('Ezen a napon nincs szabad időpont'))
@@ -560,7 +563,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                     const SizedBox(height: 10),
                     (tempArriveDate != null &&
                             tempLeaveDate != null &&
-                            selectedArriveTime != null)
+                            tempArriveTime != null)
                         ? SizedBox(
                             height: 50,
                             width: double.infinity,
@@ -572,7 +575,8 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                                       BasePage.defaultColors.background)),
                               onPressed: () {
                                 if (tempArriveDate != null &&
-                                    tempLeaveDate != null) {
+                                    tempLeaveDate != null &&
+                                    tempArriveTime != null) {
                                   final diff = tempLeaveDate!
                                       .difference(tempArriveDate!)
                                       .inDays;
@@ -587,57 +591,27 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                                     return;
                                   }
 
-                                  final zoneTimes = fullyBookedDateTimes[
-                                          selectedParkingZoneId] ??
-                                      [];
-
-                                  bool containsBlackout = zoneTimes.any((b) {
-                                    final bDate = DateTime(b.year, b.month,
-                                        b.day, b.hour, b.minute);
-                                    final startDateTime = DateTime(
-                                      tempArriveDate!.year,
-                                      tempArriveDate!.month,
-                                      tempArriveDate!.day,
-                                      selectedArriveTime!.hour,
-                                      selectedArriveTime!.minute,
-                                    );
-                                    final endDateTime = DateTime(
-                                      tempLeaveDate!.year,
-                                      tempLeaveDate!.month,
-                                      tempLeaveDate!.day,
-                                      selectedArriveTime!.hour,
-                                      selectedArriveTime!.minute,
-                                    );
-
-                                    return !bDate.isBefore(startDateTime) &&
-                                        !bDate.isAfter(endDateTime);
-                                  });
-
-                                  if (containsBlackout) {
-                                    ShowError(
-                                        "A kiválasztott tartomány tartalmaz foglalt napot!");
-                                    return;
-                                  }
-
                                   final arriveDateTime = DateTime(
                                     tempArriveDate!.year,
                                     tempArriveDate!.month,
                                     tempArriveDate!.day,
-                                    selectedArriveTime!.hour,
-                                    selectedArriveTime!.minute,
+                                    tempArriveTime!.hour,
+                                    tempArriveTime!.minute,
                                   );
 
                                   final leaveDateTime = DateTime(
                                     tempLeaveDate!.year,
                                     tempLeaveDate!.month,
                                     tempLeaveDate!.day,
-                                    selectedArriveTime!.hour,
-                                    selectedArriveTime!.minute,
+                                    tempArriveTime!.hour,
+                                    tempArriveTime!.minute,
                                   );
 
                                   setState(() {
                                     selectedArriveDate = arriveDateTime;
                                     selectedLeaveDate = leaveDateTime;
+                                    selectedArriveTime = tempArriveTime;
+                                    CheckZonesForAvailability();
                                     UpdateParkingDays();
                                   });
 
@@ -675,7 +649,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
       );
 
   void OnNextPageButtonPressed() async {
-    if (formKey.currentState!.validate()) {
+    if (formKey.currentState!.validate() && selectedParkingArticleId != null) {
       Widget? nextPage;
       if (widget.bookingOption == BookingOption.parking) {
         nextPage = InvoiceOptionPage(
@@ -690,6 +664,8 @@ class ParkOrderPageState extends State<ParkOrderPage> {
           vip: VIPDriverRequested,
           descriptionController: descriptionController,
           bookingOption: widget.bookingOption,
+          parkingArticleId: selectedParkingArticleId!,
+          suitcaseWrappingCount: suitcaseWrappingCount,
         );
       } else if (widget.bookingOption == BookingOption.both) {
         nextPage = WashOrderPage(
@@ -811,7 +787,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                   focusNode: datePickerFocus,
                   onPressed: () {
                     ShowDatePickerDialog();
-                    CalculateTotalCost();
+                    //CalculateTotalCost();
                     FocusScope.of(context).requestFocus(transferFocus);
                   },
                 ),
@@ -831,79 +807,18 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                   ? const Center(child: CircularProgressIndicator())
                   : buildParkingZoneSelector(
                       serviceTemplates: serviceTemplates!,
-                      selectedParkingZoneId: selectedParkingZoneId,
+                      selectedParkingArticleId: selectedParkingArticleId,
                       parkingDays: parkingDays,
-                      onZoneSelected: (id) {
+                      onZoneSelected: (articleId) {
                         setState(() {
-                          selectedParkingZoneId = id;
+                          selectedParkingArticleId = articleId;
                         });
                         CalculateTotalCost();
                       },
-                    ),
-              // Row(
-              //   mainAxisAlignment: MainAxisAlignment.spaceAround,
-              //   children: [
-              //     Padding(
-              //       padding: const EdgeInsets.all(4.0),
-              //       child: ParkingZoneSelectionCard(
-              //         title: "Eco",
-              //         subtitle: "Nyitott murvás",
-              //         costPerDay: 2000,
-              //         parkingDays: parkingDays,
-              //         selected:
-              //             selectedParkingZoneOption == ParkingZoneOption.eco,
-              //         onTap: () {
-              //           setState(() =>
-              //               selectedParkingZoneOption = ParkingZoneOption.eco);
-              //           CalculateTotalCost();
-              //         },
-              //       ),
-              //     ),
-              //     Padding(
-              //       padding: const EdgeInsets.all(4.0),
-              //       child: ParkingZoneSelectionCard(
-              //         title: "Normal",
-              //         subtitle: "Nyitott térköves",
-              //         costPerDay: 5000,
-              //         parkingDays: parkingDays,
-              //         selected:
-              //             selectedParkingZoneOption == ParkingZoneOption.normal,
-              //         onTap: () {
-              //           setState(() => selectedParkingZoneOption =
-              //               ParkingZoneOption.normal);
-              //           CalculateTotalCost();
-              //         },
-              //       ),
-              //     ),
-              //     Padding(
-              //       padding: const EdgeInsets.all(4.0),
-              //       child: ParkingZoneSelectionCard(
-              //         title: "Premium",
-              //         subtitle: "Fedett téköves",
-              //         costPerDay: 10000,
-              //         parkingDays: parkingDays,
-              //         selected: selectedParkingZoneOption ==
-              //             ParkingZoneOption.premium,
-              //         onTap: () {
-              //           setState(() => selectedParkingZoneOption =
-              //               ParkingZoneOption.premium);
-              //           CalculateTotalCost();
-              //         },
-              //       ),
-              //     )
-              //   ],
-              // ),
+                      zoneAvailability: CheckZonesForAvailability()),
               const SizedBox(height: 16),
               Row(
                 children: [
-                  // MyCheckBox(
-                  //     value: transferRequested,
-                  //     focusNode: transferFocus,
-                  //     onChanged: (value) {
-                  //       setState(() {
-                  //         transferRequested = value;
-                  //       });
-                  //     }),
                   Text('Transzferre váró személyek száma'),
                   SizedBox(width: 15),
                   IconButton.filled(
@@ -989,9 +904,9 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                       setState(() {
                         suitcaseWrappingRequested = value ?? false;
                         if (suitcaseWrappingRequested) {
-                          suitcasesToWrap = 1;
+                          suitcaseWrappingCount = 1;
                         } else {
-                          suitcasesToWrap = 0;
+                          suitcaseWrappingCount = 0;
                         }
 
                         CalculateTotalCost();
@@ -1006,9 +921,9 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                             IconButton.filled(
                               onPressed: () {
                                 setState(() {
-                                  if (suitcasesToWrap > 0) {
-                                    suitcasesToWrap--;
-                                    if (suitcasesToWrap == 0) {
+                                  if (suitcaseWrappingCount > 0) {
+                                    suitcaseWrappingCount--;
+                                    if (suitcaseWrappingCount == 0) {
                                       suitcaseWrappingRequested = false;
                                     }
 
@@ -1017,13 +932,13 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                                 });
                               },
                               icon: Icon(Icons.remove,
-                                  color: suitcasesToWrap > 0
+                                  color: suitcaseWrappingCount > 0
                                       ? Colors.black
                                       : Colors.grey.shade400,
                                   size: 16),
                               style: IconButton.styleFrom(
                                 backgroundColor: Colors.grey.shade300,
-                                hoverColor: suitcasesToWrap > 0
+                                hoverColor: suitcaseWrappingCount > 0
                                     ? Colors.grey.shade400
                                     : Colors.grey.shade300,
                                 minimumSize: const Size(24, 24),
@@ -1034,26 +949,26 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                               ),
                             ),
                             SizedBox(width: 8),
-                            Text('$suitcasesToWrap',
+                            Text('$suitcaseWrappingCount',
                                 style: TextStyle(fontWeight: FontWeight.bold)),
                             SizedBox(width: 8),
                             IconButton.filled(
                               onPressed: () {
                                 setState(() {
-                                  if (suitcasesToWrap < 9) {
-                                    suitcasesToWrap++;
+                                  if (suitcaseWrappingCount < 9) {
+                                    suitcaseWrappingCount++;
                                   }
                                   CalculateTotalCost();
                                 });
                               },
                               icon: Icon(Icons.add,
-                                  color: suitcasesToWrap < 9
+                                  color: suitcaseWrappingCount < 9
                                       ? Colors.black
                                       : Colors.grey.shade400,
                                   size: 16),
                               style: IconButton.styleFrom(
                                 backgroundColor: Colors.grey.shade300,
-                                hoverColor: suitcasesToWrap < 9
+                                hoverColor: suitcaseWrappingCount < 9
                                     ? Colors.grey.shade400
                                     : Colors.grey.shade300,
                                 minimumSize: const Size(24, 24),

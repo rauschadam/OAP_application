@@ -325,16 +325,40 @@ class ParkingZoneSelectionCard extends StatelessWidget {
   final int parkingDays;
   final bool selected;
   final VoidCallback onTap;
+  final bool available;
 
-  const ParkingZoneSelectionCard({
-    super.key,
-    required this.title,
-    this.subtitle,
-    required this.costPerDay,
-    required this.parkingDays,
-    required this.selected,
-    required this.onTap,
-  });
+  const ParkingZoneSelectionCard(
+      {super.key,
+      required this.title,
+      this.subtitle,
+      required this.costPerDay,
+      required this.parkingDays,
+      required this.selected,
+      required this.onTap,
+      this.available = true});
+
+  void ShowUnavailableZoneDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Nem foglalható"),
+          content: SizedBox(
+            width: 300,
+            height: 100,
+            child: const Text(
+                "A foglalni kívánt intervallum telített foglaltságúidőpontokat tartalmaz ebben a zónában. Válasszon másik parkoló zónát vagy változtasson az érkezési és távozási időpontokon."),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("OK"),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -345,7 +369,13 @@ class ParkingZoneSelectionCard extends StatelessWidget {
         NumberFormat('#,###', 'hu_HU').format(costPerDay);
     return InkWell(
       borderRadius: BorderRadius.circular(16),
-      onTap: onTap,
+      onTap: () {
+        if (available) {
+          onTap();
+        } else {
+          ShowUnavailableZoneDialog(context);
+        }
+      },
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -364,55 +394,58 @@ class ParkingZoneSelectionCard extends StatelessWidget {
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: selected
-                    ? BasePage.defaultColors.secondary
-                    : Colors.grey[200],
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
+        child: Opacity(
+          opacity: available ? 1.0 : 0.3,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
                   color: selected
-                      ? BasePage.defaultColors.primary
-                      : Colors.black54,
+                      ? BasePage.defaultColors.secondary
+                      : Colors.grey[200],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: selected
+                        ? BasePage.defaultColors.primary
+                        : Colors.black54,
+                  ),
                 ),
               ),
-            ),
-            subtitle != null ? const SizedBox(height: 4) : Container(),
-            subtitle != null
-                ? Text(
-                    subtitle!,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.black54,
-                    ),
-                  )
-                : Container(),
-            const SizedBox(height: 16),
-            Text(
-              "$formattedParkingCost Ft",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
+              subtitle != null ? const SizedBox(height: 4) : Container(),
+              subtitle != null
+                  ? Text(
+                      subtitle!,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.black54,
+                      ),
+                    )
+                  : Container(),
+              const SizedBox(height: 16),
+              Text(
+                "$formattedParkingCost Ft",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              "$formattedCostPerDay Ft / nap",
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.black54,
+              const SizedBox(height: 4),
+              Text(
+                "$formattedCostPerDay Ft / nap",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black54,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

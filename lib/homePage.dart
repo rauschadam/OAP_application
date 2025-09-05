@@ -8,25 +8,26 @@ class HomePage extends StatelessWidget with PageWithTitle {
   @override
   bool get showBackButton => false;
 
-  const HomePage({super.key});
+  HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Center(
-        child: MyIconButton(
-      icon: Icons.add_rounded,
-      labelText: "Foglalás rögzítése",
-      onPressed: () {
-        BasePage.defaultColors = AppColors.blue;
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const BasePage(
-              child: BookingOptionPage(),
+      child: MyIconButton(
+        icon: Icons.add_rounded,
+        labelText: "Foglalás rögzítése",
+        onPressed: () {
+          BasePage.defaultColors = AppColors.blue;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const BasePage(
+                child: BookingOptionPage(),
+              ),
             ),
-          ),
-        );
-      },
-    ));
+          );
+        },
+      ),
+    );
   }
 }

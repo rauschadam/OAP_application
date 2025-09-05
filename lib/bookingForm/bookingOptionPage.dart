@@ -86,9 +86,10 @@ class _BookingOptionPageState extends State<BookingOptionPage> {
           ),
         ),
         NextPageButton(
-            nextPage: RegistrationOptionPage(
-          bookingOption: selectedBookingOption,
-        )),
+          nextPage: RegistrationOptionPage(
+            bookingOption: selectedBookingOption,
+          ),
+        ),
       ],
     );
   }

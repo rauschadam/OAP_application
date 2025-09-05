@@ -45,16 +45,9 @@ class BasePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final effectiveColors = colors ?? defaultColors;
 
-    String getTitle() {
-      if (child is PageWithTitle) {
-        return (child as PageWithTitle).pageTitle;
-      }
-      return 'Alapértelmezett';
-    }
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(getTitle()),
+        title: Text((child as PageWithTitle).pageTitle),
         automaticallyImplyLeading: (child as PageWithTitle).showBackButton,
         backgroundColor: effectiveColors.background,
         foregroundColor: effectiveColors.text,
@@ -68,13 +61,19 @@ class BasePage extends StatelessWidget {
       ),
       backgroundColor: effectiveColors.background,
       body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 600),
-          child: Column(
-            children: [
-              Expanded(child: child),
-            ],
-          ),
+        child: Row(
+          children: [
+            Expanded(child: Container()),
+            Expanded(
+              flex: 2,
+              child: Column(
+                children: [
+                  Expanded(child: child),
+                ],
+              ),
+            ),
+            Expanded(child: Container()),
+          ],
         ),
       ),
     );
@@ -88,13 +87,14 @@ class NextPageButton extends StatelessWidget {
   final FocusNode? focusNode;
   final bool showBackButton;
 
-  const NextPageButton(
-      {super.key,
-      this.text = "Tovább",
-      this.nextPage,
-      this.onPressed,
-      this.focusNode,
-      this.showBackButton = true});
+  const NextPageButton({
+    super.key,
+    this.text = "Tovább",
+    this.nextPage,
+    this.onPressed,
+    this.focusNode,
+    this.showBackButton = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -125,7 +125,9 @@ class NextPageButton extends StatelessWidget {
               );
             }
           },
-          child: Text(text),
+          child: Text(
+            text,
+          ),
         ),
       ),
     );
@@ -296,12 +298,13 @@ class MyIconButton extends StatelessWidget {
   final VoidCallback onPressed;
   final FocusNode? focusNode;
 
-  const MyIconButton(
-      {super.key,
-      required this.icon,
-      required this.labelText,
-      required this.onPressed,
-      this.focusNode});
+  const MyIconButton({
+    super.key,
+    required this.icon,
+    required this.labelText,
+    required this.onPressed,
+    this.focusNode,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -315,7 +318,9 @@ class MyIconButton extends StatelessWidget {
       ),
       label: Text(
         labelText,
-        style: TextStyle(color: BasePage.defaultColors.primary),
+        style: TextStyle(
+          color: BasePage.defaultColors.primary,
+        ),
       ),
       focusNode: focusNode,
       onPressed: () {

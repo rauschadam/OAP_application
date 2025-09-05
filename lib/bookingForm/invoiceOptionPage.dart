@@ -107,7 +107,7 @@ class _InvoiceOptionPageState extends State<InvoiceOptionPage> {
           onPressed: () {
             submitReservation();
           },
-          nextPage: const HomePage(),
+          nextPage: HomePage(),
           showBackButton: false,
         )
       ],

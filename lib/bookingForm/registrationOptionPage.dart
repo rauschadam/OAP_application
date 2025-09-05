@@ -79,16 +79,22 @@ class _RegistrationOptionPageState extends State<RegistrationOptionPage> {
           RegistrationOption.registerNow => NextPageButton(
               nextPage: RegistrationPage(
                 bookingOption: widget.bookingOption,
+                alreadyRegistered: false,
+                withoutRegistration: false,
               ),
             ),
           RegistrationOption.registered => NextPageButton(
               nextPage: LoginPage(
                 bookingOption: widget.bookingOption,
+                alreadyRegistered: true,
+                withoutRegistration: false,
               ),
             ),
           RegistrationOption.withoutRegistration => NextPageButton(
               nextPage: LoginPage(
                 bookingOption: widget.bookingOption,
+                alreadyRegistered: false,
+                withoutRegistration: true,
               ),
             ),
         },

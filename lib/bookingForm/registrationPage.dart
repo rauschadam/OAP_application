@@ -12,7 +12,13 @@ class RegistrationPage extends StatefulWidget with PageWithTitle {
   String get pageTitle => 'Regisztráció';
 
   final BookingOption bookingOption;
-  const RegistrationPage({super.key, required this.bookingOption});
+  final bool alreadyRegistered;
+  final bool withoutRegistration;
+  const RegistrationPage(
+      {super.key,
+      required this.bookingOption,
+      required this.alreadyRegistered,
+      required this.withoutRegistration});
 
   @override
   State<RegistrationPage> createState() => _RegistrationPageState();
@@ -82,6 +88,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
               licensePlateController: favoriteLicensePlateNumberController,
               nameController: nameController,
               phoneController: phoneController,
+              alreadyRegistered: widget.alreadyRegistered,
+              withoutRegistration: widget.withoutRegistration,
             );
             break;
           case BookingOption.washing:
@@ -92,6 +100,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
               licensePlateController: favoriteLicensePlateNumberController,
               nameController: nameController,
               phoneController: phoneController,
+              alreadyRegistered: widget.alreadyRegistered,
+              withoutRegistration: widget.withoutRegistration,
             );
             break;
         }

@@ -23,7 +23,6 @@ class Registration {
     };
   }
 
-  // Ha valaha válaszként kapsz adatot, ezt bővítheted:
   factory Registration.fromJson(Map<String, dynamic> json) {
     return Registration(
       name: json['Name'],

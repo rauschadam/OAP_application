@@ -11,7 +11,13 @@ class LoginPage extends StatefulWidget with PageWithTitle {
   String get pageTitle => 'Bejelentkezés';
 
   final BookingOption bookingOption;
-  const LoginPage({super.key, required this.bookingOption});
+  final bool alreadyRegistered;
+  final bool withoutRegistration;
+  const LoginPage(
+      {super.key,
+      required this.bookingOption,
+      required this.alreadyRegistered,
+      required this.withoutRegistration});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -59,6 +65,8 @@ class _LoginPageState extends State<LoginPage> {
               authToken: authToken!,
               bookingOption: widget.bookingOption,
               emailController: emailController,
+              alreadyRegistered: widget.alreadyRegistered,
+              withoutRegistration: widget.withoutRegistration,
             );
             break;
           case BookingOption.washing:
@@ -66,6 +74,8 @@ class _LoginPageState extends State<LoginPage> {
               authToken: authToken!,
               bookingOption: widget.bookingOption,
               emailController: emailController,
+              alreadyRegistered: widget.alreadyRegistered,
+              withoutRegistration: widget.withoutRegistration,
             );
             break;
         }

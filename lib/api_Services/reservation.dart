@@ -44,31 +44,31 @@ class Reservation {
   Map<String, dynamic> toJson() {
     return {
       "ParkingService": parkingService,
-      "ParterId": null,
-      "AlreadyRegistered": true,
-      "WithoutRegistration": false,
+      "ParterId": partnerId,
+      "AlreadyRegistered": alreadyRegistered,
+      "WithoutRegistration": withoutRegistration,
       "Name": name,
       "Email": email,
       "Phone": phone,
       "LicensePlate": licensePlate,
       "ArriveDate": arriveDate.toIso8601String(),
       "LeaveDate": leaveDate.toIso8601String(),
-      "ParkingArticleId": "",
+      "ParkingArticleId": parkingArticleId,
       "ParkingArticleVolume": parkingArticleVolume,
       "TransferPersonCount": transferPersonCount,
-      "VIP": false,
-      "SuitcaseWrappingCount": null,
-      "CarWashArticleId": "",
-      "WashDateTime": null,
+      "VIP": vip,
+      "SuitcaseWrappingCount": suitcaseWrappingCount,
+      "CarWashArticleId": carWashArticleId,
+      "WashDateTime": washDateTime?.toIso8601String(),
       "PayType": payType,
       "Description": description,
     };
   }
 
-  // Ha valaha válaszként kapsz adatot, ezt bővítheted:
   factory Reservation.fromJson(Map<String, dynamic> json) {
     return Reservation(
       parkingService: json['ParkingService'],
+      partnerId: json['PartnerId'],
       alreadyRegistered: json['AlreadyRegistered'],
       withoutRegistration: json['WithoutRegistration'],
       name: json['Name'],
@@ -77,9 +77,13 @@ class Reservation {
       licensePlate: json['LicensePlate'],
       arriveDate: DateTime.parse(json['ArriveDate']),
       leaveDate: DateTime.parse(json['LeaveDate']),
+      parkingArticleId: json['ParkingArticleId'],
       parkingArticleVolume: json['ParkingArticleVolume'],
       transferPersonCount: json['TransferPersonCount'],
       vip: json['VIP'],
+      suitcaseWrappingCount: json['SuitcaseWrappingCount'],
+      carWashArticleId: json['CarWashArticleId'],
+      washDateTime: DateTime.parse(json['WashDateTime']),
       payType: json['PayType'],
       description: json['Description'],
     );

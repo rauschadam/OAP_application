@@ -13,6 +13,8 @@ class WashOrderPage extends StatefulWidget with PageWithTitle {
 
   final String? authToken;
   final BookingOption bookingOption;
+  final bool alreadyRegistered;
+  final bool withoutRegistration;
   final TextEditingController emailController;
   final TextEditingController? nameController;
   final TextEditingController? phoneController;
@@ -40,7 +42,9 @@ class WashOrderPage extends StatefulWidget with PageWithTitle {
       this.vip,
       this.parkingCost,
       this.suitcaseWrappingCount,
-      this.parkingArticleId});
+      this.parkingArticleId,
+      required this.alreadyRegistered,
+      required this.withoutRegistration});
 
   @override
   State<WashOrderPage> createState() => WashOrderPageState();
@@ -201,7 +205,8 @@ class WashOrderPageState extends State<WashOrderPage> {
 
   /// Teljes összeg kalkulálása, az árakat később adatbázisból fogja előhívni.
   void CalculateTotalCost() {
-    int baseCost = 0;
+    int baseCost =
+        widget.bookingOption == BookingOption.both ? widget.parkingCost! : 0;
 
     // Hozzáadjuk a parkolás árát
     baseCost += getCostForZone(selectedCarWashArticleId!);
@@ -575,6 +580,8 @@ class WashOrderPageState extends State<WashOrderPage> {
                 carWashArticleId: selectedCarWashArticleId,
                 suitcaseWrappingCount: widget.suitcaseWrappingCount,
                 parkingArticleId: widget.parkingArticleId,
+                alreadyRegistered: widget.alreadyRegistered,
+                withoutRegistration: widget.withoutRegistration,
               ),
             ),
           ),
@@ -696,7 +703,9 @@ class WashOrderPageState extends State<WashOrderPage> {
               const SizedBox(height: 10),
               Text.rich(
                 TextSpan(
-                  text: 'Fizetendő összeg: ',
+                  text: widget.bookingOption == BookingOption.both
+                      ? 'Teljes összeg: '
+                      : 'Fizetendő összeg: ',
                   style: TextStyle(fontSize: 16),
                   children: [
                     TextSpan(

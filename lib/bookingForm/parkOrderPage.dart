@@ -14,6 +14,8 @@ class ParkOrderPage extends StatefulWidget with PageWithTitle {
 
   final String? authToken;
   final BookingOption bookingOption;
+  final bool alreadyRegistered;
+  final bool withoutRegistration;
   final TextEditingController emailController;
   final TextEditingController? nameController;
   final TextEditingController? phoneController;
@@ -25,7 +27,9 @@ class ParkOrderPage extends StatefulWidget with PageWithTitle {
       required this.emailController,
       this.nameController,
       this.phoneController,
-      this.licensePlateController});
+      this.licensePlateController,
+      required this.alreadyRegistered,
+      required this.withoutRegistration});
 
   @override
   State<ParkOrderPage> createState() => ParkOrderPageState();
@@ -665,6 +669,8 @@ class ParkOrderPageState extends State<ParkOrderPage> {
           bookingOption: widget.bookingOption,
           parkingArticleId: selectedParkingArticleId!,
           suitcaseWrappingCount: suitcaseWrappingCount,
+          alreadyRegistered: widget.alreadyRegistered,
+          withoutRegistration: widget.withoutRegistration,
         );
       } else if (widget.bookingOption == BookingOption.both) {
         nextPage = WashOrderPage(
@@ -681,6 +687,9 @@ class ParkOrderPageState extends State<ParkOrderPage> {
           vip: VIPDriverRequested,
           parkingCost: totalCost,
           suitcaseWrappingCount: suitcaseWrappingCount,
+          alreadyRegistered: widget.alreadyRegistered,
+          withoutRegistration: widget.withoutRegistration,
+          parkingArticleId: selectedParkingArticleId,
         );
       }
       if (selectedArriveDate != null && selectedLeaveDate != null) {
@@ -981,60 +990,60 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                 ],
               ),
               const SizedBox(height: 12),
-              widget.bookingOption == BookingOption.parking
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text.rich(
+                    TextSpan(
+                      text: widget.bookingOption == BookingOption.parking
+                          ? 'Fizetendő összeg: '
+                          : 'A parkolás ára: ',
+                      style: TextStyle(fontSize: 16),
                       children: [
-                        Text.rich(
-                          TextSpan(
-                            text: 'Fizetendő összeg: ',
-                            style: TextStyle(fontSize: 16),
-                            children: [
-                              TextSpan(
-                                text:
-                                    '${NumberFormat('#,###', 'hu_HU').format(totalCost)} Ft',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                        ),
-                        MyRadioListTile<PaymentOption>(
-                          title: 'Bankkártyával fizetek',
-                          value: PaymentOption.card,
-                          groupValue: selectedPaymentOption,
-                          onChanged: (PaymentOption? value) {
-                            setState(() {
-                              selectedPaymentOption = value!;
-                            });
-                          },
-                          dense: true,
-                        ),
-                        MyRadioListTile<PaymentOption>(
-                          title:
-                              'Átutalással fizetek még a parkolás megkezdése előtt 1 nappal',
-                          value: PaymentOption.transfer,
-                          groupValue: selectedPaymentOption,
-                          onChanged: (PaymentOption? value) {
-                            setState(() {
-                              selectedPaymentOption = value!;
-                            });
-                          },
-                          dense: true,
-                        ),
-                        MyRadioListTile<PaymentOption>(
-                          title: 'Qvik',
-                          value: PaymentOption.qvik,
-                          groupValue: selectedPaymentOption,
-                          onChanged: (PaymentOption? value) {
-                            setState(() {
-                              selectedPaymentOption = value!;
-                            });
-                          },
-                          dense: true,
+                        TextSpan(
+                          text:
+                              '${NumberFormat('#,###', 'hu_HU').format(totalCost)} Ft',
+                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ],
-                    )
-                  : Container(),
+                    ),
+                  ),
+                  MyRadioListTile<PaymentOption>(
+                    title: 'Bankkártyával fizetek',
+                    value: PaymentOption.card,
+                    groupValue: selectedPaymentOption,
+                    onChanged: (PaymentOption? value) {
+                      setState(() {
+                        selectedPaymentOption = value!;
+                      });
+                    },
+                    dense: true,
+                  ),
+                  MyRadioListTile<PaymentOption>(
+                    title:
+                        'Átutalással fizetek még a parkolás megkezdése előtt 1 nappal',
+                    value: PaymentOption.transfer,
+                    groupValue: selectedPaymentOption,
+                    onChanged: (PaymentOption? value) {
+                      setState(() {
+                        selectedPaymentOption = value!;
+                      });
+                    },
+                    dense: true,
+                  ),
+                  MyRadioListTile<PaymentOption>(
+                    title: 'Qvik',
+                    value: PaymentOption.qvik,
+                    groupValue: selectedPaymentOption,
+                    onChanged: (PaymentOption? value) {
+                      setState(() {
+                        selectedPaymentOption = value!;
+                      });
+                    },
+                    dense: true,
+                  ),
+                ],
+              ),
               SizedBox(height: 10),
               MyTextFormField(
                 controller: descriptionController,

@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'package:airport_test/api_Services/reservation.dart';
-import 'package:airport_test/api_Services/registration.dart';
+import 'package:airport_test/api_services/reservation.dart';
+import 'package:airport_test/api_services/registration.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {

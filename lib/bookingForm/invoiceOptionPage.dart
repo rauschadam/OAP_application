@@ -1,5 +1,5 @@
-import 'package:airport_test/api_Services/api_service.dart';
-import 'package:airport_test/api_Services/reservation.dart';
+import 'package:airport_test/api_services/api_service.dart';
+import 'package:airport_test/api_services/reservation.dart';
 import 'package:airport_test/constants/constant_widgets.dart';
 import 'package:airport_test/enums/parkingFormEnums.dart';
 import 'package:airport_test/homePage.dart';

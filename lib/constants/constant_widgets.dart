@@ -464,14 +464,14 @@ class ParkingZoneSelectionCard extends StatelessWidget {
   }
 }
 
-class WashOptionSelectionCard extends StatelessWidget {
+class CarWashSelectionCard extends StatelessWidget {
   final String title;
   final int washCost;
   final bool selected;
   final VoidCallback onTap;
   final bool available;
 
-  const WashOptionSelectionCard(
+  const CarWashSelectionCard(
       {super.key,
       required this.title,
       required this.washCost,

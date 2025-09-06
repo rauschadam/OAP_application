@@ -1,4 +1,4 @@
-import 'package:airport_test/api_Services/api_service.dart';
+import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/constants/constant_widgets.dart';
 import 'package:airport_test/bookingForm/invoiceOptionPage.dart';
 import 'package:airport_test/bookingForm/washOrderPage.dart';
@@ -150,7 +150,9 @@ class ParkOrderPageState extends State<ParkOrderPage> {
     int baseCost = 0;
 
     // Hozzáadjuk a parkolás árát
-    baseCost += getCostForZone(selectedParkingArticleId!) * parkingDays;
+    if (selectedParkingArticleId != null) {
+      baseCost += getCostForZone(selectedParkingArticleId!) * parkingDays;
+    }
 
     // Hozzáadjuk a VIP sofőr árát, amennyiben igénylik
     if (VIPDriverRequested) {
@@ -265,6 +267,12 @@ class ParkOrderPageState extends State<ParkOrderPage> {
 
       // Ha van tiltott időpont -> false, különben true
       zoneAvailability[parkingArticleId] = !hasForbidden;
+
+      // Ha a kijelölt zóna foglalt lett, kinullázzuk
+      if (parkingArticleId == selectedParkingArticleId &&
+          !zoneAvailability[parkingArticleId]!) {
+        selectedParkingArticleId = null;
+      }
     });
 
     return zoneAvailability;
@@ -318,6 +326,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                 costPerDay: getCostForZone(articleId),
                 parkingDays: parkingDays,
                 selected: selectedParkingArticleId == articleId,
+                //isAvailable ? selectedParkingArticleId == articleId : false,
                 onTap: () => onZoneSelected(articleId),
                 available: isAvailable,
               ),
@@ -652,59 +661,66 @@ class ParkOrderPageState extends State<ParkOrderPage> {
       );
 
   void OnNextPageButtonPressed() async {
-    if (formKey.currentState!.validate() && selectedParkingArticleId != null) {
-      Widget? nextPage;
-      if (widget.bookingOption == BookingOption.parking) {
-        nextPage = InvoiceOptionPage(
-          authToken: widget.authToken,
-          nameController: nameController,
-          emailController: widget.emailController,
-          phoneController: phoneController,
-          licensePlateController: licensePlateController,
-          arriveDate: selectedArriveDate,
-          leaveDate: selectedLeaveDate,
-          transferPersonCount: transferCount,
-          vip: VIPDriverRequested,
-          descriptionController: descriptionController,
-          bookingOption: widget.bookingOption,
-          parkingArticleId: selectedParkingArticleId!,
-          suitcaseWrappingCount: suitcaseWrappingCount,
-          alreadyRegistered: widget.alreadyRegistered,
-          withoutRegistration: widget.withoutRegistration,
-        );
-      } else if (widget.bookingOption == BookingOption.both) {
-        nextPage = WashOrderPage(
-          authToken: widget.authToken,
-          bookingOption: widget.bookingOption,
-          emailController: widget.emailController,
-          licensePlateController: licensePlateController,
-          nameController: nameController,
-          phoneController: phoneController,
-          descriptionController: descriptionController,
-          arriveDate: selectedArriveDate,
-          leaveDate: selectedLeaveDate,
-          transferPersonCount: transferCount,
-          vip: VIPDriverRequested,
-          parkingCost: totalCost,
-          suitcaseWrappingCount: suitcaseWrappingCount,
-          alreadyRegistered: widget.alreadyRegistered,
-          withoutRegistration: widget.withoutRegistration,
-          parkingArticleId: selectedParkingArticleId,
-        );
-      }
-      if (selectedArriveDate != null && selectedLeaveDate != null) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => BasePage(
-              child: nextPage!,
-            ),
-          ),
+    if (formKey.currentState!.validate()) {
+      if (selectedParkingArticleId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Válasszon parkoló zónát')),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Válassz ki Parkolási intervallumot!')),
-        );
+        Widget? nextPage;
+        if (widget.bookingOption == BookingOption.parking) {
+          nextPage = InvoiceOptionPage(
+            authToken: widget.authToken,
+            nameController: nameController,
+            emailController: widget.emailController,
+            phoneController: phoneController,
+            licensePlateController: licensePlateController,
+            arriveDate: selectedArriveDate,
+            leaveDate: selectedLeaveDate,
+            transferPersonCount: transferCount,
+            vip: VIPDriverRequested,
+            descriptionController: descriptionController,
+            bookingOption: widget.bookingOption,
+            parkingArticleId: selectedParkingArticleId!,
+            suitcaseWrappingCount: suitcaseWrappingCount,
+            alreadyRegistered: widget.alreadyRegistered,
+            withoutRegistration: widget.withoutRegistration,
+          );
+        } else if (widget.bookingOption == BookingOption.both) {
+          nextPage = WashOrderPage(
+            authToken: widget.authToken,
+            bookingOption: widget.bookingOption,
+            emailController: widget.emailController,
+            licensePlateController: licensePlateController,
+            nameController: nameController,
+            phoneController: phoneController,
+            descriptionController: descriptionController,
+            arriveDate: selectedArriveDate,
+            leaveDate: selectedLeaveDate,
+            transferPersonCount: transferCount,
+            vip: VIPDriverRequested,
+            parkingCost: totalCost,
+            suitcaseWrappingCount: suitcaseWrappingCount,
+            alreadyRegistered: widget.alreadyRegistered,
+            withoutRegistration: widget.withoutRegistration,
+            parkingArticleId: selectedParkingArticleId,
+          );
+        }
+        if (selectedArriveDate != null && selectedLeaveDate != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => BasePage(
+                child: nextPage!,
+              ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Válassz ki Parkolási intervallumot!')),
+          );
+        }
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1008,40 +1024,46 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                       ],
                     ),
                   ),
-                  MyRadioListTile<PaymentOption>(
-                    title: 'Bankkártyával fizetek',
-                    value: PaymentOption.card,
-                    groupValue: selectedPaymentOption,
-                    onChanged: (PaymentOption? value) {
-                      setState(() {
-                        selectedPaymentOption = value!;
-                      });
-                    },
-                    dense: true,
-                  ),
-                  MyRadioListTile<PaymentOption>(
-                    title:
-                        'Átutalással fizetek még a parkolás megkezdése előtt 1 nappal',
-                    value: PaymentOption.transfer,
-                    groupValue: selectedPaymentOption,
-                    onChanged: (PaymentOption? value) {
-                      setState(() {
-                        selectedPaymentOption = value!;
-                      });
-                    },
-                    dense: true,
-                  ),
-                  MyRadioListTile<PaymentOption>(
-                    title: 'Qvik',
-                    value: PaymentOption.qvik,
-                    groupValue: selectedPaymentOption,
-                    onChanged: (PaymentOption? value) {
-                      setState(() {
-                        selectedPaymentOption = value!;
-                      });
-                    },
-                    dense: true,
-                  ),
+                  widget.bookingOption == BookingOption.parking
+                      ? Column(
+                          children: [
+                            MyRadioListTile<PaymentOption>(
+                              title: 'Bankkártyával fizetek',
+                              value: PaymentOption.card,
+                              groupValue: selectedPaymentOption,
+                              onChanged: (PaymentOption? value) {
+                                setState(() {
+                                  selectedPaymentOption = value!;
+                                });
+                              },
+                              dense: true,
+                            ),
+                            MyRadioListTile<PaymentOption>(
+                              title:
+                                  'Átutalással fizetek még a parkolás megkezdése előtt 1 nappal',
+                              value: PaymentOption.transfer,
+                              groupValue: selectedPaymentOption,
+                              onChanged: (PaymentOption? value) {
+                                setState(() {
+                                  selectedPaymentOption = value!;
+                                });
+                              },
+                              dense: true,
+                            ),
+                            MyRadioListTile<PaymentOption>(
+                              title: 'Qvik',
+                              value: PaymentOption.qvik,
+                              groupValue: selectedPaymentOption,
+                              onChanged: (PaymentOption? value) {
+                                setState(() {
+                                  selectedPaymentOption = value!;
+                                });
+                              },
+                              dense: true,
+                            ),
+                          ],
+                        )
+                      : Container()
                 ],
               ),
               SizedBox(height: 10),

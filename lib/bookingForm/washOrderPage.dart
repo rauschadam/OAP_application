@@ -1,4 +1,4 @@
-import 'package:airport_test/api_Services/api_service.dart';
+import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/constants/constant_widgets.dart';
 import 'package:airport_test/bookingForm/invoiceOptionPage.dart';
 import 'package:airport_test/constants/constant_functions.dart';
@@ -53,7 +53,7 @@ class WashOrderPage extends StatefulWidget with PageWithTitle {
 class WashOrderPageState extends State<WashOrderPage> {
   final formKey = GlobalKey<FormState>();
 
-  // initState-ben átadjuk nekik az előző page-ben megadott adatokat
+  // initState-ben átadjuk nekik az előző page-en megadott adatokat
   late final TextEditingController nameController;
   late final TextEditingController phoneController;
   late final TextEditingController licensePlateController;
@@ -148,6 +148,8 @@ class WashOrderPageState extends State<WashOrderPage> {
     for (var reservation in reservations) {
       final carWashArticleId = reservation['CarWashArticleId'];
 
+      if (carWashArticleId == null) continue;
+
       final washDateTime = DateTime.parse(reservation['WashDateTime']);
 
       counters.putIfAbsent(carWashArticleId, () => {});
@@ -209,7 +211,9 @@ class WashOrderPageState extends State<WashOrderPage> {
         widget.bookingOption == BookingOption.both ? widget.parkingCost! : 0;
 
     // Hozzáadjuk a parkolás árát
-    baseCost += getCostForZone(selectedCarWashArticleId!);
+    if (selectedCarWashArticleId != null) {
+      baseCost += getCostForZone(selectedCarWashArticleId!);
+    }
 
     setState(() {
       totalCost = baseCost;
@@ -233,13 +237,19 @@ class WashOrderPageState extends State<WashOrderPage> {
       selectedWashTime!.minute,
     );
 
-    fullyBookedDateTimes.forEach((parkingArticleId, zoneTimes) {
+    fullyBookedDateTimes.forEach((carWashArticleId, zoneTimes) {
       final hasForbidden = zoneTimes.any((d) {
         return d == washDateTime;
       });
 
       // Ha van tiltott időpont -> false, különben true
-      zoneAvailability[parkingArticleId] = !hasForbidden;
+      zoneAvailability[carWashArticleId] = !hasForbidden;
+
+      // Ha a kijelölt zóna foglalt lett, kinullázzuk
+      if (carWashArticleId == selectedCarWashArticleId &&
+          !zoneAvailability[carWashArticleId]!) {
+        selectedCarWashArticleId = null;
+      }
     });
 
     return zoneAvailability;
@@ -252,9 +262,9 @@ class WashOrderPageState extends State<WashOrderPage> {
       : '-';
 
   /// Parkoló zónák generálása ServiceTemplates-ek alapján.
-  Widget buildWashingZoneSelector({
+  Widget buildCarWashZoneSelector({
     required List<dynamic> serviceTemplates,
-    required String? selectedWashingArticleId,
+    required String? selectedCarWashArticleId,
     required Function(String) onZoneSelected,
     required Map<String, bool> zoneAvailability,
   }) {
@@ -282,10 +292,10 @@ class WashOrderPageState extends State<WashOrderPage> {
 
             return Padding(
               padding: const EdgeInsets.all(4.0),
-              child: WashOptionSelectionCard(
+              child: CarWashSelectionCard(
                 title: title,
                 washCost: getCostForZone(articleId),
-                selected: selectedWashingArticleId == articleId,
+                selected: selectedCarWashArticleId == articleId,
                 onTap: () => onZoneSelected(articleId),
                 available: isAvailable,
               ),
@@ -690,9 +700,9 @@ class WashOrderPageState extends State<WashOrderPage> {
               const Text('Válassza ki a kívánt programot'),
               serviceTemplates == null
                   ? const Center(child: CircularProgressIndicator())
-                  : buildWashingZoneSelector(
+                  : buildCarWashZoneSelector(
                       serviceTemplates: serviceTemplates!,
-                      selectedWashingArticleId: selectedCarWashArticleId,
+                      selectedCarWashArticleId: selectedCarWashArticleId,
                       onZoneSelected: (articleId) {
                         setState(() {
                           selectedCarWashArticleId = articleId;

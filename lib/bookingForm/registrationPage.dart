@@ -1,5 +1,5 @@
-import 'package:airport_test/api_Services/api_service.dart';
-import 'package:airport_test/api_Services/registration.dart';
+import 'package:airport_test/api_services/api_service.dart';
+import 'package:airport_test/api_services/registration.dart';
 import 'package:airport_test/constants/constant_widgets.dart';
 import 'package:airport_test/bookingForm/parkOrderPage.dart';
 import 'package:airport_test/bookingForm/washOrderPage.dart';

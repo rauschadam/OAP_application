@@ -326,7 +326,6 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                 costPerDay: getCostForZone(articleId),
                 parkingDays: parkingDays,
                 selected: selectedParkingArticleId == articleId,
-                //isAvailable ? selectedParkingArticleId == articleId : false,
                 onTap: () => onZoneSelected(articleId),
                 available: isAvailable,
               ),

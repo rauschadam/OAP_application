@@ -56,7 +56,11 @@ class _LoginPageState extends State<LoginPage> {
   void OnNextPageButtonPressed() async {
     if (formKey.currentState!.validate()) {
       final token = await LoginUser();
-      if (token != null) {
+      if (token == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sikertelen Bejelentkezés!')),
+        );
+      } else {
         Widget nextPage;
         switch (widget.bookingOption) {
           case BookingOption.parking:
@@ -87,10 +91,6 @@ class _LoginPageState extends State<LoginPage> {
               child: nextPage,
             ),
           ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sikertelen Bejelentkezés!')),
         );
       }
     }

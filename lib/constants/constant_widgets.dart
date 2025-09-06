@@ -2,6 +2,7 @@ import 'package:airport_test/enums/parkingFormEnums.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_multi_formatter/formatters/masked_input_formatter.dart';
 import 'package:intl/intl.dart';
+import 'package:percent_indicator/circular_percent_indicator.dart';
 
 class AppColors {
   final Color primary;
@@ -31,6 +32,7 @@ class AppColors {
 mixin PageWithTitle {
   String get pageTitle;
   bool get showBackButton => true;
+  bool get haveMargins => true;
 }
 
 class BasePage extends StatelessWidget {
@@ -63,7 +65,9 @@ class BasePage extends StatelessWidget {
       body: Center(
         child: Row(
           children: [
-            Expanded(child: Container()),
+            (child as PageWithTitle).haveMargins
+                ? Expanded(child: Container())
+                : Container(),
             Expanded(
               flex: 2,
               child: Column(
@@ -72,7 +76,9 @@ class BasePage extends StatelessWidget {
                 ],
               ),
             ),
-            Expanded(child: Container()),
+            (child as PageWithTitle).haveMargins
+                ? Expanded(child: Container())
+                : Container(),
           ],
         ),
       ),
@@ -311,15 +317,18 @@ class MyIconButton extends StatelessWidget {
     return ElevatedButton.icon(
       style: ElevatedButton.styleFrom(
         backgroundColor: BasePage.defaultColors.secondary,
+        padding: const EdgeInsets.all(16.0),
       ),
       icon: Icon(
         icon,
         color: BasePage.defaultColors.primary,
+        size: 30,
       ),
       label: Text(
         labelText,
         style: TextStyle(
           color: BasePage.defaultColors.primary,
+          fontSize: 20,
         ),
       ),
       focusNode: focusNode,
@@ -598,6 +607,47 @@ class MyCheckBox extends StatelessWidget {
         onChanged(value ?? false);
       },
       activeColor: BasePage.defaultColors.primary,
+    );
+  }
+}
+
+class ZoneOccupancyIndicator extends StatelessWidget {
+  final String zoneName;
+  final int occupied;
+  final int capacity;
+
+  const ZoneOccupancyIndicator({
+    super.key,
+    required this.zoneName,
+    required this.occupied,
+    required this.capacity,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          zoneName,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        SizedBox(height: 5),
+        CircularPercentIndicator(
+          radius: 50,
+          lineWidth: 18,
+          percent: occupied / capacity,
+          progressColor: Colors.blue,
+          backgroundColor: Colors.blue.shade100,
+          circularStrokeCap: CircularStrokeCap.round,
+          center: Text(
+            "$occupied / $capacity",
+            style: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_multi_formatter/formatters/masked_input_formatter.dart';
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:shimmer_animation/shimmer_animation.dart';
 
 class AppColors {
   final Color primary;
@@ -316,19 +317,22 @@ class MyIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton.icon(
       style: ElevatedButton.styleFrom(
-        backgroundColor: BasePage.defaultColors.secondary,
+        backgroundColor: BasePage.defaultColors.primary,
         padding: const EdgeInsets.all(16.0),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
       ),
       icon: Icon(
         icon,
-        color: BasePage.defaultColors.primary,
-        size: 30,
+        color: BasePage.defaultColors.background,
+        //size: 30,
       ),
       label: Text(
         labelText,
         style: TextStyle(
-          color: BasePage.defaultColors.primary,
-          fontSize: 20,
+          color: BasePage.defaultColors.background,
+          //fontSize: 20,
         ),
       ),
       focusNode: focusNode,
@@ -649,5 +653,163 @@ class ZoneOccupancyIndicator extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+class ReservationList extends StatelessWidget {
+  final List<dynamic> reservations;
+  final String listTitle;
+  final Map<String, String> columns;
+  final Map<String, String Function(dynamic)>? formatters;
+
+  const ReservationList({
+    required this.reservations,
+    required this.listTitle,
+    required this.columns,
+    this.formatters,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.all(Radius.circular(10)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          buildListTitle(listTitle, context),
+          SizedBox(height: 16),
+          reservations.isEmpty
+              ? Container(
+                  padding: EdgeInsets.all(8),
+                  width: double.infinity,
+                  child: Text('Nincsenek foglalások'))
+              : Column(
+                  children: [
+                    // Táblázat fejléc (rögzített)
+                    buildColumnTitles(columns),
+                    // Görgethető tartalom
+                    buildCells(reservations)
+                  ],
+                )
+        ],
+      ),
+    );
+  }
+
+  Widget buildCells(List<dynamic> reservations) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: 315),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(8),
+            bottomRight: Radius.circular(8),
+          ),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: ListView.separated(
+          shrinkWrap: true,
+          itemCount: reservations.length,
+          separatorBuilder: (context, index) => Divider(height: 1),
+          itemBuilder: (context, index) {
+            return Container(
+              padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              color: index.isEven ? Colors.grey.shade50 : Colors.white,
+              child: Row(
+                children: [
+                  for (var dataSource in columns.values)
+                    Expanded(
+                      flex: 2,
+                      child: buildCell(reservations[index], dataSource),
+                    ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget buildCell(dynamic reservation, String dataSource) {
+    // Ha van formázó függvény ehhez a mezőhöz, akkor azt használjuk
+    if (formatters != null && formatters!.containsKey(dataSource)) {
+      return Text(formatters![dataSource]!(reservation));
+    }
+
+    // Alapértelmezett megjelenítés
+    final value = reservation[dataSource];
+    if (value == null) return Text('-');
+
+    // Dátum mezők automatikus formázása
+    if (dataSource.toLowerCase().contains('date')) {
+      try {
+        final date = DateTime.parse(value.toString());
+        return Text(DateFormat('yyyy.MM.dd HH:mm').format(date));
+      } catch (e) {
+        return Text(value.toString());
+      }
+    }
+
+    return Text(value.toString());
+  }
+
+  Widget buildColumnTitles(Map<String, String> columns) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade300,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(8),
+          topRight: Radius.circular(8),
+        ),
+      ),
+      child: Row(
+        children: [
+          for (var columnTitles in columns.keys)
+            Expanded(
+              flex: 2,
+              child: Text(
+                columnTitles,
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildListTitle(String listTitle, context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8.0),
+      child: Text(
+        listTitle,
+        style: Theme.of(context).textTheme.titleMedium,
+      ),
+    );
+  }
+}
+
+class ShimmerPlaceholderTemplate extends StatelessWidget {
+  final double width;
+  final double height;
+  final Widget? child;
+
+  const ShimmerPlaceholderTemplate(
+      {super.key, required this.width, required this.height, this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer(
+        child: Container(
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(16)),
+      width: width,
+      height: height,
+      child: child,
+    ));
   }
 }

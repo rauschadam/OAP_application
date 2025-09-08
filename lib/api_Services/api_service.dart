@@ -120,7 +120,7 @@ class ApiService {
         final List reservations = data['responseContent'];
         return reservations;
       } else {
-        print('Hiba történt: ${response.statusCode}');
+        print('getReservations sikertelen: ${response.statusCode}');
         print(response.body);
       }
     } catch (e) {

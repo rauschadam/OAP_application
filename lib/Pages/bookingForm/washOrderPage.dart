@@ -1,7 +1,13 @@
 import 'package:airport_test/api_services/api_service.dart';
-import 'package:airport_test/constants/constant_widgets.dart';
-import 'package:airport_test/bookingForm/invoiceOptionPage.dart';
+import 'package:airport_test/Pages/bookingForm/invoiceOptionPage.dart';
 import 'package:airport_test/constants/constant_functions.dart';
+import 'package:airport_test/constants/constant_widgets/base_page.dart';
+import 'package:airport_test/constants/constant_widgets/car_wash_selection_card.dart';
+import 'package:airport_test/constants/constant_widgets/my_icon_button.dart';
+import 'package:airport_test/constants/constant_widgets/my_radio_list_tile.dart';
+import 'package:airport_test/constants/constant_widgets/my_text_form_field.dart';
+import 'package:airport_test/constants/constant_widgets/next_page_button.dart';
+import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/enums/parkingFormEnums.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -422,7 +428,8 @@ class WashOrderPageState extends State<WashOrderPage> {
                                     child: Card(
                                       elevation: 0,
                                       shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(20),
+                                        borderRadius: BorderRadius.circular(
+                                            AppBorderRadius.large),
                                       ),
                                       color: cardColor,
                                       child: Center(
@@ -454,11 +461,11 @@ class WashOrderPageState extends State<WashOrderPage> {
 
             return Dialog(
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
+                  borderRadius: BorderRadius.circular(AppBorderRadius.medium)),
               child: Container(
                 width: 600,
                 height: 800,
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppPadding.medium),
                 child: Column(
                   children: [
                     SfDateRangePicker(
@@ -637,7 +644,7 @@ class WashOrderPageState extends State<WashOrderPage> {
       child: ScrollConfiguration(
         behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppPadding.medium),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

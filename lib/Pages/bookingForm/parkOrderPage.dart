@@ -1,8 +1,15 @@
 import 'package:airport_test/api_services/api_service.dart';
-import 'package:airport_test/constants/constant_widgets.dart';
-import 'package:airport_test/bookingForm/invoiceOptionPage.dart';
-import 'package:airport_test/bookingForm/washOrderPage.dart';
+import 'package:airport_test/Pages/bookingForm/invoiceOptionPage.dart';
+import 'package:airport_test/Pages/bookingForm/washOrderPage.dart';
 import 'package:airport_test/constants/constant_functions.dart';
+import 'package:airport_test/constants/constant_widgets/base_page.dart';
+import 'package:airport_test/constants/constant_widgets/my_checkbox.dart';
+import 'package:airport_test/constants/constant_widgets/my_icon_button.dart';
+import 'package:airport_test/constants/constant_widgets/my_radio_list_tile.dart';
+import 'package:airport_test/constants/constant_widgets/my_text_form_field.dart';
+import 'package:airport_test/constants/constant_widgets/next_page_button.dart';
+import 'package:airport_test/constants/constant_widgets/parking_zone_selection_card.dart';
+import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/enums/parkingFormEnums.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -304,7 +311,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         controller: ParkOptionsScrollController,
-        padding: EdgeInsets.all(8),
+        padding: EdgeInsets.all(AppPadding.small),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: parkingZones.map((zone) {
@@ -319,7 +326,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                 ? nameParts.sublist(0, nameParts.length - 1).join(' ')
                 : ''; // Minden ami előtte van (Pl.:"Fedett napi parkolójegy")
             return Padding(
-              padding: const EdgeInsets.all(4.0),
+              padding: const EdgeInsets.all(AppPadding.extraSmall),
               child: ParkingZoneSelectionCard(
                 title: title,
                 subtitle: subtitle,
@@ -454,7 +461,8 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                                     child: Card(
                                       elevation: 0,
                                       shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(20),
+                                        borderRadius: BorderRadius.circular(
+                                            AppBorderRadius.large),
                                       ),
                                       color: cardColor,
                                       child: Center(
@@ -486,11 +494,11 @@ class ParkOrderPageState extends State<ParkOrderPage> {
 
             return Dialog(
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
+                  borderRadius: BorderRadius.circular(AppBorderRadius.medium)),
               child: Container(
                 width: 600,
                 height: 800,
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppPadding.medium),
                 child: Column(
                   children: [
                     SfDateRangePicker(
@@ -753,7 +761,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
       child: ScrollConfiguration(
         behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppPadding.medium),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -810,7 +818,6 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                   focusNode: datePickerFocus,
                   onPressed: () {
                     ShowDatePickerDialog();
-                    //CalculateTotalCost();
                     FocusScope.of(context).requestFocus(transferFocus);
                   },
                 ),
@@ -895,7 +902,8 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                           : Colors.grey.shade300,
                       minimumSize: const Size(24, 24),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius:
+                            BorderRadius.circular(AppBorderRadius.extraSmall),
                       ),
                       padding: EdgeInsets.zero,
                     ),
@@ -964,7 +972,8 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                                     : Colors.grey.shade300,
                                 minimumSize: const Size(24, 24),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(4),
+                                  borderRadius: BorderRadius.circular(
+                                      AppBorderRadius.extraSmall),
                                 ),
                                 padding: EdgeInsets.zero,
                               ),
@@ -994,7 +1003,8 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                                     : Colors.grey.shade300,
                                 minimumSize: const Size(24, 24),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(4),
+                                  borderRadius: BorderRadius.circular(
+                                      AppBorderRadius.extraSmall),
                                 ),
                                 padding: EdgeInsets.zero,
                               ),

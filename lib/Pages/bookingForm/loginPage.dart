@@ -1,7 +1,9 @@
 import 'package:airport_test/api_services/api_service.dart';
-import 'package:airport_test/constants/constant_widgets.dart';
-import 'package:airport_test/bookingForm/parkOrderPage.dart';
-import 'package:airport_test/bookingForm/washOrderPage.dart';
+import 'package:airport_test/Pages/bookingForm/parkOrderPage.dart';
+import 'package:airport_test/Pages/bookingForm/washOrderPage.dart';
+import 'package:airport_test/constants/constant_widgets/base_page.dart';
+import 'package:airport_test/constants/constant_widgets/my_text_form_field.dart';
+import 'package:airport_test/constants/constant_widgets/next_page_button.dart';
 import 'package:airport_test/enums/parkingFormEnums.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
@@ -37,7 +39,7 @@ class _LoginPageState extends State<LoginPage> {
 
   bool obscurePassword = true;
 
-  Future<String?> LoginUser() async {
+  Future<String?> loginUser() async {
     final api = ApiService();
     final token =
         await api.loginUser(emailController.text, passwordController.text);
@@ -55,7 +57,7 @@ class _LoginPageState extends State<LoginPage> {
 
   void OnNextPageButtonPressed() async {
     if (formKey.currentState!.validate()) {
-      final token = await LoginUser();
+      final token = await loginUser();
       if (token == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Sikertelen Bejelentkezés!')),

@@ -1,6 +1,9 @@
-import 'package:airport_test/constants/constant_widgets.dart';
-import 'package:airport_test/bookingForm/loginPage.dart';
-import 'package:airport_test/bookingForm/registrationPage.dart';
+import 'package:airport_test/Pages/bookingForm/loginPage.dart';
+import 'package:airport_test/Pages/bookingForm/registrationPage.dart';
+import 'package:airport_test/constants/constant_widgets/base_page.dart';
+import 'package:airport_test/constants/constant_widgets/my_radio_list_tile.dart';
+import 'package:airport_test/constants/constant_widgets/next_page_button.dart';
+import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/enums/parkingFormEnums.dart';
 import 'package:flutter/material.dart';
 
@@ -24,7 +27,7 @@ class _RegistrationOptionPageState extends State<RegistrationOptionPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(top: 8.0),
+          padding: const EdgeInsets.only(top: AppPadding.small),
           child: MyRadioListTile<RegistrationOption>(
             title: 'Regisztrált partner vagyok',
             value: RegistrationOption.registered,

@@ -1,11 +1,17 @@
 import 'dart:async';
 
+import 'package:airport_test/Pages/reservationListPage.dart';
 import 'package:airport_test/api_services/api_service.dart';
-import 'package:airport_test/constants/constant_widgets.dart';
-import 'package:airport_test/bookingForm/bookingOptionPage.dart';
+import 'package:airport_test/Pages/bookingForm/bookingOptionPage.dart';
+import 'package:airport_test/constants/constant_widgets/base_page.dart';
+import 'package:airport_test/constants/constant_widgets/my_icon_button.dart';
+import 'package:airport_test/constants/constant_widgets/next_page_button.dart';
+import 'package:airport_test/constants/constant_widgets/reservation_list.dart';
+import 'package:airport_test/constants/constant_widgets/shimmer_placeholder_template.dart';
+import 'package:airport_test/constants/constant_widgets/zone_occupancy_indicator.dart';
+import 'package:airport_test/constants/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:shimmer_animation/shimmer_animation.dart';
 
 class HomePage extends StatefulWidget with PageWithTitle {
   HomePage({super.key});
@@ -43,6 +49,7 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         authToken = token;
       });
+      //fetchData();
       fetchReservations();
     }
     return token;
@@ -51,6 +58,30 @@ class _HomePageState extends State<HomePage> {
   /// Lekérdezett foglalások
   List<dynamic>? reservations;
 
+  /// Lekérdezett szolgáltatások
+  List<dynamic>? serviceTemplates;
+
+  /// article id -> foglalt helyek száma
+  Map<String, int> zoneCounters = {};
+
+  // Future<void> fetchData() async {
+  //   final api = ApiService();
+  //   final reservationData = await api.getReservations(authToken);
+  //   final templateData = await api.getServiceTemplates(authToken);
+
+  //   if (reservationData == null && templateData == null) {
+  //     print('Nem sikerült a lekérdezés');
+  //   } else {
+  //     setState(() {
+  //       reservations = reservationData;
+  //       serviceTemplates = templateData;
+  //     });
+  //     zoneCounters =
+  //         mapCurrentOccupancyByZones(reservations!, serviceTemplates!);
+  //   }
+  // }
+
+  /// Foglalások lekérdezése
   Future<void> fetchReservations() async {
     final api = ApiService();
     final data = await api.getReservations(authToken);
@@ -65,9 +96,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  /// Lekérdezett szolgáltatások
-  List<dynamic>? serviceTemplates;
-
+  /// Szolgáltatások lekérdezése
   Future<void> fetchServiceTemplates() async {
     final api = ApiService();
     final data = await api.getServiceTemplates(authToken);
@@ -82,8 +111,6 @@ class _HomePageState extends State<HomePage> {
           mapCurrentOccupancyByZones(reservations!, serviceTemplates!);
     }
   }
-
-  Map<String, int> zoneCounters = {};
 
   // parkoló zóna -> jelenlegi foglalások száma
   Map<String, int> mapCurrentOccupancyByZones(
@@ -136,50 +163,17 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget buildReservationList({
-    required List<dynamic> reservations,
-  }) {
-    /// Kiszűrjük azokat a foglalásokat, amelyeknek az ArriveDate-je a múltban van.
-    /// Rendezzük ArriveDate szerint.
-    final List<dynamic> upcomingReservations = [];
-
-    for (var reservation in reservations) {
-      final arriveDate = DateTime.parse(reservation['ArriveDate']);
-      if (arriveDate.isAfter(now)) {
-        upcomingReservations.add(reservation);
-      }
-    }
-
-    // Rendezés arriveDate szerint
-    upcomingReservations.sort((a, b) => DateTime.parse(a['ArriveDate'])
-        .compareTo(DateTime.parse(b['ArriveDate'])));
-
-    return Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          color: Colors.grey.shade300,
-        ),
-        child: ReservationList(
-          listTitle: 'Foglalások',
-          reservations: upcomingReservations,
-          columns: {
-            'Felhasználó név': 'Name',
-            'Rendszám': 'LicensePlate',
-            'Érkezés dátuma': 'ArriveDate',
-          },
-          formatters: {
-            'ArriveDate': (reservation) => DateFormat('yyyy.MM.dd HH:mm')
-                .format(DateTime.parse(reservation['ArriveDate'])),
-          },
-        ));
-  }
-
   Widget buildTodoList({
-    required dynamic reservations,
+    required List<dynamic>? reservations,
     required DateTime startTime,
     required DateTime endTime,
     required String listTitle,
+    double? maxHeight,
   }) {
+    if (reservations == null) {
+      return ShimmerPlaceholderTemplate(
+          width: double.infinity, height: maxHeight ?? double.infinity);
+    }
     // Szűrés: csak a mai napon érkező vagy távozó foglalások
     final List<dynamic> todaysReservations = [];
 
@@ -229,14 +223,15 @@ class _HomePageState extends State<HomePage> {
     // Widget visszaadása
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppBorderRadius.medium),
         color: Colors.grey.shade300,
       ),
       child: ReservationList(
+        maxHeight: maxHeight,
         listTitle: listTitle,
         reservations: todaysReservations,
         columns: {
-          'Felhasználó név': 'Name',
+          'Név': 'Name',
           'Rendszám': 'LicensePlate',
           'Időpont': 'Time',
           'Típus': 'Type',
@@ -245,29 +240,57 @@ class _HomePageState extends State<HomePage> {
           'Time': (reservation) {
             final arriveDate = DateTime.parse(reservation['ArriveDate']);
             final leaveDate = DateTime.parse(reservation['LeaveDate']);
+            final carWashDate = DateTime.parse(reservation['WashDateTime']);
+            final isCarWashToday =
+                carWashDate.isAfter(startTime) && carWashDate.isBefore(endTime);
             final isArriveToday =
                 arriveDate.isAfter(startTime) && arriveDate.isBefore(endTime);
 
             if (isArriveToday) {
               return DateFormat('HH:mm').format(arriveDate);
-            } else {
+            } else if (!isCarWashToday) {
               return DateFormat('HH:mm').format(leaveDate);
+            } else {
+              return DateFormat('HH:mm').format(carWashDate);
             }
           },
           'Type': (reservation) {
             final arriveDate = DateTime.parse(reservation['ArriveDate']);
+            final carWashDate = DateTime.parse(reservation['WashDateTime']);
+            final isCarWashToday =
+                carWashDate.isAfter(startTime) && carWashDate.isBefore(endTime);
             final isArriveToday =
                 arriveDate.isAfter(startTime) && arriveDate.isBefore(endTime);
 
             if (isArriveToday) {
               return 'Érkezés';
-            } else {
+            } else if (!isCarWashToday) {
               return 'Távozás';
+            } else {
+              return 'Mosás';
             }
           },
         },
       ),
     );
+  }
+
+  void GoToReservationPage() async {
+    final token = await loginReceptionist();
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bejelentkezés folyamatban!')),
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BasePage(
+            child: ReservationListPage(authToken: authToken!),
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -279,6 +302,7 @@ class _HomePageState extends State<HomePage> {
     // percenként frissítjük a foglalásokat
     refreshTimer = Timer.periodic(Duration(minutes: 1), (_) {
       fetchReservations();
+      //fetchData();
       now = DateTime.now();
       print('Frissítve');
     });
@@ -293,72 +317,57 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(AppPadding.medium),
       child: Row(
         children: [
-          Expanded(flex: 2, child: Container()),
+          Expanded(
+            flex: 2,
+            child: NextPageButton(
+              onPressed: GoToReservationPage,
+            ),
+          ),
           Expanded(
             flex: 4,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 5,
-                      child: reservations != null
-                          ? Column(
-                              children: [
-                                buildTodoList(
-                                    listTitle: 'Ma',
-                                    reservations: reservations,
-                                    startTime: now,
-                                    endTime: DateTime(
-                                        now.year, now.month, now.day + 1)),
-                                SizedBox(height: 16),
-                                buildTodoList(
-                                    listTitle: 'Holnap',
-                                    reservations: reservations,
-                                    startTime: DateTime(
-                                        now.year, now.month, now.day + 1),
-                                    endTime: DateTime(
-                                        now.year, now.month, now.day + 2)),
-                                SizedBox(height: 16),
-                              ],
-                            )
-                          : ShimmerPlaceholderTemplate(
-                              width: double.infinity, height: 100),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Column(
-                        children: [
-                          MyIconButton(
-                            icon: Icons.add_rounded,
-                            labelText: "Foglalás rögzítése",
-                            onPressed: () {
-                              BasePage.defaultColors = AppColors.blue;
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const BasePage(
-                                    child: BookingOptionPage(),
-                                  ),
-                                ),
-                              );
-                            },
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: MyIconButton(
+                    icon: Icons.add_rounded,
+                    labelText: "Foglalás rögzítése",
+                    onPressed: () {
+                      BasePage.defaultColors = AppColors.blue;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const BasePage(
+                            child: BookingOptionPage(),
                           ),
-                        ],
-                      ),
-                    ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                SizedBox(height: 8),
+                Column(
+                  children: [
+                    buildTodoList(
+                        maxHeight: 200,
+                        listTitle: 'Ma',
+                        reservations: reservations,
+                        startTime: now,
+                        endTime: DateTime(now.year, now.month, now.day + 1)),
+                    SizedBox(height: 16),
+                    buildTodoList(
+                        maxHeight: 200,
+                        listTitle: 'Holnap',
+                        reservations: reservations,
+                        startTime: DateTime(now.year, now.month, now.day + 1),
+                        endTime: DateTime(now.year, now.month, now.day + 2)),
+                    SizedBox(height: 16),
                   ],
                 ),
-                reservations != null
-                    ? buildReservationList(reservations: reservations!)
-                    : Shimmer(
-                        child: ShimmerPlaceholderTemplate(
-                            width: double.infinity, height: 350),
-                      ),
               ],
             ),
           ),

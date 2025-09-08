@@ -1,8 +1,9 @@
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/api_services/reservation.dart';
-import 'package:airport_test/constants/constant_widgets.dart';
+import 'package:airport_test/constants/constant_widgets/base_page.dart';
+import 'package:airport_test/constants/constant_widgets/next_page_button.dart';
 import 'package:airport_test/enums/parkingFormEnums.dart';
-import 'package:airport_test/homePage.dart';
+import 'package:airport_test/Pages/homePage.dart';
 import 'package:flutter/material.dart';
 
 class InvoiceOptionPage extends StatefulWidget with PageWithTitle {

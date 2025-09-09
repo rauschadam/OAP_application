@@ -1,7 +1,9 @@
 import 'dart:async';
 
+import 'package:airport_test/Pages/bookingForm/bookingOptionPage.dart';
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/constants/constant_widgets/base_page.dart';
+import 'package:airport_test/constants/constant_widgets/my_icon_button.dart';
 import 'package:airport_test/constants/constant_widgets/reservation_list.dart';
 import 'package:airport_test/constants/constant_widgets/shimmer_placeholder_template.dart';
 import 'package:airport_test/constants/theme.dart';
@@ -11,6 +13,9 @@ import 'package:intl/intl.dart';
 class ReservationListPage extends StatefulWidget with PageWithTitle {
   @override
   String get pageTitle => 'Foglalások';
+
+  @override
+  bool get haveMargins => false;
 
   final String? authToken;
   const ReservationListPage({super.key, required this.authToken});
@@ -31,22 +36,6 @@ class _ReservationListPageState extends State<ReservationListPage> {
 
   /// Lekérdezett szolgáltatások
   List<dynamic>? serviceTemplates;
-
-  /// Adat lekérés
-  // Future<void> fetchData() async {
-  //   final api = ApiService();
-  //   final reservationData = await api.getReservations(widget.authToken);
-  //   final templateData = await api.getServiceTemplates(widget.authToken);
-
-  //   if (reservationData == null && templateData == null) {
-  //     print('Nem sikerült a lekérdezés');
-  //   } else {
-  //     setState(() {
-  //       reservations = reservationData;
-  //       serviceTemplates = templateData;
-  //     });
-  //   }
-  // }
 
   /// Foglalások lekérdezése
   Future<void> fetchReservations() async {
@@ -93,8 +82,49 @@ class _ReservationListPageState extends State<ReservationListPage> {
   }
 
   @override
+  void dispose() {
+    refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return buildReservationList(reservations: reservations);
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 70, vertical: 20),
+      color: BasePage.defaultColors.secondary,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: buildReservationList(
+                reservations: reservations,
+                maxHeight: MediaQuery.of(context).size.height * 0.7,
+              ),
+            ),
+          ),
+          Positioned(
+            top: 10,
+            right: 16,
+            child: MyIconButton(
+              icon: Icons.add_rounded,
+              labelText: "Foglalás rögzítése",
+              onPressed: () {
+                BasePage.defaultColors = AppColors.blue;
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const BasePage(
+                      child: BookingOptionPage(),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget buildReservationList({
@@ -124,7 +154,6 @@ class _ReservationListPageState extends State<ReservationListPage> {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppBorderRadius.medium),
-        color: Colors.grey.shade300,
       ),
       child: ReservationList(
         maxHeight: maxHeight,

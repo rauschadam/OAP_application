@@ -5,9 +5,9 @@ import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/Pages/bookingForm/bookingOptionPage.dart';
 import 'package:airport_test/constants/constant_widgets/base_page.dart';
 import 'package:airport_test/constants/constant_widgets/my_icon_button.dart';
-import 'package:airport_test/constants/constant_widgets/next_page_button.dart';
 import 'package:airport_test/constants/constant_widgets/reservation_list.dart';
 import 'package:airport_test/constants/constant_widgets/shimmer_placeholder_template.dart';
+import 'package:airport_test/constants/constant_widgets/side_menu.dart';
 import 'package:airport_test/constants/constant_widgets/zone_occupancy_indicator.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:flutter/material.dart';
@@ -144,22 +144,48 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget buildZoneOccupancyIndicators({
-    required List<dynamic> serviceTemplates,
+    required List<dynamic>? serviceTemplates,
     required Map<String, int> zoneCounters,
+    required int parkingServiceType,
   }) {
-    final parkingTemplates =
-        serviceTemplates.where((t) => t['ParkingServiceType'] == 1).toList();
+    if (serviceTemplates == null) {
+      return Padding(
+        padding: const EdgeInsets.all(AppPadding.xlarge),
+        child: Wrap(
+          spacing: 20,
+          children: [
+            for (int i = 0; i <= 2; i++)
+              ShimmerPlaceholderTemplate(width: 100, height: 120)
+          ],
+        ),
+      );
+    }
+    final parkingTemplates = serviceTemplates
+        .where((t) => t['ParkingServiceType'] == parkingServiceType)
+        .toList();
 
-    return Wrap(
-      spacing: 20,
-      children: [
-        for (var template in parkingTemplates)
-          ZoneOccupancyIndicator(
-            zoneName: template['ParkingServiceName'].split(' ').last,
-            occupied: zoneCounters[template['ArticleId']] ?? 0,
-            capacity: template['ZoneCapacity'],
+    return Padding(
+      padding: const EdgeInsets.all(AppPadding.medium),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppBorderRadius.medium),
+          color: BasePage.defaultColors.secondary,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppPadding.large),
+          child: Wrap(
+            spacing: 20,
+            children: [
+              for (var template in parkingTemplates)
+                ZoneOccupancyIndicator(
+                  zoneName: template['ParkingServiceName'].split(' ').last,
+                  occupied: zoneCounters[template['ArticleId']] ?? 0,
+                  capacity: template['ZoneCapacity'],
+                ),
+            ],
           ),
-      ],
+        ),
+      ),
     );
   }
 
@@ -223,9 +249,9 @@ class _HomePageState extends State<HomePage> {
     // Widget visszaadása
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppBorderRadius.medium),
-        color: Colors.grey.shade300,
-      ),
+          borderRadius: BorderRadius.circular(AppBorderRadius.medium),
+          color: BasePage.defaultColors.secondary //Colors.grey.shade300,
+          ),
       child: ReservationList(
         maxHeight: maxHeight,
         listTitle: listTitle,
@@ -293,6 +319,16 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Widget buildSideMenu() {
+    List<MenuItem> menuItems = [
+      MenuItem(
+          icon: Icons.list_alt_rounded,
+          title: "Foglalások",
+          onPressed: GoToReservationPage),
+    ];
+    return SideMenu(menuItems: menuItems);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -316,18 +352,16 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(AppPadding.medium),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 2,
-            child: NextPageButton(
-              onPressed: GoToReservationPage,
-            ),
-          ),
-          Expanded(
-            flex: 4,
+    return Row(
+      children: [
+        Expanded(
+          flex: 1,
+          child: buildSideMenu(),
+        ),
+        Expanded(
+          flex: 4,
+          child: Padding(
+            padding: const EdgeInsets.all(AppPadding.medium),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -371,29 +405,20 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
-          SizedBox(height: 16),
-          Expanded(
-            flex: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                (serviceTemplates != null && reservations != null)
-                    ? buildZoneOccupancyIndicators(
-                        serviceTemplates: serviceTemplates!,
-                        zoneCounters: zoneCounters,
-                      )
-                    : Wrap(
-                        spacing: 20,
-                        children: [
-                          for (int i = 0; i <= 2; i++)
-                            ShimmerPlaceholderTemplate(width: 50, height: 60)
-                        ],
-                      ),
-              ],
-            ),
+        ),
+        SizedBox(height: 16),
+        Expanded(
+          flex: 2,
+          child: Column(
+            children: [
+              buildZoneOccupancyIndicators(
+                  serviceTemplates: serviceTemplates,
+                  zoneCounters: zoneCounters,
+                  parkingServiceType: 1)
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

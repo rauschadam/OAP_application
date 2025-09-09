@@ -20,7 +20,7 @@ class AppColors {
     primary: Color.fromARGB(255, 47, 39, 206),
     secondary: Color.fromARGB(255, 222, 220, 255),
     accent: Color.fromARGB(255, 67, 59, 255),
-    background: Color.fromARGB(255, 251, 251, 254),
+    background: Color.fromARGB(255, 255, 255, 255),
     text: Color.fromARGB(255, 5, 3, 21),
   );
 }

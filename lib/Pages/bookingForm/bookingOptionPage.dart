@@ -3,7 +3,7 @@ import 'package:airport_test/constants/constant_widgets/base_page.dart';
 import 'package:airport_test/constants/constant_widgets/my_radio_list_tile.dart';
 import 'package:airport_test/constants/constant_widgets/next_page_button.dart';
 import 'package:airport_test/constants/theme.dart';
-import 'package:airport_test/enums/parkingFormEnums.dart';
+import 'package:airport_test/constants/enums/parkingFormEnums.dart';
 import 'package:flutter/material.dart';
 
 class BookingOptionPage extends StatefulWidget with PageWithTitle {

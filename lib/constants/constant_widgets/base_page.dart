@@ -11,14 +11,16 @@ class BasePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveColors = colors ?? defaultColors;
+    if (colors != null) {
+      defaultColors = colors!;
+    }
 
     return Scaffold(
       appBar: AppBar(
         title: Text((child as PageWithTitle).pageTitle),
         automaticallyImplyLeading: (child as PageWithTitle).showBackButton,
-        backgroundColor: effectiveColors.background,
-        foregroundColor: effectiveColors.text,
+        backgroundColor: defaultColors.background,
+        foregroundColor: defaultColors.text,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
@@ -27,7 +29,7 @@ class BasePage extends StatelessWidget {
           ),
         ),
       ),
-      backgroundColor: effectiveColors.background,
+      backgroundColor: defaultColors.background,
       body: Center(
         child: Row(
           children: [

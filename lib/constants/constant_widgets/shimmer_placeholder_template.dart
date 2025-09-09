@@ -15,7 +15,7 @@ class ShimmerPlaceholderTemplate extends StatelessWidget {
     return Shimmer(
         child: Container(
       decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppBorderRadius.medium)),
+          borderRadius: BorderRadius.circular(AppBorderRadius.large)),
       width: width,
       height: height,
       child: child,

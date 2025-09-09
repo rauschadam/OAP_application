@@ -1,6 +1,6 @@
 import 'package:airport_test/constants/constant_widgets/base_page.dart';
 import 'package:airport_test/constants/theme.dart';
-import 'package:airport_test/enums/parkingFormEnums.dart';
+import 'package:airport_test/constants/enums/parkingFormEnums.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_multi_formatter/formatters/masked_input_formatter.dart';
 

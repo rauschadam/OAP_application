@@ -494,8 +494,8 @@ class WashOrderPageState extends State<WashOrderPage> {
                                 }
                               }
 
-                              bool isBooked = fullyBookedDateTimes.values.any(
-                                  (listOfDates) => listOfDates.any((d) =>
+                              bool isBooked = fullyBookedDateTimes.values.every(
+                                  (listOfDates) => listOfDates.every((d) =>
                                       d.year == (tempWashDate?.year ?? 0) &&
                                       d.month == (tempWashDate?.month ?? 0) &&
                                       d.day == (tempWashDate?.day ?? 0) &&

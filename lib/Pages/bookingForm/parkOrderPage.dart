@@ -539,8 +539,8 @@ class ParkOrderPageState extends State<ParkOrderPage> {
 
                                 // Ellenőrizzük, hogy az adott időpont foglalt-e (érkezéshez)
                                 bool isArriveFullyBookedEverywhere =
-                                    fullyBookedDateTimes.values.any(
-                                        (zoneTimes) => zoneTimes.any((d) =>
+                                    fullyBookedDateTimes.values.every(
+                                        (zoneTimes) => zoneTimes.every((d) =>
                                             d.year ==
                                                 (tempArriveDate?.year ?? 0) &&
                                             d.month ==
@@ -552,8 +552,8 @@ class ParkOrderPageState extends State<ParkOrderPage> {
 
                                 // Ellenőrizzük, hogy az adott időpont foglalt-e (távozáshoz)
                                 bool isLeaveFullyBookedEverywhere =
-                                    fullyBookedDateTimes.values.any(
-                                        (zoneTimes) => zoneTimes.any((d) =>
+                                    fullyBookedDateTimes.values.every(
+                                        (zoneTimes) => zoneTimes.every((d) =>
                                             d.year ==
                                                 (tempLeaveDate?.year ?? 0) &&
                                             d.month ==

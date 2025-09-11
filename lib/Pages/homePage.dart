@@ -64,23 +64,6 @@ class _HomePageState extends State<HomePage> {
   /// article id -> foglalt helyek száma
   Map<String, int> zoneCounters = {};
 
-  // Future<void> fetchData() async {
-  //   final api = ApiService();
-  //   final reservationData = await api.getReservations(authToken);
-  //   final templateData = await api.getServiceTemplates(authToken);
-
-  //   if (reservationData == null && templateData == null) {
-  //     print('Nem sikerült a lekérdezés');
-  //   } else {
-  //     setState(() {
-  //       reservations = reservationData;
-  //       serviceTemplates = templateData;
-  //     });
-  //     zoneCounters =
-  //         mapCurrentOccupancyByZones(reservations!, serviceTemplates!);
-  //   }
-  // }
-
   /// Foglalások lekérdezése
   Future<void> fetchReservations() async {
     final api = ApiService();
@@ -109,7 +92,71 @@ class _HomePageState extends State<HomePage> {
       });
       zoneCounters =
           mapCurrentOccupancyByZones(reservations!, serviceTemplates!);
+      fullyBookedDateTimes =
+          mapBookedDateTimesByZones(reservations!, serviceTemplates!);
     }
+  }
+
+  //Teljes időpontos foglalt időpontok
+  Map<String, List<DateTime>> fullyBookedDateTimes =
+      {}; // parkoló zóna ArticleId -> telített időpont
+
+  // parkoló zóna -> telített időpontok
+  Map<String, List<DateTime>> mapBookedDateTimesByZones(
+      List<dynamic> reservations, List<dynamic> serviceTemplates) {
+    // Kiveszi a zónák kapacitását a Templates-ekből
+    final Map<String, int> zoneCapacities = {}; // parkoló zóna -> kapacitás
+    for (var template in serviceTemplates) {
+      if (template['ParkingServiceType'] != 1) {
+        continue; // Csak a parkolásokat nézze
+      }
+      final String articleId = template['ArticleId'];
+      final int capacity = template['ZoneCapacity'] ?? 1;
+      zoneCapacities[articleId] = capacity;
+    }
+
+    // időpont számláló zónánként
+    Map<String, Map<DateTime, int>> counters =
+        {}; // parkoló zóna -> (egy időpont hányszor szerepel)
+
+    for (var reservation in reservations) {
+      final parkingArticleId = reservation['ParkingArticleId'];
+
+      final arrive = DateTime.parse(reservation['ArriveDate']);
+      final leave = DateTime.parse(reservation['LeaveDate']);
+
+      counters.putIfAbsent(parkingArticleId, () => {});
+
+      DateTime current = DateTime(
+        arrive.year,
+        arrive.month,
+        arrive.day,
+        arrive.hour,
+        arrive.minute - (arrive.minute % 30),
+      );
+
+      // végig iterál az érkezéstől a távozás időpontjáig, az időpont számlálót növeli 1-el
+      while (current.isBefore(leave)) {
+        counters[parkingArticleId]![current] =
+            (counters[parkingArticleId]![current] ?? 0) + 1;
+        current = current.add(const Duration(minutes: 30));
+      }
+    }
+
+    /// Parkoló zóna -> telített időpontok
+    Map<String, List<DateTime>> fullyBookedDateTimesByZone = {};
+
+    counters.forEach((parkingArticleId, counter) {
+      if (parkingArticleId != "") {
+        final capacity = zoneCapacities[parkingArticleId];
+        fullyBookedDateTimesByZone[parkingArticleId] = counter.entries
+            .where((entry) => entry.value >= capacity!)
+            .map((entry) => entry.key)
+            .toList();
+      }
+    });
+
+    return fullyBookedDateTimesByZone;
   }
 
   // parkoló zóna -> jelenlegi foglalások száma
@@ -165,7 +212,7 @@ class _HomePageState extends State<HomePage> {
         .toList();
 
     return Padding(
-      padding: const EdgeInsets.all(AppPadding.medium),
+      padding: const EdgeInsets.only(top: AppPadding.large),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppBorderRadius.medium),
@@ -187,6 +234,109 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+
+  Widget buildFullyBookedTimeList(
+      {required Map<String, List<DateTime>> fullyBookedDateTimes}) {
+    String getZoneNameById(String articleId) {
+      switch (articleId) {
+        case "1-95426": // Premium
+          return 'Premium';
+        case "1-95427": // Normal
+          return 'Normal';
+        case "1-95428": // Eco
+          return 'Eco';
+        default:
+          return 'Egyéb';
+      }
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(AppPadding.large),
+      child: Container(
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppBorderRadius.medium),
+            color: BasePage.defaultColors.secondary),
+        padding: EdgeInsets.all(AppPadding.large),
+        width: double.infinity,
+        height: double.infinity < MediaQuery.of(context).size.height * 0.4
+            ? double.infinity
+            : MediaQuery.of(context).size.height * 0.4,
+        child: ListView(
+          children: [
+            for (var entry in fullyBookedDateTimes.entries)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header a string kulccsal
+                  Theme(
+                    data: Theme.of(context).copyWith(
+                      dividerColor: Colors.transparent,
+                      splashColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
+                      hoverColor: Colors.transparent,
+                    ),
+                    child: ExpansionTile(
+                      title: Text(
+                        getZoneNameById(entry.key),
+                      ),
+                      initiallyExpanded: true,
+                      children: [
+                        // Dátumtartományok csoportosítása
+                        ...groupConsecutiveTimeSlots(entry.value)
+                            .map((range) => Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppPadding.large,
+                                    vertical: AppPadding.small,
+                                  ),
+                                  child: Text(
+                                    range.length == 1
+                                        ? DateFormat('yyyy.MM.dd HH:mm')
+                                            .format(range.first)
+                                        : '${DateFormat('yyyy.MM.dd HH:mm').format(range.first)} - ${DateFormat('yyyy.MM.dd HH:mm').format(range.last)}',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                )),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Segédfüggvény az egybefüggő időpontok csoportosításához
+  List<List<DateTime>> groupConsecutiveTimeSlots(List<DateTime> timeSlots) {
+    if (timeSlots.isEmpty) return [];
+
+    // Rendezzük dátum szerint
+    timeSlots.sort((a, b) => a.compareTo(b));
+
+    List<List<DateTime>> groups = [];
+    List<DateTime> currentGroup = [timeSlots.first];
+
+    for (int i = 1; i < timeSlots.length; i++) {
+      final currentTime = timeSlots[i];
+      final previousTime = timeSlots[i - 1];
+
+      // Ellenőrizzük, hogy a következő időpont pontosan 30 perccel későbbi-e
+      if (currentTime.difference(previousTime) == Duration(minutes: 30)) {
+        currentGroup.add(currentTime);
+      } else {
+        groups.add(List.from(currentGroup));
+        currentGroup = [currentTime];
+      }
+    }
+
+    // Az utolsó csoport hozzáadása
+    groups.add(currentGroup);
+
+    return groups;
   }
 
   Widget buildTodoList({
@@ -412,9 +562,14 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             children: [
               buildZoneOccupancyIndicators(
-                  serviceTemplates: serviceTemplates,
-                  zoneCounters: zoneCounters,
-                  parkingServiceType: 1)
+                serviceTemplates: serviceTemplates,
+                zoneCounters: zoneCounters,
+                parkingServiceType: 1,
+              ),
+              fullyBookedDateTimes.isNotEmpty
+                  ? buildFullyBookedTimeList(
+                      fullyBookedDateTimes: fullyBookedDateTimes)
+                  : Container()
             ],
           ),
         ),

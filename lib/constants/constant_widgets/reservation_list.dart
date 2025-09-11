@@ -142,12 +142,13 @@ import 'package:airport_test/constants/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class ReservationList extends StatelessWidget {
+class ReservationList extends StatefulWidget {
   final List<dynamic> reservations;
   final String listTitle;
   final Map<String, String> columns;
   final Map<String, String Function(dynamic)>? formatters;
   final double? maxHeight;
+  final Function(dynamic)? onRowTap;
 
   const ReservationList(
       {super.key,
@@ -155,7 +156,15 @@ class ReservationList extends StatelessWidget {
       required this.listTitle,
       required this.columns,
       this.formatters,
-      this.maxHeight});
+      this.maxHeight,
+      this.onRowTap});
+
+  @override
+  State<ReservationList> createState() => _ReservationListState();
+}
+
+class _ReservationListState extends State<ReservationList> {
+  dynamic selectedReservation;
 
   @override
   Widget build(BuildContext context) {
@@ -168,9 +177,9 @@ class ReservationList extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          buildListTitle(listTitle, context),
+          buildListTitle(widget.listTitle, context),
           SizedBox(height: 16),
-          reservations.isEmpty
+          widget.reservations.isEmpty
               ? Container(
                   padding: EdgeInsets.all(AppBorderRadius.small),
                   width: double.infinity,
@@ -178,9 +187,9 @@ class ReservationList extends StatelessWidget {
               : Column(
                   children: [
                     // Táblázat fejléc (rögzített)
-                    buildColumnTitles(columns),
+                    buildColumnTitles(widget.columns),
                     // Görgethető tartalom
-                    buildRows(reservations)
+                    buildRows(widget.reservations)
                   ],
                 )
         ],
@@ -225,7 +234,8 @@ class ReservationList extends StatelessWidget {
 
   Widget buildRows(List<dynamic> reservations) {
     return ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: maxHeight ?? double.infinity),
+      constraints:
+          BoxConstraints(maxHeight: widget.maxHeight ?? double.infinity),
       child: Container(
         decoration: BoxDecoration(
           border: Border.all(color: Colors.grey.shade300),
@@ -236,19 +246,29 @@ class ReservationList extends StatelessWidget {
               for (int index = 0; index < reservations.length; index++)
                 Column(
                   children: [
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                          vertical: AppPadding.small,
-                          horizontal: AppPadding.medium),
-                      color: index.isEven ? Colors.grey.shade50 : Colors.white,
-                      child: Row(
-                        children: [
-                          for (var dataSource in columns.values)
-                            Expanded(
-                              child:
-                                  buildCells(reservations[index], dataSource),
-                            ),
-                        ],
+                    InkWell(
+                      onTap: () {
+                        setState(() {
+                          selectedReservation = reservations[index];
+                        });
+                        if (widget.onRowTap != null) {
+                          widget.onRowTap!(reservations[index]);
+                        }
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                            vertical: AppPadding.small,
+                            horizontal: AppPadding.medium),
+                        color: getRowColor(reservations[index], index),
+                        child: Row(
+                          children: [
+                            for (var dataSource in widget.columns.values)
+                              Expanded(
+                                child:
+                                    buildCells(reservations[index], dataSource),
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                     if (index < reservations.length - 1) Divider(height: 1),
@@ -263,8 +283,9 @@ class ReservationList extends StatelessWidget {
 
   Widget buildCells(dynamic reservation, String dataSource) {
     // Ha van formázó függvény ehhez a mezőhöz, akkor azt használjuk
-    if (formatters != null && formatters!.containsKey(dataSource)) {
-      return Text(formatters![dataSource]!(reservation));
+    if (widget.formatters != null &&
+        widget.formatters!.containsKey(dataSource)) {
+      return Text(widget.formatters![dataSource]!(reservation));
     }
 
     // Alapértelmezett megjelenítés
@@ -282,5 +303,16 @@ class ReservationList extends StatelessWidget {
     }
 
     return Text(value.toString());
+  }
+
+  // Segédfüggvény a sor színének meghatározásához
+  Color getRowColor(dynamic reservation, int index) {
+    // Ha ez a kiválasztott foglalás, akkor szürkébb színnel jelöljük
+    if (selectedReservation != null && reservation == selectedReservation) {
+      return Colors.grey.shade300;
+    }
+
+    // Egyébként váltakozó színek
+    return index.isEven ? Colors.grey.shade50 : Colors.white;
   }
 }

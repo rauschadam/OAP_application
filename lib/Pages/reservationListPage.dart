@@ -34,6 +34,8 @@ class _ReservationListPageState extends State<ReservationListPage> {
   /// Lekérdezett foglalások
   List<dynamic>? reservations;
 
+  dynamic selectedReservation;
+
   /// Lekérdezett szolgáltatások
   List<dynamic>? serviceTemplates;
 
@@ -90,38 +92,56 @@ class _ReservationListPageState extends State<ReservationListPage> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 70, vertical: 20),
-      color: BasePage.defaultColors.secondary,
-      child: Stack(
+      padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+      color: BasePage.defaultColors.background,
+      child: Row(
         children: [
-          Positioned.fill(
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: buildReservationList(
-                reservations: reservations,
-                maxHeight: MediaQuery.of(context).size.height * 0.7,
-              ),
-            ),
-          ),
-          Positioned(
-            top: 10,
-            right: 16,
-            child: MyIconButton(
-              icon: Icons.add_rounded,
-              labelText: "Foglalás rögzítése",
-              onPressed: () {
-                BasePage.defaultColors = AppColors.blue;
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const BasePage(
-                      child: BookingOptionPage(),
+          Expanded(
+            flex: 3,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: buildReservationList(
+                      reservations: reservations,
+                      maxHeight: MediaQuery.of(context).size.height * 0.7,
                     ),
                   ),
-                );
-              },
+                ),
+                Positioned(
+                  top: 10,
+                  right: 16,
+                  child: MyIconButton(
+                    icon: Icons.add_rounded,
+                    labelText: "Foglalás rögzítése",
+                    onPressed: () {
+                      BasePage.defaultColors = AppColors.blue;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const BasePage(
+                            child: BookingOptionPage(),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
+          selectedReservation != null
+              ? Expanded(
+                  flex: 1,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppPadding.medium),
+                    child: buildReservationInformation(
+                        reservation: selectedReservation),
+                  ),
+                )
+              : Container()
         ],
       ),
     );
@@ -153,9 +173,14 @@ class _ReservationListPageState extends State<ReservationListPage> {
 
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppBorderRadius.medium),
-      ),
+          borderRadius: BorderRadius.circular(AppBorderRadius.medium),
+          color: BasePage.defaultColors.secondary),
       child: ReservationList(
+        onRowTap: (reservation) {
+          setState(() {
+            selectedReservation = reservation;
+          });
+        },
         maxHeight: maxHeight,
         listTitle: 'Foglalások',
         reservations: upcomingReservations,
@@ -171,6 +196,85 @@ class _ReservationListPageState extends State<ReservationListPage> {
           'LeaveDate': (reservation) => DateFormat('yyyy.MM.dd HH:mm')
               .format(DateTime.parse(reservation['LeaveDate'])),
         },
+      ),
+    );
+  }
+
+  Widget buildReservationInformation({required dynamic reservation}) {
+    // Dátum formázó függvény
+    String formatDate(String dateString) {
+      try {
+        final date = DateTime.parse(dateString);
+        return DateFormat('yyyy.MM.dd HH:mm').format(date);
+      } catch (e) {
+        return dateString;
+      }
+    }
+
+    // Speciális formázás bizonyos mezőkhöz
+    String formatValue(String key, dynamic value) {
+      if (value == null) return 'N/A';
+
+      // Dátum mezők automatikus formázása
+      if (key.toLowerCase().contains('date')) {
+        return formatDate(value.toString());
+      }
+
+      // Lista típusú mezők formázása
+      if (value is List) {
+        if (value.isEmpty) return 'Nincsenek elemek';
+        return value.map((item) => item.toString()).join(', ');
+      }
+
+      // Map típusú mezők formázása
+      if (value is Map) {
+        if (value.isEmpty) return 'Nincsenek elemek';
+        return value.entries
+            .map((entry) => '${entry.key}: ${entry.value}')
+            .join(', ');
+      }
+
+      return value.toString();
+    }
+
+    // Kulcsok formázása (névformázás)
+    String formatKey(String key) {
+      // Eltávolítjuk a speciális karaktereket és camelCase-t alakítunk szóközökké
+      final formattedKey = key
+          .replaceAllMapped(RegExp(r'([A-Z])'), (match) => ' ${match.group(1)}')
+          .trim();
+
+      // Nagybetűvel kezdjük
+      return formattedKey[0].toUpperCase() + formattedKey.substring(1);
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+          color: BasePage.defaultColors.secondary,
+          borderRadius: BorderRadius.circular(AppBorderRadius.large)),
+      padding: EdgeInsets.all(AppPadding.large),
+      width: double.infinity,
+      child: ListView(
+        children: [
+          for (var entry in reservation.entries)
+            Column(
+              children: [
+                ListTile(
+                  title: Text(
+                    formatKey(entry.key),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: BasePage.defaultColors.text),
+                  ),
+                  subtitle: Text(
+                    formatValue(entry.key, entry.value),
+                    style: TextStyle(color: BasePage.defaultColors.text),
+                  ),
+                ),
+                Divider(height: 1),
+              ],
+            ),
+        ],
       ),
     );
   }

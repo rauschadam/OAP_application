@@ -212,23 +212,44 @@ class _HomePageState extends State<HomePage> {
         .toList();
 
     return Padding(
-      padding: const EdgeInsets.only(top: AppPadding.large),
+      /// Kártya padding
+      padding: const EdgeInsets.only(
+          top: AppPadding.medium,
+          left: AppPadding.medium,
+          right: AppPadding.medium),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppBorderRadius.medium),
           color: BasePage.defaultColors.secondary,
         ),
+        width: double.infinity,
         child: Padding(
+          /// Tartalom padding
           padding: const EdgeInsets.all(AppPadding.large),
-          child: Wrap(
-            spacing: 20,
+          child: Column(
             children: [
-              for (var template in parkingTemplates)
-                ZoneOccupancyIndicator(
-                  zoneName: template['ParkingServiceName'].split(' ').last,
-                  occupied: zoneCounters[template['ArticleId']] ?? 0,
-                  capacity: template['ZoneCapacity'],
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppPadding.medium),
+                child: Text(
+                  'Telítettség',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
                 ),
+              ),
+              Wrap(
+                spacing: 20,
+                children: [
+                  for (var template in parkingTemplates)
+                    ZoneOccupancyIndicator(
+                      zoneName: template['ParkingServiceName'].split(' ').last,
+                      occupied: zoneCounters[template['ArticleId']] ?? 0,
+                      capacity: template['ZoneCapacity'],
+                    ),
+                ],
+              ),
             ],
           ),
         ),
@@ -252,65 +273,86 @@ class _HomePageState extends State<HomePage> {
     }
 
     return Padding(
-      padding: const EdgeInsets.all(AppPadding.large),
+      // kártya padding
+      padding: const EdgeInsets.all(AppPadding.medium),
       child: Container(
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppBorderRadius.medium),
             color: BasePage.defaultColors.secondary),
+        // Tartalom padding
         padding: EdgeInsets.all(AppPadding.large),
         width: double.infinity,
-        height: double.infinity < MediaQuery.of(context).size.height * 0.4
-            ? double.infinity
-            : MediaQuery.of(context).size.height * 0.4,
-        child: ListView(
+        constraints: BoxConstraints(
+          maxHeight: double.infinity,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            for (var entry in fullyBookedDateTimes.entries)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppPadding.medium),
+              child: Text(
+                'Telített időpontok',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
                 children: [
-                  // Header a string kulccsal
-                  Theme(
-                    data: Theme.of(context).copyWith(
-                      dividerColor: Colors.transparent,
-                      splashColor: Colors.transparent,
-                      highlightColor: Colors.transparent,
-                      hoverColor: Colors.transparent,
-                    ),
-                    child: ExpansionTile(
-                      title: Text(
-                        getZoneNameById(entry.key),
-                      ),
-                      initiallyExpanded: true,
+                  for (var entry in fullyBookedDateTimes.entries)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Dátumtartományok csoportosítása
-                        ...groupConsecutiveTimeSlots(entry.value)
-                            .map((range) => Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: AppPadding.large,
-                                    vertical: AppPadding.small,
-                                  ),
-                                  child: Text(
-                                    range.length == 1
-                                        ? DateFormat('yyyy.MM.dd HH:mm')
-                                            .format(range.first)
-                                        : '${DateFormat('yyyy.MM.dd HH:mm').format(range.first)} - ${DateFormat('yyyy.MM.dd HH:mm').format(range.last)}',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                )),
+                        // Header a string kulccsal
+                        Theme(
+                          data: Theme.of(context).copyWith(
+                            dividerColor: Colors.transparent,
+                            splashColor: Colors.transparent,
+                            highlightColor: Colors.transparent,
+                            hoverColor: Colors.transparent,
+                          ),
+                          child: ExpansionTile(
+                            title: Text(
+                              getZoneNameById(entry.key),
+                            ),
+                            initiallyExpanded: true,
+                            children: [
+                              // Dátumtartományok csoportosítása
+                              ...groupConsecutiveTimeSlots(entry.value)
+                                  .map((range) => Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: AppPadding.large,
+                                          vertical: AppPadding.small,
+                                        ),
+                                        child: Text(
+                                          range.length == 1
+                                              ? DateFormat('yyyy.MM.dd HH:mm')
+                                                  .format(range.first)
+                                              : '${DateFormat('yyyy.MM.dd HH:mm').format(range.first)} - ${DateFormat('yyyy.MM.dd HH:mm').format(range.last)}',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      )),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
-                  ),
                 ],
               ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  // Segédfüggvény az egybefüggő időpontok csoportosításához
+  // Segédfüggvény az egybefüggő időpontok csoportosításához, a telített időpontok mutatásához.
   List<List<DateTime>> groupConsecutiveTimeSlots(List<DateTime> timeSlots) {
     if (timeSlots.isEmpty) return [];
 
@@ -398,10 +440,12 @@ class _HomePageState extends State<HomePage> {
 
     // Widget visszaadása
     return Container(
+      constraints: BoxConstraints(
+        maxHeight: maxHeight ?? 300,
+      ),
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppBorderRadius.medium),
-          color: BasePage.defaultColors.secondary //Colors.grey.shade300,
-          ),
+          color: BasePage.defaultColors.secondary),
       child: ReservationList(
         maxHeight: maxHeight,
         listTitle: listTitle,
@@ -506,7 +550,10 @@ class _HomePageState extends State<HomePage> {
       children: [
         Expanded(
           flex: 1,
-          child: buildSideMenu(),
+          child: Padding(
+            padding: const EdgeInsets.only(right: AppPadding.medium),
+            child: buildSideMenu(),
+          ),
         ),
         Expanded(
           flex: 4,
@@ -515,62 +562,77 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: MyIconButton(
-                    icon: Icons.add_rounded,
-                    labelText: "Foglalás rögzítése",
-                    onPressed: () {
-                      BasePage.defaultColors = AppColors.blue;
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const BasePage(
-                            child: BookingOptionPage(),
+                Padding(
+                  padding: EdgeInsets.only(bottom: AppPadding.small),
+                  child: Align(
+                    alignment: Alignment.bottomRight,
+                    child: MyIconButton(
+                      icon: Icons.add_rounded,
+                      labelText: "Foglalás rögzítése",
+                      onPressed: () {
+                        BasePage.defaultColors = AppColors.blue;
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const BasePage(
+                              child: BookingOptionPage(),
+                            ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
                 ),
-                SizedBox(height: 8),
                 Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    buildTodoList(
-                        maxHeight: 200,
-                        listTitle: 'Ma',
-                        reservations: reservations,
-                        startTime: now,
-                        endTime: DateTime(now.year, now.month, now.day + 1)),
-                    SizedBox(height: 16),
-                    buildTodoList(
-                        maxHeight: 200,
-                        listTitle: 'Holnap',
-                        reservations: reservations,
-                        startTime: DateTime(now.year, now.month, now.day + 1),
-                        endTime: DateTime(now.year, now.month, now.day + 2)),
-                    SizedBox(height: 16),
+                    Container(
+                      constraints: BoxConstraints(maxHeight: 200),
+                      child: buildTodoList(
+                          listTitle: 'Ma',
+                          reservations: reservations,
+                          startTime: now,
+                          endTime: DateTime(now.year, now.month, now.day + 1)),
+                    ),
+                    Padding(
+                      padding:
+                          EdgeInsets.symmetric(vertical: AppPadding.medium),
+                      child: Container(
+                        constraints: BoxConstraints(maxHeight: 200),
+                        child: buildTodoList(
+                            listTitle: 'Holnap',
+                            reservations: reservations,
+                            startTime:
+                                DateTime(now.year, now.month, now.day + 1),
+                            endTime:
+                                DateTime(now.year, now.month, now.day + 2)),
+                      ),
+                    ),
                   ],
                 ),
               ],
             ),
           ),
         ),
-        SizedBox(height: 16),
         Expanded(
           flex: 2,
-          child: Column(
-            children: [
-              buildZoneOccupancyIndicators(
-                serviceTemplates: serviceTemplates,
-                zoneCounters: zoneCounters,
-                parkingServiceType: 1,
-              ),
-              fullyBookedDateTimes.isNotEmpty
-                  ? buildFullyBookedTimeList(
-                      fullyBookedDateTimes: fullyBookedDateTimes)
-                  : Container()
-            ],
+          child: Padding(
+            padding: EdgeInsets.only(bottom: AppPadding.medium),
+            child: Column(
+              children: [
+                buildZoneOccupancyIndicators(
+                  serviceTemplates: serviceTemplates,
+                  zoneCounters: zoneCounters,
+                  parkingServiceType: 1,
+                ),
+                fullyBookedDateTimes.isNotEmpty
+                    ? Flexible(
+                        child: buildFullyBookedTimeList(
+                            fullyBookedDateTimes: fullyBookedDateTimes),
+                      )
+                    : Container()
+              ],
+            ),
           ),
         ),
       ],

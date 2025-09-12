@@ -261,12 +261,6 @@ class WashOrderPageState extends State<WashOrderPage> {
     return zoneAvailability;
   }
 
-  /// Dátum kiíratásának a formátuma
-  String format(DateTime? d) => d != null
-      ? "${d.year}. ${d.month.toString().padLeft(2, '0')}. ${d.day.toString().padLeft(2, '0')}. "
-          "${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}"
-      : '-';
-
   /// Parkoló zónák generálása ServiceTemplates-ek alapján.
   Widget buildCarWashZoneSelector({
     required List<dynamic> serviceTemplates,
@@ -700,7 +694,13 @@ class WashOrderPageState extends State<WashOrderPage> {
                     onPressed: ShowDatePickerDialog),
                 const SizedBox(width: 50),
                 Column(
-                  children: [Text('Érkezés'), Text(format(selectedWashDate))],
+                  children: [
+                    Text('Érkezés'),
+                    Text(selectedWashDate != null
+                        ? DateFormat('yyyy.MM.dd HH:mm')
+                            .format(selectedWashDate!)
+                        : "-")
+                  ],
                 ),
               ]),
               const SizedBox(height: 12),

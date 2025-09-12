@@ -285,12 +285,6 @@ class ParkOrderPageState extends State<ParkOrderPage> {
     return zoneAvailability;
   }
 
-  /// Dátum kiíratásának a formátuma
-  String format(DateTime? d) => d != null
-      ? "${d.year}. ${d.month.toString().padLeft(2, '0')}. ${d.day.toString().padLeft(2, '0')}. "
-          "${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}"
-      : '-';
-
   /// Parkoló zónák generálása ServiceTemplates-ek alapján.
   Widget buildParkingZoneSelector({
     required List<dynamic> serviceTemplates,
@@ -823,11 +817,23 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                 ),
                 const SizedBox(width: 50),
                 Column(
-                  children: [Text('Érkezés'), Text(format(selectedArriveDate))],
+                  children: [
+                    Text('Érkezés'),
+                    Text(selectedArriveDate != null
+                        ? DateFormat('yyyy.MM.dd HH:mm')
+                            .format(selectedArriveDate!)
+                        : "-")
+                  ],
                 ),
                 const SizedBox(width: 50),
                 Column(
-                  children: [Text('Távozás'), Text(format(selectedLeaveDate))],
+                  children: [
+                    Text('Távozás'),
+                    Text(selectedLeaveDate != null
+                        ? DateFormat('yyyy.MM.dd HH:mm')
+                            .format(selectedLeaveDate!)
+                        : "-")
+                  ],
                 ),
               ]),
               const SizedBox(height: 8),

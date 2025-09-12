@@ -92,7 +92,8 @@ class _ReservationListPageState extends State<ReservationListPage> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+      padding: EdgeInsets.symmetric(
+          horizontal: AppPadding.xlarge, vertical: AppPadding.large),
       color: BasePage.defaultColors.background,
       child: Row(
         children: [
@@ -105,7 +106,6 @@ class _ReservationListPageState extends State<ReservationListPage> {
                     alignment: Alignment.topCenter,
                     child: buildReservationList(
                       reservations: reservations,
-                      maxHeight: MediaQuery.of(context).size.height * 0.7,
                     ),
                   ),
                 ),
@@ -175,27 +175,29 @@ class _ReservationListPageState extends State<ReservationListPage> {
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppBorderRadius.medium),
           color: BasePage.defaultColors.secondary),
-      child: ReservationList(
-        onRowTap: (reservation) {
-          setState(() {
-            selectedReservation = reservation;
-          });
-        },
-        maxHeight: maxHeight,
-        listTitle: 'Foglalások',
-        reservations: upcomingReservations,
-        columns: {
-          'Név': 'Name',
-          'Rendszám': 'LicensePlate',
-          'Érkezés dátuma': 'ArriveDate',
-          'Távozás dátuma': 'LeaveDate'
-        },
-        formatters: {
-          'ArriveDate': (reservation) => DateFormat('yyyy.MM.dd HH:mm')
-              .format(DateTime.parse(reservation['ArriveDate'])),
-          'LeaveDate': (reservation) => DateFormat('yyyy.MM.dd HH:mm')
-              .format(DateTime.parse(reservation['LeaveDate'])),
-        },
+      child: Flexible(
+        child: ReservationList(
+          onRowTap: (reservation) {
+            setState(() {
+              selectedReservation = reservation;
+            });
+          },
+          maxHeight: maxHeight,
+          listTitle: 'Foglalások',
+          reservations: upcomingReservations,
+          columns: {
+            'Név': 'Name',
+            'Rendszám': 'LicensePlate',
+            'Érkezés dátuma': 'ArriveDate',
+            'Távozás dátuma': 'LeaveDate'
+          },
+          formatters: {
+            'ArriveDate': (reservation) => DateFormat('yyyy.MM.dd HH:mm')
+                .format(DateTime.parse(reservation['ArriveDate'])),
+            'LeaveDate': (reservation) => DateFormat('yyyy.MM.dd HH:mm')
+                .format(DateTime.parse(reservation['LeaveDate'])),
+          },
+        ),
       ),
     );
   }

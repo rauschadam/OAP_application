@@ -1,7 +1,7 @@
 import 'package:airport_test/api_services/api_service.dart';
-import 'package:airport_test/api_services/registration.dart';
-import 'package:airport_test/Pages/bookingForm/parkOrderPage.dart';
-import 'package:airport_test/Pages/bookingForm/washOrderPage.dart';
+import 'package:airport_test/api_services/api_classes/registration.dart';
+import 'package:airport_test/Pages/reservationForm/parkOrderPage.dart';
+import 'package:airport_test/Pages/reservationForm/washOrderPage.dart';
 import 'package:airport_test/constants/constant_widgets/base_page.dart';
 import 'package:airport_test/constants/constant_widgets/my_text_form_field.dart';
 import 'package:airport_test/constants/constant_widgets/next_page_button.dart';
@@ -45,10 +45,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
   FocusNode favoriteLicensePlateNumberFocus = FocusNode();
   FocusNode nextPageButtonFocus = FocusNode();
 
+  /// Login-nél kapott token, mellyel a lekérdezéseket intézhetjük
   String? authToken;
 
+  /// Jelszó elrejtése
   bool obscurePassword = true;
 
+  /// Felhasznló regisztrálása
   Future<String?> RegisterUser() async {
     final registration = Registration(
       name: nameController.text,
@@ -60,6 +63,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
     await ApiService().registerUser(registration);
 
+    /// Egyben be is jelentkezteti a felhasználót
     final api = ApiService();
     final token =
         await api.loginUser(emailController.text, passwordController.text);
@@ -144,118 +148,126 @@ class _RegistrationPageState extends State<RegistrationPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 10),
-          MyTextFormField(
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'Adja meg email-címét';
-              } else if (!EmailValidator.validate(value.trim())) {
-                return 'Érvénytelen email-cím';
-              }
-              return null;
-            },
-            controller: emailController,
-            focusNode: emailFocus,
-            textInputAction: TextInputAction.next,
-            nextFocus: passwordFocus,
-            hintText: 'Email cím',
-          ),
-          SizedBox(height: 10),
-          MyTextFormField(
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Adjon meg egy jelszót';
-              }
-              return null;
-            },
-            controller: passwordController,
-            obscureText: obscurePassword,
-            onObscureToggle: () {
-              setState(() {
-                obscurePassword = !obscurePassword;
-              });
-            },
-            focusNode: passwordFocus,
-            textInputAction: TextInputAction.next,
-            nextFocus: confirmPasswordFocus,
-            hintText: 'Jelszó',
-          ),
-          SizedBox(height: 10),
-          MyTextFormField(
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Adjon meg egy jelszót';
-              } else if (confirmPasswordController.text !=
-                  passwordController.text) {
-                return 'A jelszó nem egyezik';
-              }
-              return null;
-            },
-            controller: confirmPasswordController,
-            obscureText: obscurePassword,
-            onObscureToggle: () {
-              setState(() {
-                obscurePassword = !obscurePassword;
-              });
-            },
-            focusNode: confirmPasswordFocus,
-            textInputAction: TextInputAction.next,
-            nextFocus: nameFocus,
-            hintText: 'Jelszó megerősítése',
-          ),
-          SizedBox(height: 10),
-          MyTextFormField(
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Adjon meg egy felhasználó nevet';
-              }
-              return null;
-            },
-            controller: nameController,
-            focusNode: nameFocus,
-            textInputAction: TextInputAction.next,
-            nextFocus: phoneFocus,
-            hintText: 'Felhasználó név',
-          ),
-          SizedBox(height: 10),
-          MyTextFormField(
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Adja meg telefonszámát';
-                } else if (phoneController.text.length < 10) {
-                  return 'Hibás telefonszám';
-                }
-                return null;
-              },
-              controller: phoneController,
-              focusNode: phoneFocus,
-              textInputAction: TextInputAction.next,
-              nextFocus: favoriteLicensePlateNumberFocus,
-              hintText: 'Telefonszám',
-              selectedTextFormFieldType: MyTextFormFieldType.phone),
-          SizedBox(height: 10),
-          MyTextFormField(
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Adja meg kedvenc rendszámát';
-              }
-              return null;
-            },
-            controller: favoriteLicensePlateNumberController,
-            focusNode: favoriteLicensePlateNumberFocus,
-            textInputAction: TextInputAction.done,
-            nextFocus: nextPageButtonFocus,
-            hintText: 'Kedvenc rendszám',
-            selectedTextFormFieldType: MyTextFormFieldType.licensePlate,
-            onEditingComplete: OnNextPageButtonPressed,
-          ),
-          SizedBox(height: 10),
+          buildTextFormFields(),
           NextPageButton(
             focusNode: nextPageButtonFocus,
             onPressed: OnNextPageButtonPressed,
           ),
         ],
       ),
+    );
+  }
+
+  Widget buildTextFormFields() {
+    final double sizedBoxHeight = 10;
+    return Column(
+      children: [
+        SizedBox(height: sizedBoxHeight),
+        MyTextFormField(
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'Adja meg email-címét';
+            } else if (!EmailValidator.validate(value.trim())) {
+              return 'Érvénytelen email-cím';
+            }
+            return null;
+          },
+          controller: emailController,
+          focusNode: emailFocus,
+          textInputAction: TextInputAction.next,
+          nextFocus: passwordFocus,
+          hintText: 'Email cím',
+        ),
+        SizedBox(height: sizedBoxHeight),
+        MyTextFormField(
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Adjon meg egy jelszót';
+            }
+            return null;
+          },
+          controller: passwordController,
+          obscureText: obscurePassword,
+          onObscureToggle: () {
+            setState(() {
+              obscurePassword = !obscurePassword;
+            });
+          },
+          focusNode: passwordFocus,
+          textInputAction: TextInputAction.next,
+          nextFocus: confirmPasswordFocus,
+          hintText: 'Jelszó',
+        ),
+        SizedBox(height: sizedBoxHeight),
+        MyTextFormField(
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Adjon meg egy jelszót';
+            } else if (value != passwordController.text) {
+              return 'A jelszó nem egyezik';
+            }
+            return null;
+          },
+          controller: confirmPasswordController,
+          obscureText: obscurePassword,
+          onObscureToggle: () {
+            setState(() {
+              obscurePassword = !obscurePassword;
+            });
+          },
+          focusNode: confirmPasswordFocus,
+          textInputAction: TextInputAction.next,
+          nextFocus: nameFocus,
+          hintText: 'Jelszó megerősítése',
+        ),
+        SizedBox(height: sizedBoxHeight),
+        MyTextFormField(
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Adjon meg egy felhasználó nevet';
+            }
+            return null;
+          },
+          controller: nameController,
+          focusNode: nameFocus,
+          textInputAction: TextInputAction.next,
+          nextFocus: phoneFocus,
+          hintText: 'Felhasználó név',
+        ),
+        SizedBox(height: sizedBoxHeight),
+        MyTextFormField(
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Adja meg telefonszámát';
+              } else if (value.length < 10) {
+                return 'Hibás telefonszám';
+              }
+              return null;
+            },
+            controller: phoneController,
+            focusNode: phoneFocus,
+            textInputAction: TextInputAction.next,
+            nextFocus: favoriteLicensePlateNumberFocus,
+            hintText: 'Telefonszám',
+            selectedTextFormFieldType: MyTextFormFieldType.phone),
+        SizedBox(height: sizedBoxHeight),
+        MyTextFormField(
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Adja meg kedvenc rendszámát';
+            }
+            return null;
+          },
+          controller: favoriteLicensePlateNumberController,
+          focusNode: favoriteLicensePlateNumberFocus,
+          textInputAction: TextInputAction.done,
+          nextFocus: nextPageButtonFocus,
+          hintText: 'Kedvenc rendszám',
+          selectedTextFormFieldType: MyTextFormFieldType.licensePlate,
+          onEditingComplete: OnNextPageButtonPressed,
+        ),
+        SizedBox(height: sizedBoxHeight),
+      ],
     );
   }
 }

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:airport_test/Pages/reservationListPage.dart';
 import 'package:airport_test/api_services/api_service.dart';
-import 'package:airport_test/Pages/bookingForm/bookingOptionPage.dart';
+import 'package:airport_test/Pages/reservationForm/reservationOptionPage.dart';
 import 'package:airport_test/constants/constant_widgets/base_page.dart';
 import 'package:airport_test/constants/constant_widgets/my_icon_button.dart';
 import 'package:airport_test/constants/constant_widgets/reservation_list.dart';
@@ -30,13 +30,27 @@ class HomePage extends StatefulWidget with PageWithTitle {
 }
 
 class _HomePageState extends State<HomePage> {
-  /// automatikusan frissítjük az adatokat
+  /// Automatikusan frissítjük az adatokat 1 percenként
   Timer? refreshTimer;
 
+  /// Mostani idő (percenként frissül)
   late DateTime now = DateTime.now();
 
+  /// Login-nél kapott token, mellyel a lekérdezéseket intézhetjük
   String? authToken;
 
+  /// Lekérdezett foglalások
+  List<dynamic>? reservations;
+
+  /// Lekérdezett szolgáltatások
+  List<dynamic>? serviceTemplates;
+
+  /// parkoló zóna article id-> foglalt helyek száma
+  Map<String, int> zoneCounters = {};
+
+  /// A recepciós beléptetése
+  /// JELENLEG AUTOMATIKUS, PÉLDA JELLEGŰ
+  /// később külön oldal lesz (Az első, amelyet látunk az alkalmazás elindításakor)
   Future<String?> loginReceptionist() async {
     final api = ApiService();
     final token =
@@ -54,15 +68,6 @@ class _HomePageState extends State<HomePage> {
     }
     return token;
   }
-
-  /// Lekérdezett foglalások
-  List<dynamic>? reservations;
-
-  /// Lekérdezett szolgáltatások
-  List<dynamic>? serviceTemplates;
-
-  /// article id -> foglalt helyek száma
-  Map<String, int> zoneCounters = {};
 
   /// Foglalások lekérdezése
   Future<void> fetchReservations() async {
@@ -97,28 +102,28 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  //Teljes időpontos foglalt időpontok
+  /// Foglalt időpontok
   Map<String, List<DateTime>> fullyBookedDateTimes =
       {}; // parkoló zóna ArticleId -> telített időpont
 
-  // parkoló zóna -> telített időpontok
+  /// Parkoló zóna -> telített időpontok
   Map<String, List<DateTime>> mapBookedDateTimesByZones(
       List<dynamic> reservations, List<dynamic> serviceTemplates) {
-    // Kiveszi a zónák kapacitását a Templates-ekből
     final Map<String, int> zoneCapacities = {}; // parkoló zóna -> kapacitás
+    // Kiveszi a zónák kapacitását a Templates-ekből
     for (var template in serviceTemplates) {
       if (template['ParkingServiceType'] != 1) {
-        continue; // Csak a parkolásokat nézze
+        continue; // Csak a parkolásokat nézze (parkoló zónáknál a ParkingServiceType = 1)
       }
       final String articleId = template['ArticleId'];
       final int capacity = template['ZoneCapacity'] ?? 1;
       zoneCapacities[articleId] = capacity;
     }
 
-    // időpont számláló zónánként
-    Map<String, Map<DateTime, int>> counters =
-        {}; // parkoló zóna -> (egy időpont hányszor szerepel)
+    /// Parkoló zóna -> (Időpontok előfordulása)
+    Map<String, Map<DateTime, int>> counters = {};
 
+    /// Időpontok előfordulásának kiszámolása zónánként
     for (var reservation in reservations) {
       final parkingArticleId = reservation['ParkingArticleId'];
 
@@ -135,7 +140,7 @@ class _HomePageState extends State<HomePage> {
         arrive.minute - (arrive.minute % 30),
       );
 
-      // végig iterál az érkezéstől a távozás időpontjáig, az időpont számlálót növeli 1-el
+      // végig iterál az érkezéstől a távozás időpontjáig, az adott időpont számlálótját növeli 1-el
       while (current.isBefore(leave)) {
         counters[parkingArticleId]![current] =
             (counters[parkingArticleId]![current] ?? 0) + 1;
@@ -159,12 +164,12 @@ class _HomePageState extends State<HomePage> {
     return fullyBookedDateTimesByZone;
   }
 
-  // parkoló zóna -> jelenlegi foglalások száma
+  /// parkoló zóna -> jelenlegi foglalások száma
   Map<String, int> mapCurrentOccupancyByZones(
       List<dynamic> reservations, List<dynamic> serviceTemplates) {
-    zoneCounters = {}; // kinullázzuk, hogy frissítésekkor ne duplikálódjon
+    zoneCounters = {}; // kinullázzuk, hogy frissítéskor ne duplikálódjon
 
-    // mostani idő lekerekítve félórára
+    /// mostani idő lekerekítve félórára
     final currentSlot = DateTime(
       now.year,
       now.month,
@@ -173,6 +178,7 @@ class _HomePageState extends State<HomePage> {
       now.minute - (now.minute % 30),
     );
 
+    // foglalásokból megkeressük, melyik vonatkozik a jelenre
     for (var reservation in reservations) {
       final parkingArticleId = reservation['ParkingArticleId'];
       if (parkingArticleId == null || parkingArticleId == "") continue;
@@ -180,7 +186,6 @@ class _HomePageState extends State<HomePage> {
       final arrive = DateTime.parse(reservation['ArriveDate']);
       final leave = DateTime.parse(reservation['LeaveDate']);
 
-      // Megnézi hogy a foglalás szerint most itt van-e az autó
       if (!currentSlot.isBefore(arrive) && currentSlot.isBefore(leave)) {
         zoneCounters[parkingArticleId] =
             (zoneCounters[parkingArticleId] ?? 0) + 1;
@@ -190,6 +195,7 @@ class _HomePageState extends State<HomePage> {
     return zoneCounters;
   }
 
+  /// A jelenlegi zóna foglaltságokat jeleníti meg
   Widget buildZoneOccupancyIndicators({
     required List<dynamic>? serviceTemplates,
     required Map<String, int> zoneCounters,
@@ -257,8 +263,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// Telített időpontok listáját jeleníti meg
   Widget buildFullyBookedTimeList(
       {required Map<String, List<DateTime>> fullyBookedDateTimes}) {
+    // TODO: jelenleg bevannak égetve a zónanevek,
+    // később vagy a templatekből kell kikeresni, vagy a lekérrdezésnél az id mellett a zóna nevet is megadjuk
     String getZoneNameById(String articleId) {
       switch (articleId) {
         case "1-95426": // Premium
@@ -307,7 +316,6 @@ class _HomePageState extends State<HomePage> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Header a string kulccsal
                         Theme(
                           data: Theme.of(context).copyWith(
                             dividerColor: Colors.transparent,
@@ -315,29 +323,30 @@ class _HomePageState extends State<HomePage> {
                             highlightColor: Colors.transparent,
                             hoverColor: Colors.transparent,
                           ),
+                          // Zóna név
                           child: ExpansionTile(
                             title: Text(
                               getZoneNameById(entry.key),
                             ),
-                            initiallyExpanded: true,
                             children: [
                               // Dátumtartományok csoportosítása
-                              ...groupConsecutiveTimeSlots(entry.value)
-                                  .map((range) => Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: AppPadding.large,
-                                          vertical: AppPadding.small,
-                                        ),
-                                        child: Text(
-                                          range.length == 1
-                                              ? DateFormat('yyyy.MM.dd HH:mm')
-                                                  .format(range.first)
-                                              : '${DateFormat('yyyy.MM.dd HH:mm').format(range.first)} - ${DateFormat('yyyy.MM.dd HH:mm').format(range.last)}',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                      )),
+                              ...groupConsecutiveTimeSlots(entry.value).map(
+                                (range) => Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppPadding.large,
+                                    vertical: AppPadding.small,
+                                  ),
+                                  child: Text(
+                                    range.length == 1
+                                        ? DateFormat('yyyy.MM.dd HH:mm')
+                                            .format(range.first)
+                                        : '${DateFormat('yyyy.MM.dd HH:mm').format(range.first)} - ${DateFormat('yyyy.MM.dd HH:mm').format(range.last)}',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -352,7 +361,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Segédfüggvény az egybefüggő időpontok csoportosításához, a telített időpontok mutatásához.
+  /// Segédfüggvény az egybefüggő időpontok csoportosításához.
   List<List<DateTime>> groupConsecutiveTimeSlots(List<DateTime> timeSlots) {
     if (timeSlots.isEmpty) return [];
 
@@ -381,6 +390,9 @@ class _HomePageState extends State<HomePage> {
     return groups;
   }
 
+  // TODO: Mosás időpontot, VIP sofőrt, transfer számot is megjeleníteni
+  /// Egy adott intervallumra szóló foglalás lista, a recepciós feladatait célozza.
+  /// Pl.: Autó érkeztetése, autó távoztatása
   Widget buildTodoList({
     required List<dynamic>? reservations,
     required DateTime startTime,
@@ -392,17 +404,18 @@ class _HomePageState extends State<HomePage> {
       return ShimmerPlaceholderTemplate(
           width: double.infinity, height: maxHeight ?? double.infinity);
     }
-    // Szűrés: csak a mai napon érkező vagy távozó foglalások
-    final List<dynamic> todaysReservations = [];
+
+    /// Szűrés: csak az adott intervallumban érkező, távozó vagy mosást igénylő foglalások
+    final List<dynamic> actualReservations = [];
 
     // Segédfüggvény: Megvizsgálja hogy az ArriveDate elmúlt-e már
-    // ArriveDate nem múlt el -> ArriveDate jön
-    // ArriveDate elmúlt -> LeaveDate jön
+    // ArriveDate nem múlt el -> ArriveDate lesz legközelebb
+    // ArriveDate elmúlt -> LeaveDate lesz legközelebb
     DateTime getEarliestTime(
         DateTime arrive, DateTime leave, DateTime startTime) {
-      final bool isArriveFuture = arrive.isAfter(startTime);
+      final bool isArriveInFuture = arrive.isAfter(startTime);
 
-      if (isArriveFuture) {
+      if (isArriveInFuture) {
         return arrive;
       } else {
         return leave;
@@ -413,19 +426,19 @@ class _HomePageState extends State<HomePage> {
       final arriveDate = DateTime.parse(reservation['ArriveDate']);
       final leaveDate = DateTime.parse(reservation['LeaveDate']);
 
-      // Csak azok a foglalások, amelyeknek arrive vagy leave date-je a jövőben, de még ma van
+      // Csak azok a foglalások, amelyeknek arrive vagy leave date-je a jövőben, de még az intervallumon belül van
       final bool isArriveToday =
           arriveDate.isAfter(startTime) && arriveDate.isBefore(endTime);
       final bool isLeaveToday =
           leaveDate.isAfter(startTime) && leaveDate.isBefore(endTime);
 
       if (isArriveToday || isLeaveToday) {
-        todaysReservations.add(reservation);
+        actualReservations.add(reservation);
       }
     }
 
     // Rendezés: a korábbi dátum (arrive vagy leave) szerint
-    todaysReservations.sort((a, b) {
+    actualReservations.sort((a, b) {
       final aArrive = DateTime.parse(a['ArriveDate']);
       final aLeave = DateTime.parse(a['LeaveDate']);
       final bArrive = DateTime.parse(b['ArriveDate']);
@@ -449,7 +462,7 @@ class _HomePageState extends State<HomePage> {
       child: ReservationList(
         maxHeight: maxHeight,
         listTitle: listTitle,
-        reservations: todaysReservations,
+        reservations: actualReservations,
         columns: {
           'Név': 'Name',
           'Rendszám': 'LicensePlate',
@@ -513,6 +526,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  /// Oldal Menü megjelenítése
   Widget buildSideMenu() {
     List<MenuItem> menuItems = [
       MenuItem(
@@ -575,7 +589,7 @@ class _HomePageState extends State<HomePage> {
                           context,
                           MaterialPageRoute(
                             builder: (_) => const BasePage(
-                              child: BookingOptionPage(),
+                              child: ReservationOptionPage(),
                             ),
                           ),
                         );
@@ -626,10 +640,8 @@ class _HomePageState extends State<HomePage> {
                   parkingServiceType: 1,
                 ),
                 fullyBookedDateTimes.isNotEmpty
-                    ? Flexible(
-                        child: buildFullyBookedTimeList(
-                            fullyBookedDateTimes: fullyBookedDateTimes),
-                      )
+                    ? buildFullyBookedTimeList(
+                        fullyBookedDateTimes: fullyBookedDateTimes)
                     : Container()
               ],
             ),

@@ -2,6 +2,7 @@ import 'package:airport_test/constants/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
 
+/// Ha nem tölt be a widget (lekérdezésre várunk, stb.) akkor megadhatunk placeholdereket.
 class ShimmerPlaceholderTemplate extends StatelessWidget {
   final double width;
   final double height;
@@ -12,13 +13,17 @@ class ShimmerPlaceholderTemplate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Shimmer(
-        child: Container(
+    return Container(
       decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppBorderRadius.large)),
-      width: width,
-      height: height,
-      child: child,
-    ));
+        borderRadius: BorderRadius.circular(AppBorderRadius.large),
+      ),
+      child: Shimmer(
+        child: SizedBox(
+          width: width,
+          height: height,
+          child: child,
+        ),
+      ),
+    );
   }
 }

@@ -1,6 +1,6 @@
 import 'package:airport_test/api_services/api_service.dart';
-import 'package:airport_test/Pages/bookingForm/parkOrderPage.dart';
-import 'package:airport_test/Pages/bookingForm/washOrderPage.dart';
+import 'package:airport_test/Pages/reservationForm/parkOrderPage.dart';
+import 'package:airport_test/Pages/reservationForm/washOrderPage.dart';
 import 'package:airport_test/constants/constant_widgets/base_page.dart';
 import 'package:airport_test/constants/constant_widgets/my_text_form_field.dart';
 import 'package:airport_test/constants/constant_widgets/next_page_button.dart';
@@ -35,8 +35,10 @@ class _LoginPageState extends State<LoginPage> {
   FocusNode passwordFocus = FocusNode();
   FocusNode nextPageButtonFocus = FocusNode();
 
+  /// Login-nél kapott token, mellyel a lekérdezéseket intézhetjük
   String? authToken;
 
+  /// Jelszó elrejtése
   bool obscurePassword = true;
 
   Future<String?> loginUser() async {
@@ -110,48 +112,61 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Form(
-        key: formKey,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          SizedBox(height: 10),
-          MyTextFormField(
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'Adja meg email-címét';
-              } else if (!EmailValidator.validate(value.trim())) {
-                return 'Érvénytelen email-cím';
-              }
-              return null;
-            },
-            controller: emailController,
-            focusNode: emailFocus,
-            textInputAction: TextInputAction.next,
-            nextFocus: passwordFocus,
-            hintText: 'Email cím',
-          ),
-          SizedBox(height: 10),
-          MyTextFormField(
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Adjon meg egy jelszót';
-              }
-              return null;
-            },
-            controller: passwordController,
-            obscureText: obscurePassword,
-            onObscureToggle: () {
-              setState(() {
-                obscurePassword = !obscurePassword;
-              });
-            },
-            focusNode: passwordFocus,
-            textInputAction: TextInputAction.next,
-            hintText: 'Jelszó',
-            onEditingComplete: OnNextPageButtonPressed,
-          ),
+      key: formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          buildTextFormFields(),
           NextPageButton(
             focusNode: nextPageButtonFocus,
             onPressed: OnNextPageButtonPressed,
           ),
-        ]));
+        ],
+      ),
+    );
+  }
+
+  Widget buildTextFormFields() {
+    final double sizedBoxHeight = 10;
+    return Column(
+      children: [
+        SizedBox(height: sizedBoxHeight),
+        MyTextFormField(
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'Adja meg email-címét';
+            } else if (!EmailValidator.validate(value.trim())) {
+              return 'Érvénytelen email-cím';
+            }
+            return null;
+          },
+          controller: emailController,
+          focusNode: emailFocus,
+          textInputAction: TextInputAction.next,
+          nextFocus: passwordFocus,
+          hintText: 'Email cím',
+        ),
+        SizedBox(height: sizedBoxHeight),
+        MyTextFormField(
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Adjon meg egy jelszót';
+            }
+            return null;
+          },
+          controller: passwordController,
+          obscureText: obscurePassword,
+          onObscureToggle: () {
+            setState(() {
+              obscurePassword = !obscurePassword;
+            });
+          },
+          focusNode: passwordFocus,
+          textInputAction: TextInputAction.next,
+          hintText: 'Jelszó',
+          onEditingComplete: OnNextPageButtonPressed,
+        ),
+      ],
+    );
   }
 }

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:airport_test/Pages/bookingForm/bookingOptionPage.dart';
+import 'package:airport_test/Pages/reservationForm/reservationOptionPage.dart';
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/constants/constant_widgets/base_page.dart';
 import 'package:airport_test/constants/constant_widgets/my_icon_button.dart';
@@ -25,7 +25,7 @@ class ReservationListPage extends StatefulWidget with PageWithTitle {
 }
 
 class _ReservationListPageState extends State<ReservationListPage> {
-  /// automatikusan frissítjük az adatokat
+  /// Automatikusan frissítjük az adatokat 1 perecnként
   Timer? refreshTimer;
 
   /// Mostani idő (1 perceként frissül)
@@ -34,6 +34,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
   /// Lekérdezett foglalások
   List<dynamic>? reservations;
 
+  /// Kiválasztott foglalás
   dynamic selectedReservation;
 
   /// Lekérdezett szolgáltatások
@@ -121,7 +122,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
                         context,
                         MaterialPageRoute(
                           builder: (_) => const BasePage(
-                            child: BookingOptionPage(),
+                            child: ReservationOptionPage(),
                           ),
                         ),
                       );
@@ -147,6 +148,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
     );
   }
 
+  /// Foglalások listája
   Widget buildReservationList({
     required List<dynamic>? reservations,
     double? maxHeight,
@@ -156,8 +158,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
           width: double.infinity, height: maxHeight ?? double.infinity);
     }
 
-    /// Kiszűrjük azokat a foglalásokat, amelyeknek az LeaveDate-je a múltban van. Tehát már nem lényeges
-    /// Rendezzük ArriveDate szerint.
+    // Kiszűrjük azokat a foglalásokat, amelyeknek az LeaveDate-je a múltban van. Tehát már nem lényeges
     final List<dynamic> upcomingReservations = [];
 
     for (var reservation in reservations) {
@@ -167,7 +168,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
       }
     }
 
-    // Rendezés arriveDate szerint
+    // Rendezzük ArriveDate szerint.
     upcomingReservations.sort((a, b) => DateTime.parse(a['ArriveDate'])
         .compareTo(DateTime.parse(b['ArriveDate'])));
 
@@ -202,6 +203,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
     );
   }
 
+  /// Kiválasztott foglalás információi
   Widget buildReservationInformation({required dynamic reservation}) {
     // Dátum formázó függvény
     String formatDate(String dateString) {

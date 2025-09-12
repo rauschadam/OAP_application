@@ -1,8 +1,9 @@
 import 'package:airport_test/api_services/api_service.dart';
-import 'package:airport_test/Pages/bookingForm/invoiceOptionPage.dart';
-import 'package:airport_test/Pages/bookingForm/washOrderPage.dart';
+import 'package:airport_test/Pages/reservationForm/invoiceOptionPage.dart';
+import 'package:airport_test/Pages/reservationForm/washOrderPage.dart';
 import 'package:airport_test/constants/constant_functions.dart';
 import 'package:airport_test/constants/constant_widgets/base_page.dart';
+import 'package:airport_test/constants/constant_widgets/dialogs.dart';
 import 'package:airport_test/constants/constant_widgets/my_checkbox.dart';
 import 'package:airport_test/constants/constant_widgets/my_icon_button.dart';
 import 'package:airport_test/constants/constant_widgets/my_radio_list_tile.dart';
@@ -594,12 +595,12 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                                       .difference(tempArriveDate!)
                                       .inDays;
                                   if (diff < 1) {
-                                    ShowError(
+                                    showErrorDialog(context,
                                         "A választott tartománynak legalább 1 napnak kell lennie.");
                                     return;
                                   }
                                   if (diff > 30) {
-                                    ShowError(
+                                    showErrorDialog(context,
                                         "A választott tartomány legfeljebb 30 nap lehet.");
                                     return;
                                   }
@@ -644,22 +645,6 @@ class ParkOrderPageState extends State<ParkOrderPage> {
       },
     );
   }
-
-  void ShowError(String msg) => showDialog(
-        context: context,
-        builder: (ctx) {
-          return AlertDialog(
-            title: const Text("Hiba"),
-            content: Text(msg),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text("OK"),
-              ),
-            ],
-          );
-        },
-      );
 
   void OnNextPageButtonPressed() async {
     if (formKey.currentState!.validate()) {
@@ -759,329 +744,11 @@ class ParkOrderPageState extends State<ParkOrderPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              MyTextFormField(
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Adja meg felhasználó nevét';
-                  }
-                  return null;
-                },
-                controller: nameController,
-                focusNode: nameFocus,
-                textInputAction: TextInputAction.next,
-                nextFocus: phoneFocus,
-                hintText: 'Foglaló személy neve',
-              ),
-              const SizedBox(height: 10),
-              MyTextFormField(
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Adja meg telefonszámát';
-                  } else if (phoneController.text.length < 10) {
-                    return 'Hibás telefonszám';
-                  }
-                  return null;
-                },
-                controller: phoneController,
-                focusNode: phoneFocus,
-                textInputAction: TextInputAction.next,
-                nextFocus: licensePlateFocus,
-                hintText: 'Telefonszám',
-                selectedTextFormFieldType: MyTextFormFieldType.phone,
-              ),
-              const SizedBox(height: 10),
-              MyTextFormField(
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Adja meg rendszámát';
-                  }
-                  return null;
-                },
-                controller: licensePlateController,
-                focusNode: licensePlateFocus,
-                textInputAction: TextInputAction.next,
-                nextFocus: datePickerFocus,
-                hintText: 'Várható rendszám',
-                selectedTextFormFieldType: MyTextFormFieldType.licensePlate,
-              ),
-              const SizedBox(height: 10),
-              Row(children: [
-                MyIconButton(
-                  icon: Icons.calendar_month_rounded,
-                  labelText: "Válassz dátumot",
-                  focusNode: datePickerFocus,
-                  onPressed: () {
-                    ShowDatePickerDialog();
-                    FocusScope.of(context).requestFocus(transferFocus);
-                  },
-                ),
-                const SizedBox(width: 50),
-                Column(
-                  children: [
-                    Text('Érkezés'),
-                    Text(selectedArriveDate != null
-                        ? DateFormat('yyyy.MM.dd HH:mm')
-                            .format(selectedArriveDate!)
-                        : "-")
-                  ],
-                ),
-                const SizedBox(width: 50),
-                Column(
-                  children: [
-                    Text('Távozás'),
-                    Text(selectedLeaveDate != null
-                        ? DateFormat('yyyy.MM.dd HH:mm')
-                            .format(selectedLeaveDate!)
-                        : "-")
-                  ],
-                ),
-              ]),
-              const SizedBox(height: 8),
-              Text('Válassz parkoló zónát - $parkingDays napra',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              serviceTemplates == null
-                  ? const Center(child: CircularProgressIndicator())
-                  : buildParkingZoneSelector(
-                      serviceTemplates: serviceTemplates!,
-                      selectedParkingArticleId: selectedParkingArticleId,
-                      parkingDays: parkingDays,
-                      onZoneSelected: (articleId) {
-                        setState(() {
-                          selectedParkingArticleId = articleId;
-                        });
-                        CalculateTotalCost();
-                      },
-                      zoneAvailability: zoneAvailability),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Text('Transzferre váró személyek száma'),
-                  SizedBox(width: 15),
-                  IconButton.filled(
-                    onPressed: () {
-                      setState(() {
-                        if (transferCount > 0) {
-                          transferCount--;
-                        }
-                      });
-                      CalculateTotalCost();
-                    },
-                    icon: Icon(Icons.remove,
-                        color: transferCount > 0
-                            ? Colors.black
-                            : Colors.grey.shade400,
-                        size: 16),
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.grey.shade300,
-                      hoverColor: transferCount > 0
-                          ? Colors.grey.shade400
-                          : Colors.grey.shade300,
-                      minimumSize: const Size(24, 24),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      padding: EdgeInsets.zero,
-                    ),
-                  ),
-                  SizedBox(width: 8),
-                  Text('$transferCount',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  SizedBox(width: 8),
-                  IconButton.filled(
-                    onPressed: () {
-                      setState(() {
-                        if (transferCount < 7) {
-                          transferCount++;
-                        }
-                      });
-                      CalculateTotalCost();
-                    },
-                    icon: Icon(Icons.add,
-                        color: transferCount < 7
-                            ? Colors.black
-                            : Colors.grey.shade400,
-                        size: 16),
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.grey.shade300,
-                      hoverColor: transferCount < 7
-                          ? Colors.grey.shade400
-                          : Colors.grey.shade300,
-                      minimumSize: const Size(24, 24),
-                      shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppBorderRadius.extraSmall),
-                      ),
-                      padding: EdgeInsets.zero,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  MyCheckBox(
-                    value: VIPDriverRequested,
-                    focusNode: VIPFocus,
-                    onChanged: (value) {
-                      setState(() {
-                        VIPDriverRequested = value ?? false;
-                      });
-                      CalculateTotalCost();
-                    },
-                  ),
-                  Text('VIP sofőr igénylése (Hozza viszi az autót a parkolóba)')
-                ],
-              ),
-              Row(
-                children: [
-                  MyCheckBox(
-                    value: suitcaseWrappingRequested,
-                    focusNode: suitcaseWrappingFocus,
-                    nextFocus: descriptionFocus,
-                    onChanged: (value) {
-                      setState(() {
-                        suitcaseWrappingRequested = value ?? false;
-                        if (suitcaseWrappingRequested) {
-                          suitcaseWrappingCount = 1;
-                        } else {
-                          suitcaseWrappingCount = 0;
-                        }
-                      });
-                      CalculateTotalCost();
-                    },
-                  ),
-                  Text('Bőrönd fóliázás igénylése'),
-                  suitcaseWrappingRequested
-                      ? Row(
-                          children: [
-                            SizedBox(width: 15),
-                            IconButton.filled(
-                              onPressed: () {
-                                setState(() {
-                                  if (suitcaseWrappingCount > 0) {
-                                    suitcaseWrappingCount--;
-                                    if (suitcaseWrappingCount == 0) {
-                                      suitcaseWrappingRequested = false;
-                                    }
-                                  }
-                                });
-                                CalculateTotalCost();
-                              },
-                              icon: Icon(Icons.remove,
-                                  color: suitcaseWrappingCount > 0
-                                      ? Colors.black
-                                      : Colors.grey.shade400,
-                                  size: 16),
-                              style: IconButton.styleFrom(
-                                backgroundColor: Colors.grey.shade300,
-                                hoverColor: suitcaseWrappingCount > 0
-                                    ? Colors.grey.shade400
-                                    : Colors.grey.shade300,
-                                minimumSize: const Size(24, 24),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                      AppBorderRadius.extraSmall),
-                                ),
-                                padding: EdgeInsets.zero,
-                              ),
-                            ),
-                            SizedBox(width: 8),
-                            Text('$suitcaseWrappingCount',
-                                style: TextStyle(fontWeight: FontWeight.bold)),
-                            SizedBox(width: 8),
-                            IconButton.filled(
-                              onPressed: () {
-                                setState(() {
-                                  if (suitcaseWrappingCount < 9) {
-                                    suitcaseWrappingCount++;
-                                  }
-                                });
-                                CalculateTotalCost();
-                              },
-                              icon: Icon(Icons.add,
-                                  color: suitcaseWrappingCount < 9
-                                      ? Colors.black
-                                      : Colors.grey.shade400,
-                                  size: 16),
-                              style: IconButton.styleFrom(
-                                backgroundColor: Colors.grey.shade300,
-                                hoverColor: suitcaseWrappingCount < 9
-                                    ? Colors.grey.shade400
-                                    : Colors.grey.shade300,
-                                minimumSize: const Size(24, 24),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                      AppBorderRadius.extraSmall),
-                                ),
-                                padding: EdgeInsets.zero,
-                              ),
-                            ),
-                          ],
-                        )
-                      : Container()
-                ],
-              ),
-              const SizedBox(height: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text.rich(
-                    TextSpan(
-                      text: widget.bookingOption == BookingOption.parking
-                          ? 'Fizetendő összeg: '
-                          : 'A parkolás ára: ',
-                      style: TextStyle(fontSize: 16),
-                      children: [
-                        TextSpan(
-                          text:
-                              '${NumberFormat('#,###', 'hu_HU').format(totalCost)} Ft',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ),
-                  widget.bookingOption == BookingOption.parking
-                      ? Column(
-                          children: [
-                            MyRadioListTile<PaymentOption>(
-                              title: 'Bankkártyával fizetek',
-                              value: PaymentOption.card,
-                              groupValue: selectedPaymentOption,
-                              onChanged: (PaymentOption? value) {
-                                setState(() {
-                                  selectedPaymentOption = value!;
-                                });
-                              },
-                              dense: true,
-                            ),
-                            MyRadioListTile<PaymentOption>(
-                              title:
-                                  'Átutalással fizetek még a parkolás megkezdése előtt 1 nappal',
-                              value: PaymentOption.transfer,
-                              groupValue: selectedPaymentOption,
-                              onChanged: (PaymentOption? value) {
-                                setState(() {
-                                  selectedPaymentOption = value!;
-                                });
-                              },
-                              dense: true,
-                            ),
-                            MyRadioListTile<PaymentOption>(
-                              title: 'Qvik',
-                              value: PaymentOption.qvik,
-                              groupValue: selectedPaymentOption,
-                              onChanged: (PaymentOption? value) {
-                                setState(() {
-                                  selectedPaymentOption = value!;
-                                });
-                              },
-                              dense: true,
-                            ),
-                          ],
-                        )
-                      : Container()
-                ],
-              ),
-              SizedBox(height: 10),
+              buildTextFormFields(),
+              buildDatePickerRow(),
+              buildParkZoneSelector(),
+              buildCheckBoxes(),
+              buildPaymentMethods(),
               MyTextFormField(
                 controller: descriptionController,
                 focusNode: descriptionFocus,
@@ -1098,6 +765,357 @@ class ParkOrderPageState extends State<ParkOrderPage> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget buildTextFormFields() {
+    final double sizedBoxHeight = 10;
+    return Column(
+      children: [
+        MyTextFormField(
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Adja meg felhasználó nevét';
+            }
+            return null;
+          },
+          controller: nameController,
+          focusNode: nameFocus,
+          textInputAction: TextInputAction.next,
+          nextFocus: phoneFocus,
+          hintText: 'Foglaló személy neve',
+        ),
+        SizedBox(height: sizedBoxHeight),
+        MyTextFormField(
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Adja meg telefonszámát';
+            } else if (value.length < 10) {
+              return 'Hibás telefonszám';
+            }
+            return null;
+          },
+          controller: phoneController,
+          focusNode: phoneFocus,
+          textInputAction: TextInputAction.next,
+          nextFocus: licensePlateFocus,
+          hintText: 'Telefonszám',
+          selectedTextFormFieldType: MyTextFormFieldType.phone,
+        ),
+        SizedBox(height: sizedBoxHeight),
+        MyTextFormField(
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Adja meg rendszámát';
+            }
+            return null;
+          },
+          controller: licensePlateController,
+          focusNode: licensePlateFocus,
+          textInputAction: TextInputAction.next,
+          nextFocus: datePickerFocus,
+          hintText: 'Várható rendszám',
+          selectedTextFormFieldType: MyTextFormFieldType.licensePlate,
+        ),
+        SizedBox(height: sizedBoxHeight),
+      ],
+    );
+  }
+
+  Widget buildDatePickerRow() {
+    return Row(
+      children: [
+        MyIconButton(
+          icon: Icons.calendar_month_rounded,
+          labelText: "Válassz dátumot",
+          focusNode: datePickerFocus,
+          onPressed: () {
+            ShowDatePickerDialog();
+            FocusScope.of(context).requestFocus(transferFocus);
+          },
+        ),
+        const SizedBox(width: 50),
+        Column(
+          children: [
+            Text('Érkezés'),
+            Text(selectedArriveDate != null
+                ? DateFormat('yyyy.MM.dd HH:mm').format(selectedArriveDate!)
+                : "-")
+          ],
+        ),
+        const SizedBox(width: 50),
+        Column(
+          children: [
+            Text('Távozás'),
+            Text(selectedLeaveDate != null
+                ? DateFormat('yyyy.MM.dd HH:mm').format(selectedLeaveDate!)
+                : "-")
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget buildParkZoneSelector() {
+    return Column(
+      children: [
+        const SizedBox(height: AppPadding.small),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text('Válassz parkoló zónát - $parkingDays napra',
+              style: TextStyle(fontWeight: FontWeight.bold)),
+        ),
+        serviceTemplates == null
+            ? const Center(child: CircularProgressIndicator())
+            : buildParkingZoneSelector(
+                serviceTemplates: serviceTemplates!,
+                selectedParkingArticleId: selectedParkingArticleId,
+                parkingDays: parkingDays,
+                onZoneSelected: (articleId) {
+                  setState(() {
+                    selectedParkingArticleId = articleId;
+                  });
+                  CalculateTotalCost();
+                },
+                zoneAvailability: zoneAvailability),
+        const SizedBox(height: AppPadding.medium),
+      ],
+    );
+  }
+
+  Widget buildCheckBoxes() {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Text('Transzferre váró személyek száma'),
+            SizedBox(width: 15),
+            IconButton.filled(
+              onPressed: () {
+                setState(() {
+                  if (transferCount > 1) {
+                    transferCount--;
+                  }
+                });
+                CalculateTotalCost();
+              },
+              icon: Icon(Icons.remove,
+                  color:
+                      transferCount > 1 ? Colors.black : Colors.grey.shade400,
+                  size: 16),
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.grey.shade300,
+                hoverColor: transferCount > 1
+                    ? Colors.grey.shade400
+                    : Colors.grey.shade300,
+                minimumSize: const Size(24, 24),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                padding: EdgeInsets.zero,
+              ),
+            ),
+            SizedBox(width: 8),
+            Text('$transferCount',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(width: 8),
+            IconButton.filled(
+              onPressed: () {
+                setState(() {
+                  if (transferCount < 7) {
+                    transferCount++;
+                  }
+                });
+                CalculateTotalCost();
+              },
+              icon: Icon(Icons.add,
+                  color:
+                      transferCount < 7 ? Colors.black : Colors.grey.shade400,
+                  size: 16),
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.grey.shade300,
+                hoverColor: transferCount < 7
+                    ? Colors.grey.shade400
+                    : Colors.grey.shade300,
+                minimumSize: const Size(24, 24),
+                shape: RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.circular(AppBorderRadius.extraSmall),
+                ),
+                padding: EdgeInsets.zero,
+              ),
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            MyCheckBox(
+              value: VIPDriverRequested,
+              focusNode: VIPFocus,
+              onChanged: (value) {
+                setState(() {
+                  VIPDriverRequested = value ?? false;
+                });
+                CalculateTotalCost();
+              },
+            ),
+            Text('VIP sofőr igénylése (Hozza viszi az autót a parkolóba)')
+          ],
+        ),
+        Row(
+          children: [
+            MyCheckBox(
+              value: suitcaseWrappingRequested,
+              focusNode: suitcaseWrappingFocus,
+              nextFocus: descriptionFocus,
+              onChanged: (value) {
+                setState(() {
+                  suitcaseWrappingRequested = value ?? false;
+                  if (suitcaseWrappingRequested) {
+                    suitcaseWrappingCount = 1;
+                  } else {
+                    suitcaseWrappingCount = 0;
+                  }
+                });
+                CalculateTotalCost();
+              },
+            ),
+            Text('Bőrönd fóliázás igénylése'),
+            suitcaseWrappingRequested
+                ? Row(
+                    children: [
+                      SizedBox(width: 15),
+                      IconButton.filled(
+                        onPressed: () {
+                          setState(() {
+                            if (suitcaseWrappingCount > 0) {
+                              suitcaseWrappingCount--;
+                              if (suitcaseWrappingCount == 0) {
+                                suitcaseWrappingRequested = false;
+                              }
+                            }
+                          });
+                          CalculateTotalCost();
+                        },
+                        icon: Icon(Icons.remove,
+                            color: suitcaseWrappingCount > 0
+                                ? Colors.black
+                                : Colors.grey.shade400,
+                            size: 16),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.grey.shade300,
+                          hoverColor: suitcaseWrappingCount > 0
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade300,
+                          minimumSize: const Size(24, 24),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                                AppBorderRadius.extraSmall),
+                          ),
+                          padding: EdgeInsets.zero,
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Text('$suitcaseWrappingCount',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      SizedBox(width: 8),
+                      IconButton.filled(
+                        onPressed: () {
+                          setState(() {
+                            if (suitcaseWrappingCount < 9) {
+                              suitcaseWrappingCount++;
+                            }
+                          });
+                          CalculateTotalCost();
+                        },
+                        icon: Icon(Icons.add,
+                            color: suitcaseWrappingCount < 9
+                                ? Colors.black
+                                : Colors.grey.shade400,
+                            size: 16),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.grey.shade300,
+                          hoverColor: suitcaseWrappingCount < 9
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade300,
+                          minimumSize: const Size(24, 24),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                                AppBorderRadius.extraSmall),
+                          ),
+                          padding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ],
+                  )
+                : Container()
+          ],
+        ),
+        const SizedBox(height: 12),
+      ],
+    );
+  }
+
+  Widget buildPaymentMethods() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text.rich(
+          TextSpan(
+            text: widget.bookingOption == BookingOption.parking
+                ? 'Fizetendő összeg: '
+                : 'A parkolás ára: ',
+            style: TextStyle(fontSize: 16),
+            children: [
+              TextSpan(
+                text: '${NumberFormat('#,###', 'hu_HU').format(totalCost)} Ft',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ),
+        widget.bookingOption == BookingOption.parking
+            ? Column(
+                children: [
+                  MyRadioListTile<PaymentOption>(
+                    title: 'Bankkártyával fizetek',
+                    value: PaymentOption.card,
+                    groupValue: selectedPaymentOption,
+                    onChanged: (PaymentOption? value) {
+                      setState(() {
+                        selectedPaymentOption = value!;
+                      });
+                    },
+                    dense: true,
+                  ),
+                  MyRadioListTile<PaymentOption>(
+                    title:
+                        'Átutalással fizetek még a parkolás megkezdése előtt 1 nappal',
+                    value: PaymentOption.transfer,
+                    groupValue: selectedPaymentOption,
+                    onChanged: (PaymentOption? value) {
+                      setState(() {
+                        selectedPaymentOption = value!;
+                      });
+                    },
+                    dense: true,
+                  ),
+                  MyRadioListTile<PaymentOption>(
+                    title: 'Qvik',
+                    value: PaymentOption.qvik,
+                    groupValue: selectedPaymentOption,
+                    onChanged: (PaymentOption? value) {
+                      setState(() {
+                        selectedPaymentOption = value!;
+                      });
+                    },
+                    dense: true,
+                  ),
+                ],
+              )
+            : Container(),
+        SizedBox(height: 10),
+      ],
     );
   }
 }

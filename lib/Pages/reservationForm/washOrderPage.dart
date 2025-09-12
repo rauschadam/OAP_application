@@ -1,5 +1,5 @@
 import 'package:airport_test/api_services/api_service.dart';
-import 'package:airport_test/Pages/bookingForm/invoiceOptionPage.dart';
+import 'package:airport_test/Pages/reservationForm/invoiceOptionPage.dart';
 import 'package:airport_test/constants/constant_functions.dart';
 import 'package:airport_test/constants/constant_widgets/base_page.dart';
 import 'package:airport_test/constants/constant_widgets/car_wash_selection_card.dart';
@@ -95,6 +95,19 @@ class WashOrderPageState extends State<WashOrderPage> {
   /// Lekérdezett foglalások
   List<dynamic>? reservations;
 
+  /// Lekérdezett szolgáltatások
+  List<dynamic>? serviceTemplates;
+
+  /// Teljes időpontos foglalt időpontok
+  Map<String, List<DateTime>> fullyBookedDateTimes =
+      {}; // parkoló zóna ArticleId -> telített időpont
+
+  /// A teljes fizetendő összeg
+  int totalCost = 0;
+
+  /// ArticleId -> Elérhető-e?
+  Map<String, bool> zoneAvailability = {};
+
   /// Foglalások lekérdezése
   Future<void> fetchReservations() async {
     final api = ApiService();
@@ -109,9 +122,6 @@ class WashOrderPageState extends State<WashOrderPage> {
       fetchServiceTemplates();
     }
   }
-
-  /// Lekérdezett szolgáltatások
-  List<dynamic>? serviceTemplates;
 
   /// Szolgáltatások lekérdezése
   Future<void> fetchServiceTemplates() async {
@@ -128,10 +138,6 @@ class WashOrderPageState extends State<WashOrderPage> {
       });
     }
   }
-
-  //Teljes időpontos foglalt időpontok
-  Map<String, List<DateTime>> fullyBookedDateTimes =
-      {}; // parkoló zóna ArticleId -> telített időpont
 
   // Mosó zóna -> telített időpontok
   Map<String, List<DateTime>> mapBookedDateTimesByZones(
@@ -189,11 +195,8 @@ class WashOrderPageState extends State<WashOrderPage> {
     return fullyBookedDateTimesByZone;
   }
 
-  /// A teljes fizetendő összeg
-  int totalCost = 0;
-
   /// Kiválasztott parkolózóna napijegy ára
-  /// EZT AUTOMATIKUSAN KÉNE
+  /// TODO: jelenleg bevannak égetve az árak
   int getCostForZone(String articleId) {
     switch (articleId) {
       case "1-95431":
@@ -226,8 +229,6 @@ class WashOrderPageState extends State<WashOrderPage> {
     });
   }
 
-  Map<String, bool> zoneAvailability = {};
-
   /// Zónánként ellenőrzi, hogy van-e tiltott időpont az intervallumban
   Map<String, bool> CheckZonesForAvailability() {
     if (tempWashDate == null) {
@@ -259,51 +260,6 @@ class WashOrderPageState extends State<WashOrderPage> {
     });
 
     return zoneAvailability;
-  }
-
-  /// Parkoló zónák generálása ServiceTemplates-ek alapján.
-  Widget buildCarWashZoneSelector({
-    required List<dynamic> serviceTemplates,
-    required String? selectedCarWashArticleId,
-    required Function(String) onZoneSelected,
-    required Map<String, bool> zoneAvailability,
-  }) {
-    final washingZones = serviceTemplates
-        .where((s) => s['ParkingServiceType'] == 2)
-        .toList(); // Csak a mosás zónák
-
-    return GestureDetector(
-      onHorizontalDragUpdate: (details) {
-        WashOptionsScrollController.jumpTo(
-          WashOptionsScrollController.position.pixels - details.delta.dx,
-        );
-      },
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        controller: WashOptionsScrollController,
-        padding: EdgeInsets.all(8),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: washingZones.map((zone) {
-            final String articleId = zone['ArticleId'];
-            final isAvailable = zoneAvailability[articleId] ??
-                true; // ha nincs benne, akkor true
-            final String title = zone['ParkingServiceName'];
-
-            return Padding(
-              padding: const EdgeInsets.all(4.0),
-              child: CarWashSelectionCard(
-                title: title,
-                washCost: getCostForZone(articleId),
-                selected: selectedCarWashArticleId == articleId,
-                onTap: () => onZoneSelected(articleId),
-                available: isAvailable,
-              ),
-            );
-          }).toList(),
-        ),
-      ),
-    );
   }
 
   /// Dátum választó pop-up dialog
@@ -546,23 +502,6 @@ class WashOrderPageState extends State<WashOrderPage> {
     );
   }
 
-  /// Hiba megjelenítő pop-up dialog
-  void ShowError(String msg) => showDialog(
-        context: context,
-        builder: (ctx) {
-          return AlertDialog(
-            title: const Text("Hiba"),
-            content: Text(msg),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text("OK"),
-              ),
-            ],
-          );
-        },
-      );
-
   void OnNextPageButtonPressed() async {
     if (formKey.currentState!.validate()) {
       if (selectedWashDate != null && selectedWashTime != null) {
@@ -642,132 +581,10 @@ class WashOrderPageState extends State<WashOrderPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              MyTextFormField(
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Adja meg felhasználó nevét';
-                    }
-                    return null;
-                  },
-                  controller: nameController,
-                  focusNode: nameFocus,
-                  textInputAction: TextInputAction.next,
-                  nextFocus: phoneFocus,
-                  hintText: 'Foglaló személy neve'),
-              const SizedBox(height: 10),
-              MyTextFormField(
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Adja meg telefonszámát';
-                  } else if (phoneController.text.length < 10) {
-                    return 'Hibás telefonszám';
-                  }
-                  return null;
-                },
-                controller: phoneController,
-                focusNode: phoneFocus,
-                textInputAction: TextInputAction.next,
-                nextFocus: licensePlateFocus,
-                hintText: 'Telefonszám',
-                selectedTextFormFieldType: MyTextFormFieldType.phone,
-              ),
-              const SizedBox(height: 10),
-              MyTextFormField(
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Adja meg rendszámát';
-                  }
-                  return null;
-                },
-                controller: licensePlateController,
-                focusNode: licensePlateFocus,
-                textInputAction: TextInputAction.next,
-                nextFocus: datePickerFocus,
-                hintText: 'Várható rendszám',
-                selectedTextFormFieldType: MyTextFormFieldType.licensePlate,
-              ),
-              const SizedBox(height: 16),
-              Row(children: [
-                MyIconButton(
-                    icon: Icons.calendar_month_rounded,
-                    labelText: 'Válassz dátumot',
-                    onPressed: ShowDatePickerDialog),
-                const SizedBox(width: 50),
-                Column(
-                  children: [
-                    Text('Érkezés'),
-                    Text(selectedWashDate != null
-                        ? DateFormat('yyyy.MM.dd HH:mm')
-                            .format(selectedWashDate!)
-                        : "-")
-                  ],
-                ),
-              ]),
-              const SizedBox(height: 12),
-              const Text('Válassza ki a kívánt programot'),
-              serviceTemplates == null
-                  ? const Center(child: CircularProgressIndicator())
-                  : buildCarWashZoneSelector(
-                      serviceTemplates: serviceTemplates!,
-                      selectedCarWashArticleId: selectedCarWashArticleId,
-                      onZoneSelected: (articleId) {
-                        setState(() {
-                          selectedCarWashArticleId = articleId;
-                        });
-                        CalculateTotalCost();
-                      },
-                      zoneAvailability: zoneAvailability),
-              const SizedBox(height: 10),
-              Text.rich(
-                TextSpan(
-                  text: widget.bookingOption == BookingOption.both
-                      ? 'Teljes összeg: '
-                      : 'Fizetendő összeg: ',
-                  style: TextStyle(fontSize: 16),
-                  children: [
-                    TextSpan(
-                      text:
-                          '${NumberFormat('#,###', 'hu_HU').format(totalCost)} Ft',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ),
-              MyRadioListTile<PaymentOption>(
-                title: 'Bankkártyával fizetek',
-                value: PaymentOption.card,
-                groupValue: selectedPaymentOption,
-                onChanged: (PaymentOption? value) {
-                  setState(() {
-                    selectedPaymentOption = value!;
-                  });
-                },
-                dense: true,
-              ),
-              MyRadioListTile<PaymentOption>(
-                title:
-                    'Átutalással fizetek még a parkolás megkezdése előtt 1 nappal',
-                value: PaymentOption.transfer,
-                groupValue: selectedPaymentOption,
-                onChanged: (PaymentOption? value) {
-                  setState(() {
-                    selectedPaymentOption = value!;
-                  });
-                },
-                dense: true,
-              ),
-              MyRadioListTile<PaymentOption>(
-                title: 'Qvik',
-                value: PaymentOption.qvik,
-                groupValue: selectedPaymentOption,
-                onChanged: (PaymentOption? value) {
-                  setState(() {
-                    selectedPaymentOption = value!;
-                  });
-                },
-                dense: true,
-              ),
-              SizedBox(height: 10),
+              buildTextFormFields(),
+              buildDatePickerRow(),
+              buildCarWashSelector(),
+              buildPaymentMethods(),
               MyTextFormField(
                 focusNode: descriptionFocus,
                 controller: descriptionController,
@@ -783,6 +600,206 @@ class WashOrderPageState extends State<WashOrderPage> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget buildTextFormFields() {
+    return Column(
+      children: [
+        MyTextFormField(
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Adja meg felhasználó nevét';
+              }
+              return null;
+            },
+            controller: nameController,
+            focusNode: nameFocus,
+            textInputAction: TextInputAction.next,
+            nextFocus: phoneFocus,
+            hintText: 'Foglaló személy neve'),
+        const SizedBox(height: 10),
+        MyTextFormField(
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Adja meg telefonszámát';
+            } else if (value.length < 10) {
+              return 'Hibás telefonszám';
+            }
+            return null;
+          },
+          controller: phoneController,
+          focusNode: phoneFocus,
+          textInputAction: TextInputAction.next,
+          nextFocus: licensePlateFocus,
+          hintText: 'Telefonszám',
+          selectedTextFormFieldType: MyTextFormFieldType.phone,
+        ),
+        const SizedBox(height: 10),
+        MyTextFormField(
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Adja meg rendszámát';
+            }
+            return null;
+          },
+          controller: licensePlateController,
+          focusNode: licensePlateFocus,
+          textInputAction: TextInputAction.next,
+          nextFocus: datePickerFocus,
+          hintText: 'Várható rendszám',
+          selectedTextFormFieldType: MyTextFormFieldType.licensePlate,
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget buildDatePickerRow() {
+    return Row(
+      children: [
+        MyIconButton(
+            icon: Icons.calendar_month_rounded,
+            labelText: 'Válassz dátumot',
+            onPressed: ShowDatePickerDialog),
+        const SizedBox(width: 50),
+        Column(
+          children: [
+            Text('Érkezés'),
+            Text(selectedWashDate != null
+                ? DateFormat('yyyy.MM.dd HH:mm').format(selectedWashDate!)
+                : "-")
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget buildCarWashSelector() {
+    return Column(
+      children: [
+        const SizedBox(height: 12),
+        Align(
+            alignment: Alignment.centerLeft,
+            child: const Text('Válassza ki a kívánt programot')),
+        serviceTemplates == null
+            ? const Center(child: CircularProgressIndicator())
+            : buildCarWashZoneSelector(
+                serviceTemplates: serviceTemplates!,
+                selectedCarWashArticleId: selectedCarWashArticleId,
+                onZoneSelected: (articleId) {
+                  setState(() {
+                    selectedCarWashArticleId = articleId;
+                  });
+                  CalculateTotalCost();
+                },
+                zoneAvailability: zoneAvailability),
+        const SizedBox(height: 10),
+      ],
+    );
+  }
+
+  /// Parkoló zónák generálása ServiceTemplates-ek alapján.
+  Widget buildCarWashZoneSelector({
+    required List<dynamic> serviceTemplates,
+    required String? selectedCarWashArticleId,
+    required Function(String) onZoneSelected,
+    required Map<String, bool> zoneAvailability,
+  }) {
+    final washingZones = serviceTemplates
+        .where((s) => s['ParkingServiceType'] == 2)
+        .toList(); // Csak a mosás zónák
+
+    return GestureDetector(
+      onHorizontalDragUpdate: (details) {
+        WashOptionsScrollController.jumpTo(
+          WashOptionsScrollController.position.pixels - details.delta.dx,
+        );
+      },
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        controller: WashOptionsScrollController,
+        padding: EdgeInsets.all(8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: washingZones.map((zone) {
+            final String articleId = zone['ArticleId'];
+            final isAvailable = zoneAvailability[articleId] ??
+                true; // ha nincs benne, akkor true
+            final String title = zone['ParkingServiceName'];
+
+            return Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: CarWashSelectionCard(
+                title: title,
+                washCost: getCostForZone(articleId),
+                selected: selectedCarWashArticleId == articleId,
+                onTap: () => onZoneSelected(articleId),
+                available: isAvailable,
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget buildPaymentMethods() {
+    return Column(
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text.rich(
+            TextSpan(
+              text: widget.bookingOption == BookingOption.both
+                  ? 'Teljes összeg: '
+                  : 'Fizetendő összeg: ',
+              style: TextStyle(fontSize: 16),
+              children: [
+                TextSpan(
+                  text:
+                      '${NumberFormat('#,###', 'hu_HU').format(totalCost)} Ft',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+        ),
+        MyRadioListTile<PaymentOption>(
+          title: 'Bankkártyával fizetek',
+          value: PaymentOption.card,
+          groupValue: selectedPaymentOption,
+          onChanged: (PaymentOption? value) {
+            setState(() {
+              selectedPaymentOption = value!;
+            });
+          },
+          dense: true,
+        ),
+        MyRadioListTile<PaymentOption>(
+          title: 'Átutalással fizetek még a parkolás megkezdése előtt 1 nappal',
+          value: PaymentOption.transfer,
+          groupValue: selectedPaymentOption,
+          onChanged: (PaymentOption? value) {
+            setState(() {
+              selectedPaymentOption = value!;
+            });
+          },
+          dense: true,
+        ),
+        MyRadioListTile<PaymentOption>(
+          title: 'Qvik',
+          value: PaymentOption.qvik,
+          groupValue: selectedPaymentOption,
+          onChanged: (PaymentOption? value) {
+            setState(() {
+              selectedPaymentOption = value!;
+            });
+          },
+          dense: true,
+        ),
+        SizedBox(height: 10),
+      ],
     );
   }
 }

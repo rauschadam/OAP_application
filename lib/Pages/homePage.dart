@@ -456,9 +456,6 @@ class _HomePageState extends State<HomePage> {
       constraints: BoxConstraints(
         maxHeight: maxHeight ?? 300,
       ),
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppBorderRadius.medium),
-          color: BasePage.defaultColors.secondary),
       child: ReservationList(
         maxHeight: maxHeight,
         listTitle: listTitle,
@@ -597,32 +594,45 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Container(
-                      constraints: BoxConstraints(maxHeight: 200),
-                      child: buildTodoList(
-                          listTitle: 'Ma',
-                          reservations: reservations,
-                          startTime: now,
-                          endTime: DateTime(now.year, now.month, now.day + 1)),
+                Padding(
+                  padding: EdgeInsets.only(bottom: AppPadding.medium),
+                  child: Container(
+                    decoration: BoxDecoration(
+                        borderRadius:
+                            BorderRadius.circular(AppBorderRadius.medium),
+                        color: BasePage.defaultColors.secondary),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Flexible(
+                          fit: FlexFit.loose,
+                          child: Container(
+                            constraints: BoxConstraints(maxHeight: 200),
+                            child: buildTodoList(
+                                listTitle: 'Ma',
+                                reservations: reservations,
+                                startTime: now,
+                                endTime:
+                                    DateTime(now.year, now.month, now.day + 1)),
+                          ),
+                        ),
+                        Flexible(
+                          fit: FlexFit.loose,
+                          child: Container(
+                            constraints: BoxConstraints(maxHeight: 200),
+                            child: buildTodoList(
+                                listTitle: 'Holnap',
+                                reservations: reservations,
+                                startTime:
+                                    DateTime(now.year, now.month, now.day + 1),
+                                endTime:
+                                    DateTime(now.year, now.month, now.day + 2)),
+                          ),
+                        ),
+                      ],
                     ),
-                    Padding(
-                      padding:
-                          EdgeInsets.symmetric(vertical: AppPadding.medium),
-                      child: Container(
-                        constraints: BoxConstraints(maxHeight: 200),
-                        child: buildTodoList(
-                            listTitle: 'Holnap',
-                            reservations: reservations,
-                            startTime:
-                                DateTime(now.year, now.month, now.day + 1),
-                            endTime:
-                                DateTime(now.year, now.month, now.day + 2)),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),
@@ -640,8 +650,10 @@ class _HomePageState extends State<HomePage> {
                   parkingServiceType: 1,
                 ),
                 fullyBookedDateTimes.isNotEmpty
-                    ? buildFullyBookedTimeList(
-                        fullyBookedDateTimes: fullyBookedDateTimes)
+                    ? Flexible(
+                        child: buildFullyBookedTimeList(
+                            fullyBookedDateTimes: fullyBookedDateTimes),
+                      )
                     : Container()
               ],
             ),

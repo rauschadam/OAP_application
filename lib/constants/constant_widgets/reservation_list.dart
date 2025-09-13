@@ -4,30 +4,30 @@ import 'package:intl/intl.dart';
 
 class ReservationList extends StatefulWidget {
   final List<dynamic> reservations;
-  final String listTitle;
+  final String? listTitle;
   final Map<String, String> columns;
   final Map<String, String Function(dynamic)>? formatters;
   final double? maxHeight;
   final double? maxWidth;
   final Function(dynamic)? onRowTap;
+  final dynamic selectedReservation;
 
   const ReservationList(
       {super.key,
       required this.reservations,
-      required this.listTitle,
+      this.listTitle,
       required this.columns,
       this.formatters,
       this.maxHeight,
       this.onRowTap,
-      this.maxWidth});
+      this.maxWidth,
+      this.selectedReservation});
 
   @override
   State<ReservationList> createState() => _ReservationListState();
 }
 
 class _ReservationListState extends State<ReservationList> {
-  dynamic selectedReservation;
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -43,7 +43,9 @@ class _ReservationListState extends State<ReservationList> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          buildListTitle(widget.listTitle, context),
+          widget.listTitle != null
+              ? buildListTitle(widget.listTitle!, context)
+              : Container(),
           SizedBox(height: 16),
           widget.reservations.isEmpty
               ? Container(
@@ -110,9 +112,6 @@ class _ReservationListState extends State<ReservationList> {
                 InkWell(
                   onTap: widget.onRowTap != null
                       ? () {
-                          setState(() {
-                            selectedReservation = reservations[index];
-                          });
                           widget.onRowTap!(reservations[index]);
                         }
                       : null,
@@ -176,7 +175,8 @@ class _ReservationListState extends State<ReservationList> {
   // Segédfüggvény a sor színének meghatározásához
   Color getRowColor(dynamic reservation, int index) {
     // Ha ez a kiválasztott foglalás, akkor szürkébb színnel jelöljük
-    if (selectedReservation != null && reservation == selectedReservation) {
+    if (widget.selectedReservation != null &&
+        reservation == widget.selectedReservation) {
       return Colors.grey.shade300;
     }
 

@@ -237,7 +237,7 @@ class _HomePageState extends State<HomePage> {
               Padding(
                 padding: const EdgeInsets.only(bottom: AppPadding.medium),
                 child: Text(
-                  'Telítettség',
+                  'Jelenlegi Telítettség',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -605,30 +605,24 @@ class _HomePageState extends State<HomePage> {
                       mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Flexible(
-                          fit: FlexFit.loose,
-                          child: Container(
-                            constraints: BoxConstraints(maxHeight: 200),
-                            child: buildTodoList(
-                                listTitle: 'Ma',
-                                reservations: reservations,
-                                startTime: now,
-                                endTime:
-                                    DateTime(now.year, now.month, now.day + 1)),
-                          ),
+                        Container(
+                          constraints: BoxConstraints(maxHeight: 200),
+                          child: buildTodoList(
+                              listTitle: 'Ma',
+                              reservations: reservations,
+                              startTime: now,
+                              endTime:
+                                  DateTime(now.year, now.month, now.day + 1)),
                         ),
-                        Flexible(
-                          fit: FlexFit.loose,
-                          child: Container(
-                            constraints: BoxConstraints(maxHeight: 200),
-                            child: buildTodoList(
-                                listTitle: 'Holnap',
-                                reservations: reservations,
-                                startTime:
-                                    DateTime(now.year, now.month, now.day + 1),
-                                endTime:
-                                    DateTime(now.year, now.month, now.day + 2)),
-                          ),
+                        Container(
+                          constraints: BoxConstraints(maxHeight: 200),
+                          child: buildTodoList(
+                              listTitle: 'Holnap',
+                              reservations: reservations,
+                              startTime:
+                                  DateTime(now.year, now.month, now.day + 1),
+                              endTime:
+                                  DateTime(now.year, now.month, now.day + 2)),
                         ),
                       ],
                     ),

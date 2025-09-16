@@ -63,42 +63,29 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         authToken = token;
       });
-      //fetchData();
-      fetchReservations();
+      fetchData();
+      // fetchReservations();
     }
     return token;
   }
 
-  /// Foglalások lekérdezése
-  Future<void> fetchReservations() async {
+  /// Foglalások és szolgáltatások lekérdezése
+  Future<void> fetchData() async {
     final api = ApiService();
-    final data = await api.getReservations(authToken);
+    // Foglalások lekérdezése
+    final reservationsData = await api.getReservations(authToken);
+    // Szolgáltatások lekérdezése
+    final servicesData = await api.getServiceTemplates(authToken);
 
-    if (data == null) {
-      print('Nem sikerült a lekérdezés');
-    } else {
+    if (reservationsData != null && servicesData != null) {
       setState(() {
-        reservations = data;
+        reservations = reservationsData;
+        serviceTemplates = servicesData;
+        zoneCounters =
+            mapCurrentOccupancyByZones(reservations!, serviceTemplates!);
+        fullyBookedDateTimes =
+            mapBookedDateTimesByZones(reservations!, serviceTemplates!);
       });
-      fetchServiceTemplates();
-    }
-  }
-
-  /// Szolgáltatások lekérdezése
-  Future<void> fetchServiceTemplates() async {
-    final api = ApiService();
-    final data = await api.getServiceTemplates(authToken);
-
-    if (data == null) {
-      print('Nem sikerült a lekérdezés');
-    } else {
-      setState(() {
-        serviceTemplates = data;
-      });
-      zoneCounters =
-          mapCurrentOccupancyByZones(reservations!, serviceTemplates!);
-      fullyBookedDateTimes =
-          mapBookedDateTimesByZones(reservations!, serviceTemplates!);
     }
   }
 
@@ -287,19 +274,16 @@ class _HomePageState extends State<HomePage> {
         ),
       );
     }
-    // TODO: jelenleg bevannak égetve a zónanevek,
-    // később vagy a templatekből kell kikeresni, vagy a lekérrdezésnél az id mellett a zóna nevet is megadjuk
+
+    /// Segédfüggvény, a templates-ből meghatározza a zóna nevét ArticleId alapján
     String getZoneNameById(String articleId) {
-      switch (articleId) {
-        case "1-95426": // Premium
-          return 'Premium';
-        case "1-95427": // Normal
-          return 'Normal';
-        case "1-95428": // Eco
-          return 'Eco';
-        default:
-          return 'Egyéb';
-      }
+      final template = serviceTemplates?.firstWhere(
+        (t) => t['ArticleId'] == articleId,
+        orElse: () => null,
+      );
+      return template != null
+          ? template['ParkingServiceName'].split(' ').last
+          : 'Egyéb';
     }
 
     return Padding(
@@ -564,8 +548,11 @@ class _HomePageState extends State<HomePage> {
 
     // percenként frissítjük a foglalásokat
     refreshTimer = Timer.periodic(Duration(minutes: 1), (_) {
-      fetchReservations();
-      now = DateTime.now();
+      fetchData();
+      //fetchReservations();
+      setState(() {
+        now = DateTime.now();
+      });
       print('Frissítve');
     });
   }
@@ -632,18 +619,18 @@ class _HomePageState extends State<HomePage> {
                               listTitle: 'Ma',
                               reservations: reservations,
                               startTime: now,
-                              endTime:
-                                  DateTime(now.year, now.month, now.day + 1)),
+                              endTime: DateTime(now.year, now.month, now.day)
+                                  .add(const Duration(days: 1))),
                         ),
                         Container(
                           constraints: BoxConstraints(maxHeight: 200),
                           child: buildTodoList(
                               listTitle: 'Holnap',
                               reservations: reservations,
-                              startTime:
-                                  DateTime(now.year, now.month, now.day + 1),
-                              endTime:
-                                  DateTime(now.year, now.month, now.day + 2)),
+                              startTime: DateTime(now.year, now.month, now.day)
+                                  .add(const Duration(days: 1)),
+                              endTime: DateTime(now.year, now.month, now.day)
+                                  .add(const Duration(days: 2))),
                         ),
                       ],
                     ),

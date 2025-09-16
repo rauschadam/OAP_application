@@ -7,6 +7,10 @@ class ApiService {
   final String baseUrl = '81.183.212.64:9006';
   final http.Client client = http.Client();
 
+  void dispose() {
+    client.close();
+  }
+
   /// Regisztráció
   Future<String?> registerUser(Registration registration) async {
     final uri = Uri.http(baseUrl, '/service/v1/airport/registration');
@@ -95,8 +99,6 @@ class ApiService {
       }
     } catch (e) {
       print('Hálózati hiba: $e');
-    } finally {
-      client.close();
     }
   }
 
@@ -125,8 +127,6 @@ class ApiService {
       }
     } catch (e) {
       print('Hálózati hiba: $e');
-    } finally {
-      client.close();
     }
     return null;
   }
@@ -156,8 +156,6 @@ class ApiService {
       }
     } catch (e) {
       print('Hálózati hiba: $e');
-    } finally {
-      client.close();
     }
     return null;
   }

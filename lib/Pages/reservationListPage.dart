@@ -566,31 +566,18 @@ class _ReservationListPageState extends State<ReservationListPage> {
     'Mosás dátuma': false
   };
 
-  Future<void> fetchReservations() async {
+  /// Foglalások és szolgáltatások lekérdezése
+  Future<void> fetchData() async {
     final api = ApiService();
-    final data = await api.getReservations(widget.authToken);
+    // Foglalások lekérdezése
+    final reservationsData = await api.getReservations(widget.authToken);
+    // Szolgáltatások lekérdezése
+    final servicesData = await api.getServiceTemplates(widget.authToken);
 
-    if (data == null) {
-      print('Nem sikerült a lekérdezés');
-    } else {
+    if (reservationsData != null && servicesData != null) {
       setState(() {
-        reservations = data;
-        // Automatikusan alkalmazd a szűrést az új adatokra
-        applySearchFilter();
-      });
-      fetchServiceTemplates();
-    }
-  }
-
-  Future<void> fetchServiceTemplates() async {
-    final api = ApiService();
-    final data = await api.getServiceTemplates(widget.authToken);
-
-    if (data == null) {
-      print('Nem sikerült a lekérdezés');
-    } else {
-      setState(() {
-        serviceTemplates = data;
+        reservations = reservationsData;
+        serviceTemplates = servicesData;
       });
     }
   }
@@ -681,10 +668,10 @@ class _ReservationListPageState extends State<ReservationListPage> {
       });
     });
 
-    fetchReservations();
+    fetchData();
 
     refreshTimer = Timer.periodic(Duration(minutes: 1), (_) {
-      fetchReservations();
+      fetchData();
       setState(() {
         now = DateTime.now();
       });

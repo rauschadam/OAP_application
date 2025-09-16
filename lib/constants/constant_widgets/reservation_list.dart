@@ -11,6 +11,7 @@ class ReservationList extends StatefulWidget {
   final double? maxWidth;
   final Function(dynamic)? onRowTap;
   final dynamic selectedReservation;
+  final String? emptyText;
 
   const ReservationList(
       {super.key,
@@ -21,7 +22,8 @@ class ReservationList extends StatefulWidget {
       this.maxHeight,
       this.onRowTap,
       this.maxWidth,
-      this.selectedReservation});
+      this.selectedReservation,
+      this.emptyText});
 
   @override
   State<ReservationList> createState() => _ReservationListState();
@@ -51,7 +53,7 @@ class _ReservationListState extends State<ReservationList> {
               ? Container(
                   padding: EdgeInsets.all(AppBorderRadius.small),
                   width: double.infinity,
-                  child: Text('Nincsenek foglalások'))
+                  child: Text(widget.emptyText ?? 'Nincsenek foglalások'))
               : Flexible(
                   child: Column(
                     children: [

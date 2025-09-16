@@ -95,6 +95,9 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   DateTime? tempArriveDate, tempLeaveDate;
   TimeOfDay? tempArriveTime;
 
+  /// A megadott napon elérhető időpontok
+  List<TimeOfDay> availableSlots = [];
+
   /// Parkolással töltött napok száma
   int parkingDays = 0;
 
@@ -342,8 +345,6 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   void ShowDatePickerDialog() {
     tempArriveDate = selectedArriveDate;
     tempLeaveDate = selectedLeaveDate;
-
-    List<TimeOfDay> availableSlots = [];
 
     /// Megadja, hogy melyik időpontos Expansion Tile-ban hovereljük az időpontot.
     Map<String, int> hoveredIndexMap = {
@@ -824,6 +825,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
 
   Widget buildDatePickerRow() {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         MyIconButton(
           icon: Icons.calendar_month_rounded,
@@ -834,23 +836,30 @@ class ParkOrderPageState extends State<ParkOrderPage> {
             FocusScope.of(context).requestFocus(transferFocus);
           },
         ),
-        const SizedBox(width: 50),
-        Column(
-          children: [
-            Text('Érkezés'),
-            Text(selectedArriveDate != null
-                ? DateFormat('yyyy.MM.dd HH:mm').format(selectedArriveDate!)
-                : "-")
-          ],
-        ),
-        const SizedBox(width: 50),
-        Column(
-          children: [
-            Text('Távozás'),
-            Text(selectedLeaveDate != null
-                ? DateFormat('yyyy.MM.dd HH:mm').format(selectedLeaveDate!)
-                : "-")
-          ],
+        Expanded(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Column(
+                children: [
+                  Text('Érkezés'),
+                  Text(selectedArriveDate != null
+                      ? DateFormat('yyyy.MM.dd HH:mm')
+                          .format(selectedArriveDate!)
+                      : "-")
+                ],
+              ),
+              Column(
+                children: [
+                  Text('Távozás'),
+                  Text(selectedLeaveDate != null
+                      ? DateFormat('yyyy.MM.dd HH:mm')
+                          .format(selectedLeaveDate!)
+                      : "-")
+                ],
+              ),
+            ],
+          ),
         ),
       ],
     );

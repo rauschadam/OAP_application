@@ -459,6 +459,7 @@ class _HomePageState extends State<HomePage> {
       child: ReservationList(
         maxHeight: maxHeight,
         listTitle: listTitle,
+        emptyText: "Nem várható bejelentett ügyfél",
         reservations: actualReservations,
         columns: {
           'Név': 'Name',

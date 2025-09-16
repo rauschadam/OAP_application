@@ -203,13 +203,19 @@ class _HomePageState extends State<HomePage> {
   }) {
     if (serviceTemplates == null) {
       return Padding(
-        padding: const EdgeInsets.all(AppPadding.xlarge),
-        child: Wrap(
-          spacing: 20,
-          children: [
-            for (int i = 0; i <= 2; i++)
-              ShimmerPlaceholderTemplate(width: 100, height: 120)
-          ],
+        padding: const EdgeInsets.only(
+            top: AppPadding.medium,
+            left: AppPadding.medium,
+            right: AppPadding.medium),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppBorderRadius.medium),
+            color: BasePage.defaultColors.secondary,
+          ),
+          child: ShimmerPlaceholderTemplate(
+            width: double.infinity,
+            height: 220,
+          ),
         ),
       );
     }
@@ -266,6 +272,21 @@ class _HomePageState extends State<HomePage> {
   /// Telített időpontok listáját jeleníti meg
   Widget buildFullyBookedTimeList(
       {required Map<String, List<DateTime>> fullyBookedDateTimes}) {
+    if (fullyBookedDateTimes.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(AppPadding.medium),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppBorderRadius.medium),
+            color: BasePage.defaultColors.secondary,
+          ),
+          child: ShimmerPlaceholderTemplate(
+            width: double.infinity,
+            height: 240,
+          ),
+        ),
+      );
+    }
     // TODO: jelenleg bevannak égetve a zónanevek,
     // később vagy a templatekből kell kikeresni, vagy a lekérrdezésnél az id mellett a zóna nevet is megadjuk
     String getZoneNameById(String articleId) {
@@ -459,7 +480,7 @@ class _HomePageState extends State<HomePage> {
       child: ReservationList(
         maxHeight: maxHeight,
         listTitle: listTitle,
-        emptyText: "Nem várható bejelentett ügyfél",
+        emptyText: "Nem várható bejelentett ügyfél.",
         reservations: actualReservations,
         columns: {
           'Név': 'Name',
@@ -544,7 +565,6 @@ class _HomePageState extends State<HomePage> {
     // percenként frissítjük a foglalásokat
     refreshTimer = Timer.periodic(Duration(minutes: 1), (_) {
       fetchReservations();
-      //fetchData();
       now = DateTime.now();
       print('Frissítve');
     });
@@ -644,12 +664,10 @@ class _HomePageState extends State<HomePage> {
                   zoneCounters: zoneCounters,
                   parkingServiceType: 1,
                 ),
-                fullyBookedDateTimes.isNotEmpty
-                    ? Flexible(
-                        child: buildFullyBookedTimeList(
-                            fullyBookedDateTimes: fullyBookedDateTimes),
-                      )
-                    : Container()
+                Flexible(
+                  child: buildFullyBookedTimeList(
+                      fullyBookedDateTimes: fullyBookedDateTimes),
+                )
               ],
             ),
           ),

@@ -1,4 +1,4 @@
-import 'package:airport_test/constants/constant_widgets/base_page.dart';
+import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:flutter/material.dart';
 

@@ -1,9 +1,9 @@
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/Pages/reservationForm/parkOrderPage.dart';
 import 'package:airport_test/Pages/reservationForm/washOrderPage.dart';
-import 'package:airport_test/constants/constant_widgets/base_page.dart';
-import 'package:airport_test/constants/constant_widgets/my_text_form_field.dart';
-import 'package:airport_test/constants/constant_widgets/next_page_button.dart';
+import 'package:airport_test/constants/widgets/base_page.dart';
+import 'package:airport_test/constants/widgets/my_text_form_field.dart';
+import 'package:airport_test/constants/widgets/next_page_button.dart';
 import 'package:airport_test/constants/enums/parkingFormEnums.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';

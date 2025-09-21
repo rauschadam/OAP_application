@@ -3,12 +3,12 @@ import 'dart:async';
 import 'package:airport_test/Pages/reservationListPage.dart';
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/Pages/reservationForm/reservationOptionPage.dart';
-import 'package:airport_test/constants/constant_widgets/base_page.dart';
-import 'package:airport_test/constants/constant_widgets/my_icon_button.dart';
-import 'package:airport_test/constants/constant_widgets/reservation_list.dart';
-import 'package:airport_test/constants/constant_widgets/shimmer_placeholder_template.dart';
-import 'package:airport_test/constants/constant_widgets/side_menu.dart';
-import 'package:airport_test/constants/constant_widgets/zone_occupancy_indicator.dart';
+import 'package:airport_test/constants/widgets/base_page.dart';
+import 'package:airport_test/constants/widgets/my_icon_button.dart';
+import 'package:airport_test/constants/widgets/reservation_list.dart';
+import 'package:airport_test/constants/widgets/shimmer_placeholder_template.dart';
+import 'package:airport_test/constants/widgets/side_menu.dart';
+import 'package:airport_test/constants/widgets/zone_occupancy_indicator.dart';
 import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:flutter/material.dart';
@@ -45,26 +45,6 @@ class _HomePageState extends State<HomePage> {
 
   /// parkoló zóna article id-> foglalt helyek száma
   Map<String, int> zoneCounters = {};
-
-  // /// TODO: A recepciós beléptetése
-  // /// JELENLEG AUTOMATIKUS, PÉLDA JELLEGŰ
-  // /// később külön oldal lesz (Az első, amelyet látunk az alkalmazás elindításakor)
-  // Future<String?> loginReceptionist() async {
-  //   final api = ApiService();
-  //   final token =
-  //       await api.loginUser('receptionAdmin@gmail.com', 'AdminPassword1');
-
-  //   if (token == null) {
-  //     print('Nem sikerült bejelentkezni');
-  //   } else {
-  //     print('token: $token');
-  //     setState(() {
-  //       authToken = token;
-  //     });
-  //     fetchData();
-  //   }
-  //   return token;
-  // }
 
   /// Foglalások és szolgáltatások lekérdezése
   Future<void> fetchData() async {

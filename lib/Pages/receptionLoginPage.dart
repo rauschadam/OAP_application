@@ -1,8 +1,8 @@
 import 'package:airport_test/Pages/homePage.dart';
 import 'package:airport_test/api_services/api_service.dart';
-import 'package:airport_test/constants/constant_widgets/base_page.dart';
-import 'package:airport_test/constants/constant_widgets/my_text_form_field.dart';
-import 'package:airport_test/constants/constant_widgets/next_page_button.dart';
+import 'package:airport_test/constants/widgets/base_page.dart';
+import 'package:airport_test/constants/widgets/my_text_form_field.dart';
+import 'package:airport_test/constants/widgets/next_page_button.dart';
 import 'package:airport_test/constants/globals.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +31,7 @@ class _ReceptionLoginPageState extends State<ReceptionLoginPage> {
   bool obscurePassword = true;
 
   /// Recepciós bejelentkeztetése
+  /// TODO: Ezt most úgy tesszük meg mintha usert loginelnénk, pedig nem
   Future<String?> loginReceptionist() async {
     final api = ApiService();
     final token =

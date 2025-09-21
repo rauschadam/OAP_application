@@ -108,6 +108,9 @@ class WashOrderPageState extends State<WashOrderPage> {
   /// ArticleId -> Elérhető-e?
   Map<String, bool> zoneAvailability = {};
 
+  /// A megadott napon elérhető időpontok
+  List<TimeOfDay> availableSlots = [];
+
   /// Foglalások lekérdezése
   Future<void> fetchReservations() async {
     final api = ApiService();
@@ -265,8 +268,6 @@ class WashOrderPageState extends State<WashOrderPage> {
   /// Dátum választó pop-up dialog
   void ShowDatePickerDialog() {
     tempWashDate = selectedWashDate;
-
-    List<TimeOfDay> availableSlots = [];
 
     Map<String, int> hoveredIndexMap = {
       "Hajnal": -1,
@@ -444,8 +445,8 @@ class WashOrderPageState extends State<WashOrderPage> {
                                 }
                               }
 
-                              bool isBooked = fullyBookedDateTimes.values.every(
-                                  (listOfDates) => listOfDates.every((d) =>
+                              bool isBooked = fullyBookedDateTimes.values.any(
+                                  (listOfDates) => listOfDates.any((d) =>
                                       d.year == (tempWashDate?.year ?? 0) &&
                                       d.month == (tempWashDate?.month ?? 0) &&
                                       d.day == (tempWashDate?.day ?? 0) &&

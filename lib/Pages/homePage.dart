@@ -9,6 +9,7 @@ import 'package:airport_test/constants/constant_widgets/reservation_list.dart';
 import 'package:airport_test/constants/constant_widgets/shimmer_placeholder_template.dart';
 import 'package:airport_test/constants/constant_widgets/side_menu.dart';
 import 'package:airport_test/constants/constant_widgets/zone_occupancy_indicator.dart';
+import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -36,9 +37,6 @@ class _HomePageState extends State<HomePage> {
   /// Mostani idő (percenként frissül)
   late DateTime now = DateTime.now();
 
-  /// Login-nél kapott token, mellyel a lekérdezéseket intézhetjük
-  String? authToken;
-
   /// Lekérdezett foglalások
   List<dynamic>? reservations;
 
@@ -48,34 +46,33 @@ class _HomePageState extends State<HomePage> {
   /// parkoló zóna article id-> foglalt helyek száma
   Map<String, int> zoneCounters = {};
 
-  /// A recepciós beléptetése
-  /// JELENLEG AUTOMATIKUS, PÉLDA JELLEGŰ
-  /// később külön oldal lesz (Az első, amelyet látunk az alkalmazás elindításakor)
-  Future<String?> loginReceptionist() async {
-    final api = ApiService();
-    final token =
-        await api.loginUser('receptionAdmin@gmail.com', 'AdminPassword1');
+  // /// TODO: A recepciós beléptetése
+  // /// JELENLEG AUTOMATIKUS, PÉLDA JELLEGŰ
+  // /// később külön oldal lesz (Az első, amelyet látunk az alkalmazás elindításakor)
+  // Future<String?> loginReceptionist() async {
+  //   final api = ApiService();
+  //   final token =
+  //       await api.loginUser('receptionAdmin@gmail.com', 'AdminPassword1');
 
-    if (token == null) {
-      print('Nem sikerült bejelentkezni');
-    } else {
-      print('token: $token');
-      setState(() {
-        authToken = token;
-      });
-      fetchData();
-      // fetchReservations();
-    }
-    return token;
-  }
+  //   if (token == null) {
+  //     print('Nem sikerült bejelentkezni');
+  //   } else {
+  //     print('token: $token');
+  //     setState(() {
+  //       authToken = token;
+  //     });
+  //     fetchData();
+  //   }
+  //   return token;
+  // }
 
   /// Foglalások és szolgáltatások lekérdezése
   Future<void> fetchData() async {
     final api = ApiService();
     // Foglalások lekérdezése
-    final reservationsData = await api.getReservations(authToken);
+    final reservationsData = await api.getReservations(receptionistToken);
     // Szolgáltatások lekérdezése
-    final servicesData = await api.getServiceTemplates(authToken);
+    final servicesData = await api.getServiceTemplates(receptionistToken);
 
     if (reservationsData != null && servicesData != null) {
       setState(() {
@@ -457,76 +454,64 @@ class _HomePageState extends State<HomePage> {
     });
 
     // Widget visszaadása
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: maxHeight ?? 300,
-      ),
-      child: ReservationList(
-        maxHeight: maxHeight,
-        listTitle: listTitle,
-        emptyText: "Nem várható bejelentett ügyfél.",
-        reservations: actualReservations,
-        columns: {
-          'Név': 'Name',
-          'Rendszám': 'LicensePlate',
-          'Időpont': 'Time',
-          'Típus': 'Type',
-        },
-        formatters: {
-          'Time': (reservation) {
-            final arriveDate = DateTime.parse(reservation['ArriveDate']);
-            final leaveDate = DateTime.parse(reservation['LeaveDate']);
-            final carWashDate = DateTime.parse(reservation['WashDateTime']);
-            final isCarWashToday =
-                carWashDate.isAfter(startTime) && carWashDate.isBefore(endTime);
-            final isArriveToday =
-                arriveDate.isAfter(startTime) && arriveDate.isBefore(endTime);
+    return ReservationList(
+      maxHeight: maxHeight,
+      listTitle: listTitle,
+      emptyText: "Nem várható bejelentett ügyfél.",
+      reservations: actualReservations,
+      columns: {
+        'Név': 'Name',
+        'Rendszám': 'LicensePlate',
+        'Időpont': 'Time',
+        'Típus': 'Type',
+      },
+      formatters: {
+        'Time': (reservation) {
+          final arriveDate = DateTime.parse(reservation['ArriveDate']);
+          final leaveDate = DateTime.parse(reservation['LeaveDate']);
+          final carWashDate = DateTime.parse(reservation['WashDateTime']);
+          final isCarWashToday =
+              carWashDate.isAfter(startTime) && carWashDate.isBefore(endTime);
+          final isArriveToday =
+              arriveDate.isAfter(startTime) && arriveDate.isBefore(endTime);
 
-            if (isArriveToday) {
-              return DateFormat('HH:mm').format(arriveDate);
-            } else if (!isCarWashToday) {
-              return DateFormat('HH:mm').format(leaveDate);
-            } else {
-              return DateFormat('HH:mm').format(carWashDate);
-            }
-          },
-          'Type': (reservation) {
-            final arriveDate = DateTime.parse(reservation['ArriveDate']);
-            final carWashDate = DateTime.parse(reservation['WashDateTime']);
-            final isCarWashToday =
-                carWashDate.isAfter(startTime) && carWashDate.isBefore(endTime);
-            final isArriveToday =
-                arriveDate.isAfter(startTime) && arriveDate.isBefore(endTime);
-
-            if (isArriveToday) {
-              return 'Érkezés';
-            } else if (!isCarWashToday) {
-              return 'Távozás';
-            } else {
-              return 'Mosás';
-            }
-          },
+          if (isArriveToday) {
+            return DateFormat('HH:mm').format(arriveDate);
+          } else if (!isCarWashToday) {
+            return DateFormat('HH:mm').format(leaveDate);
+          } else {
+            return DateFormat('HH:mm').format(carWashDate);
+          }
         },
-      ),
+        'Type': (reservation) {
+          final arriveDate = DateTime.parse(reservation['ArriveDate']);
+          final carWashDate = DateTime.parse(reservation['WashDateTime']);
+          final isCarWashToday =
+              carWashDate.isAfter(startTime) && carWashDate.isBefore(endTime);
+          final isArriveToday =
+              arriveDate.isAfter(startTime) && arriveDate.isBefore(endTime);
+
+          if (isArriveToday) {
+            return 'Érkezés';
+          } else if (!isCarWashToday) {
+            return 'Távozás';
+          } else {
+            return 'Mosás';
+          }
+        },
+      },
     );
   }
 
   void GoToReservationPage() async {
-    final token = await loginReceptionist();
-    if (token == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bejelentkezés folyamatban!')),
-      );
-    } else {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => BasePage(
-            child: ReservationListPage(authToken: authToken!),
-          ),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BasePage(
+          child: ReservationListPage(authToken: receptionistToken),
         ),
-      );
-    }
+      ),
+    );
   }
 
   /// Oldal Menü megjelenítése
@@ -544,12 +529,10 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
 
-    loginReceptionist();
-
+    fetchData();
     // percenként frissítjük a foglalásokat
     refreshTimer = Timer.periodic(Duration(minutes: 1), (_) {
       fetchData();
-      //fetchReservations();
       setState(() {
         now = DateTime.now();
       });
@@ -602,37 +585,40 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                Padding(
-                  padding: EdgeInsets.only(bottom: AppPadding.medium),
-                  child: Container(
-                    decoration: BoxDecoration(
-                        borderRadius:
-                            BorderRadius.circular(AppBorderRadius.medium),
-                        color: BasePage.defaultColors.secondary),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Container(
-                          constraints: BoxConstraints(maxHeight: 200),
-                          child: buildTodoList(
-                              listTitle: 'Ma',
-                              reservations: reservations,
-                              startTime: now,
-                              endTime: DateTime(now.year, now.month, now.day)
-                                  .add(const Duration(days: 1))),
-                        ),
-                        Container(
-                          constraints: BoxConstraints(maxHeight: 200),
-                          child: buildTodoList(
-                              listTitle: 'Holnap',
-                              reservations: reservations,
-                              startTime: DateTime(now.year, now.month, now.day)
-                                  .add(const Duration(days: 1)),
-                              endTime: DateTime(now.year, now.month, now.day)
-                                  .add(const Duration(days: 2))),
-                        ),
-                      ],
+                Flexible(
+                  child: Padding(
+                    padding: EdgeInsets.only(bottom: AppPadding.medium),
+                    child: Container(
+                      decoration: BoxDecoration(
+                          borderRadius:
+                              BorderRadius.circular(AppBorderRadius.medium),
+                          color: BasePage.defaultColors.secondary),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Container(
+                            constraints: BoxConstraints(maxHeight: 300),
+                            child: buildTodoList(
+                                listTitle: 'Ma',
+                                reservations: reservations,
+                                startTime: now,
+                                endTime: DateTime(now.year, now.month, now.day)
+                                    .add(const Duration(days: 1))),
+                          ),
+                          Container(
+                            constraints: BoxConstraints(maxHeight: 300),
+                            child: buildTodoList(
+                                listTitle: 'Holnap',
+                                reservations: reservations,
+                                startTime:
+                                    DateTime(now.year, now.month, now.day)
+                                        .add(const Duration(days: 1)),
+                                endTime: DateTime(now.year, now.month, now.day)
+                                    .add(const Duration(days: 2))),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

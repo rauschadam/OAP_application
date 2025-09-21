@@ -79,3 +79,64 @@ class MenuItem {
     required this.onPressed,
   });
 }
+
+/// Ha esetleg szeretnénk, hogy mindig lássuk a bal oldali menüt, ez jó megoldás lehet ->
+
+// class SideNavigationRail extends StatefulWidget {
+//   final List<MenuItem> menuItems;
+//   final int initialIndex;
+
+//   const SideNavigationRail({
+//     super.key,
+//     required this.menuItems,
+//     this.initialIndex = 0,
+//   });
+
+//   @override
+//   State<SideNavigationRail> createState() => _SideNavigationRailState();
+// }
+
+// class _SideNavigationRailState extends State<SideNavigationRail> {
+//   late int selectedIndex;
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     selectedIndex = widget.initialIndex;
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return NavigationRail(
+//       backgroundColor: BasePage.defaultColors.secondary,
+//       selectedIndex: selectedIndex,
+//       onDestinationSelected: (index) {
+//         setState(() {
+//           selectedIndex = index;
+//         });
+//         widget.menuItems[index].onPressed();
+//       },
+//       labelType: NavigationRailLabelType.all, // mindig mutatja a szöveget
+//       selectedIconTheme: IconThemeData(
+//         color: BasePage.defaultColors.primary,
+//       ),
+//       unselectedIconTheme: IconThemeData(
+//         color: BasePage.defaultColors.primary.withAlpha(150),
+//       ),
+//       selectedLabelTextStyle: TextStyle(
+//         color: BasePage.defaultColors.primary,
+//         fontWeight: FontWeight.bold,
+//       ),
+//       unselectedLabelTextStyle: TextStyle(
+//         color: BasePage.defaultColors.primary.withAlpha(150),
+//       ),
+//       destinations: widget.menuItems.map((item) {
+//         return NavigationRailDestination(
+//           icon: Icon(item.icon),
+//           selectedIcon: Icon(item.icon),
+//           label: Text(item.title),
+//         );
+//       }).toList(),
+//     );
+//   }
+// }

@@ -45,10 +45,9 @@ class _ReservationListState extends State<ReservationList> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          widget.listTitle != null
-              ? buildListTitle(widget.listTitle!, context)
-              : Container(),
-          SizedBox(height: 16),
+          if (widget.listTitle != null)
+            buildListTitle(widget.listTitle!, context),
+          SizedBox(height: AppPadding.medium),
           widget.reservations.isEmpty
               ? Container(
                   padding: EdgeInsets.all(AppBorderRadius.small),

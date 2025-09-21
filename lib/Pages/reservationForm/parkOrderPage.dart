@@ -893,6 +893,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   }
 
   Widget buildCheckBoxes() {
+    final double iconBorderRadius = 4;
     return Column(
       children: [
         Row(
@@ -948,8 +949,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                     : Colors.grey.shade300,
                 minimumSize: const Size(24, 24),
                 shape: RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius.circular(AppBorderRadius.extraSmall),
+                  borderRadius: BorderRadius.circular(iconBorderRadius),
                 ),
                 padding: EdgeInsets.zero,
               ),
@@ -1018,8 +1018,8 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                               : Colors.grey.shade300,
                           minimumSize: const Size(24, 24),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                                AppBorderRadius.extraSmall),
+                            borderRadius:
+                                BorderRadius.circular(iconBorderRadius),
                           ),
                           padding: EdgeInsets.zero,
                         ),
@@ -1049,8 +1049,8 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                               : Colors.grey.shade300,
                           minimumSize: const Size(24, 24),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                                AppBorderRadius.extraSmall),
+                            borderRadius:
+                                BorderRadius.circular(iconBorderRadius),
                           ),
                           padding: EdgeInsets.zero,
                         ),

@@ -145,15 +145,17 @@ class _RegistrationPageState extends State<RegistrationPage> {
   Widget build(BuildContext context) {
     return Form(
       key: formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          buildTextFormFields(),
-          NextPageButton(
-            focusNode: nextPageButtonFocus,
-            onPressed: OnNextPageButtonPressed,
-          ),
-        ],
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            buildTextFormFields(),
+            NextPageButton(
+              focusNode: nextPageButtonFocus,
+              onPressed: OnNextPageButtonPressed,
+            ),
+          ],
+        ),
       ),
     );
   }

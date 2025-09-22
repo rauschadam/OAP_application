@@ -22,7 +22,6 @@ class _ReservationOptionPageState extends State<ReservationOptionPage> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         buildRadioListTiles(),
         NextPageButton(
@@ -41,7 +40,7 @@ class _ReservationOptionPageState extends State<ReservationOptionPage> {
       child: Column(
         children: [
           MyRadioListTile<BookingOption>(
-            title: 'Csak parkolni szeretnék',
+            title: 'Parkolás',
             value: BookingOption.parking,
             groupValue: selectedBookingOption,
             onChanged: (BookingOption? value) {
@@ -57,7 +56,7 @@ class _ReservationOptionPageState extends State<ReservationOptionPage> {
             ),
           ),
           MyRadioListTile<BookingOption>(
-            title: 'Csak mosatni szeretnék',
+            title: 'Mosás',
             subtitle:
                 'Jelenleg kötelező a parkolás megadása, ne ezzel tesztelj',
             value: BookingOption.washing,
@@ -75,7 +74,7 @@ class _ReservationOptionPageState extends State<ReservationOptionPage> {
             ),
           ),
           MyRadioListTile<BookingOption>(
-            title: 'Parkolni és mosatni is szeretnék',
+            title: 'Parkolás és mosás',
             value: BookingOption.both,
             groupValue: selectedBookingOption,
             onChanged: (BookingOption? value) {

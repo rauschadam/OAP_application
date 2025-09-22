@@ -12,6 +12,7 @@ import 'package:airport_test/constants/widgets/next_page_button.dart';
 import 'package:airport_test/constants/widgets/parking_zone_selection_card.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/constants/enums/parkingFormEnums.dart';
+import 'package:airport_test/responsive.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
@@ -899,7 +900,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
         Row(
           children: [
             Text('Transzferre váró személyek száma'),
-            SizedBox(width: 15),
+            SizedBox(width: Responsive.isMobile(context) ? 0 : 16),
             IconButton.filled(
               onPressed: () {
                 setState(() {
@@ -925,10 +926,10 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                 padding: EdgeInsets.zero,
               ),
             ),
-            SizedBox(width: 8),
+            SizedBox(width: Responsive.isMobile(context) ? 0 : 8),
             Text('$transferCount',
                 style: TextStyle(fontWeight: FontWeight.bold)),
-            SizedBox(width: 8),
+            SizedBox(width: Responsive.isMobile(context) ? 0 : 8),
             IconButton.filled(
               onPressed: () {
                 setState(() {
@@ -976,7 +977,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
             MyCheckBox(
               value: suitcaseWrappingRequested,
               focusNode: suitcaseWrappingFocus,
-              nextFocus: descriptionFocus,
+              //nextFocus: descriptionFocus,
               onChanged: (value) {
                 setState(() {
                   suitcaseWrappingRequested = value ?? false;
@@ -993,7 +994,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
             suitcaseWrappingRequested
                 ? Row(
                     children: [
-                      SizedBox(width: 15),
+                      SizedBox(width: Responsive.isMobile(context) ? 0 : 16),
                       IconButton.filled(
                         onPressed: () {
                           setState(() {
@@ -1024,10 +1025,10 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                           padding: EdgeInsets.zero,
                         ),
                       ),
-                      SizedBox(width: 8),
+                      SizedBox(width: Responsive.isMobile(context) ? 0 : 8),
                       Text('$suitcaseWrappingCount',
                           style: TextStyle(fontWeight: FontWeight.bold)),
-                      SizedBox(width: 8),
+                      SizedBox(width: Responsive.isMobile(context) ? 0 : 8),
                       IconButton.filled(
                         onPressed: () {
                           setState(() {
@@ -1087,7 +1088,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
             ? Column(
                 children: [
                   MyRadioListTile<PaymentOption>(
-                    title: 'Bankkártyával fizetek',
+                    title: 'Bankkártya',
                     value: PaymentOption.card,
                     groupValue: selectedPaymentOption,
                     onChanged: (PaymentOption? value) {
@@ -1098,8 +1099,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                     dense: true,
                   ),
                   MyRadioListTile<PaymentOption>(
-                    title:
-                        'Átutalással fizetek még a parkolás megkezdése előtt 1 nappal',
+                    title: 'Átutalás',
                     value: PaymentOption.transfer,
                     groupValue: selectedPaymentOption,
                     onChanged: (PaymentOption? value) {

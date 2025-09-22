@@ -767,7 +767,7 @@ class WashOrderPageState extends State<WashOrderPage> {
           ),
         ),
         MyRadioListTile<PaymentOption>(
-          title: 'Bankkártyával fizetek',
+          title: 'Bankkártya',
           value: PaymentOption.card,
           groupValue: selectedPaymentOption,
           onChanged: (PaymentOption? value) {
@@ -778,7 +778,7 @@ class WashOrderPageState extends State<WashOrderPage> {
           dense: true,
         ),
         MyRadioListTile<PaymentOption>(
-          title: 'Átutalással fizetek még a parkolás megkezdése előtt 1 nappal',
+          title: 'Átutalás',
           value: PaymentOption.transfer,
           groupValue: selectedPaymentOption,
           onChanged: (PaymentOption? value) {

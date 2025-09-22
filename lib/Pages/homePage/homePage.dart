@@ -11,6 +11,7 @@ import 'package:airport_test/constants/widgets/side_menu.dart';
 import 'package:airport_test/constants/widgets/zone_occupancy_indicator.dart';
 import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/theme.dart';
+import 'package:airport_test/responsive.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -187,47 +188,40 @@ class _HomePageState extends State<HomePage> {
         .where((t) => t['ParkingServiceType'] == parkingServiceType)
         .toList();
 
-    return Padding(
-      /// Kártya padding
-      padding: const EdgeInsets.only(
-          top: AppPadding.medium,
-          left: AppPadding.medium,
-          right: AppPadding.medium),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppBorderRadius.medium),
-          color: BasePage.defaultColors.secondary,
-        ),
-        width: double.infinity,
-        child: Padding(
-          /// Tartalom padding
-          padding: const EdgeInsets.all(AppPadding.large),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppPadding.medium),
-                child: Text(
-                  'Jelenlegi Telítettség',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppBorderRadius.medium),
+        color: BasePage.defaultColors.secondary,
+      ),
+      width: double.infinity,
+      child: Padding(
+        /// Tartalom padding
+        padding: const EdgeInsets.symmetric(vertical: AppPadding.large),
+        child: Column(
+          children: [
+            // Padding(
+            //   padding: const EdgeInsets.only(bottom: AppPadding.medium),
+            //   child: Text(
+            //     'Jelenlegi Telítettség',
+            //     style: TextStyle(
+            //       fontSize: 18,
+            //       fontWeight: FontWeight.bold,
+            //       color: Colors.black,
+            //     ),
+            //   ),
+            // ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                for (var template in parkingTemplates)
+                  ZoneOccupancyIndicator(
+                    zoneName: template['ParkingServiceName'].split(' ').last,
+                    occupied: zoneCounters[template['ArticleId']] ?? 0,
+                    capacity: template['ZoneCapacity'],
                   ),
-                ),
-              ),
-              Wrap(
-                spacing: 20,
-                children: [
-                  for (var template in parkingTemplates)
-                    ZoneOccupancyIndicator(
-                      zoneName: template['ParkingServiceName'].split(' ').last,
-                      occupied: zoneCounters[template['ArticleId']] ?? 0,
-                      capacity: template['ZoneCapacity'],
-                    ),
-                ],
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -237,17 +231,14 @@ class _HomePageState extends State<HomePage> {
   Widget buildFullyBookedTimeList(
       {required Map<String, List<DateTime>> fullyBookedDateTimes}) {
     if (fullyBookedDateTimes.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.all(AppPadding.medium),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppBorderRadius.medium),
-            color: BasePage.defaultColors.secondary,
-          ),
-          child: ShimmerPlaceholderTemplate(
-            width: double.infinity,
-            height: 240,
-          ),
+      return Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppBorderRadius.medium),
+          color: BasePage.defaultColors.secondary,
+        ),
+        child: ShimmerPlaceholderTemplate(
+          width: double.infinity,
+          height: 240,
         ),
       );
     }
@@ -263,82 +254,78 @@ class _HomePageState extends State<HomePage> {
           : 'Egyéb';
     }
 
-    return Padding(
-      // kártya padding
-      padding: const EdgeInsets.all(AppPadding.medium),
-      child: Container(
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppBorderRadius.medium),
-            color: BasePage.defaultColors.secondary),
-        // Tartalom padding
-        padding: EdgeInsets.all(AppPadding.large),
-        width: double.infinity,
-        constraints: BoxConstraints(
-          maxHeight: double.infinity,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppPadding.medium),
-              child: Text(
-                'Telített időpontok',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
+    return Container(
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppBorderRadius.medium),
+          color: BasePage.defaultColors.secondary),
+      // Tartalom padding
+      padding: EdgeInsets.all(AppPadding.large),
+      width: double.infinity,
+      constraints: BoxConstraints(
+        maxHeight: double.infinity,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppPadding.medium),
+            child: Text(
+              'Telített időpontok',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
               ),
             ),
-            Flexible(
-              child: ListView(
-                shrinkWrap: true,
-                children: [
-                  for (var entry in fullyBookedDateTimes.entries)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Theme(
-                          data: Theme.of(context).copyWith(
-                            dividerColor: Colors.transparent,
-                            splashColor: Colors.transparent,
-                            highlightColor: Colors.transparent,
-                            hoverColor: Colors.transparent,
+          ),
+          Flexible(
+            child: ListView(
+              shrinkWrap: true,
+              children: [
+                for (var entry in fullyBookedDateTimes.entries)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Theme(
+                        data: Theme.of(context).copyWith(
+                          dividerColor: Colors.transparent,
+                          splashColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          hoverColor: Colors.transparent,
+                        ),
+                        // Zóna név
+                        child: ExpansionTile(
+                          title: Text(
+                            getZoneNameById(entry.key),
                           ),
-                          // Zóna név
-                          child: ExpansionTile(
-                            title: Text(
-                              getZoneNameById(entry.key),
-                            ),
-                            children: [
-                              // Dátumtartományok csoportosítása
-                              ...groupConsecutiveTimeSlots(entry.value).map(
-                                (range) => Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: AppPadding.large,
-                                    vertical: AppPadding.small,
-                                  ),
-                                  child: Text(
-                                    range.length == 1
-                                        ? DateFormat('yyyy.MM.dd HH:mm')
-                                            .format(range.first)
-                                        : '${DateFormat('yyyy.MM.dd HH:mm').format(range.first)} - ${DateFormat('yyyy.MM.dd HH:mm').format(range.last)}',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                    ),
+                          children: [
+                            // Dátumtartományok csoportosítása
+                            ...groupConsecutiveTimeSlots(entry.value).map(
+                              (range) => Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppPadding.large,
+                                  vertical: AppPadding.small,
+                                ),
+                                child: Text(
+                                  range.length == 1
+                                      ? DateFormat('yyyy.MM.dd HH:mm')
+                                          .format(range.first)
+                                      : '${DateFormat('yyyy.MM.dd HH:mm').format(range.first)} - ${DateFormat('yyyy.MM.dd HH:mm').format(range.last)}',
+                                  style: TextStyle(
+                                    fontSize: 16,
                                   ),
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                ],
-              ),
+                      ),
+                    ],
+                  ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -505,6 +492,26 @@ class _HomePageState extends State<HomePage> {
     return SideMenu(menuItems: menuItems);
   }
 
+  Widget newReservationButton() {
+    return Align(
+      alignment: Alignment.bottomRight,
+      child: MyIconButton(
+        icon: Icons.add_rounded,
+        labelText: "Foglalás rögzítése",
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const BasePage(
+                child: ReservationOptionPage(),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -528,6 +535,14 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    if (Responsive.isMobile(context)) {
+      return mobileBuild();
+    } else {
+      return desktopBuild();
+    }
+  }
+
+  Widget desktopBuild() {
     return Row(
       children: [
         Expanded(
@@ -546,24 +561,7 @@ class _HomePageState extends State<HomePage> {
               children: [
                 Padding(
                   padding: EdgeInsets.only(bottom: AppPadding.small),
-                  child: Align(
-                    alignment: Alignment.bottomRight,
-                    child: MyIconButton(
-                      icon: Icons.add_rounded,
-                      labelText: "Foglalás rögzítése",
-                      onPressed: () {
-                        BasePage.defaultColors = AppColors.blue;
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const BasePage(
-                              child: ReservationOptionPage(),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+                  child: newReservationButton(),
                 ),
                 Flexible(
                   child: Padding(
@@ -609,7 +607,7 @@ class _HomePageState extends State<HomePage> {
         Expanded(
           flex: 2,
           child: Padding(
-            padding: EdgeInsets.only(bottom: AppPadding.medium),
+            padding: EdgeInsets.all(AppPadding.medium),
             child: Column(
               children: [
                 buildZoneOccupancyIndicators(
@@ -617,6 +615,7 @@ class _HomePageState extends State<HomePage> {
                   zoneCounters: zoneCounters,
                   parkingServiceType: 1,
                 ),
+                SizedBox(height: AppPadding.medium),
                 Flexible(
                   child: buildFullyBookedTimeList(
                       fullyBookedDateTimes: fullyBookedDateTimes),
@@ -626,6 +625,28 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget mobileBuild() {
+    return Padding(
+      padding: EdgeInsetsGeometry.all(AppPadding.medium),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Flexible(
+                child: buildZoneOccupancyIndicators(
+                    serviceTemplates: serviceTemplates,
+                    zoneCounters: zoneCounters,
+                    parkingServiceType: 1),
+              ),
+            ],
+          ),
+          const Spacer(),
+          newReservationButton()
+        ],
+      ),
     );
   }
 }

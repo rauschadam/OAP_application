@@ -1,4 +1,5 @@
 import 'package:airport_test/constants/theme.dart';
+import 'package:airport_test/responsive.dart';
 import 'package:flutter/material.dart';
 
 class BasePage extends StatelessWidget {
@@ -31,24 +32,35 @@ class BasePage extends StatelessWidget {
       ),
       backgroundColor: defaultColors.background,
       body: Center(
-        child: Row(
-          children: [
-            (child as PageWithTitle).haveMargins
-                ? Expanded(child: Container())
-                : Container(),
-            Expanded(
-              flex: 2,
-              child: Column(
+        child: Responsive.isDesktop(context)
+            ? Row(
                 children: [
-                  Expanded(child: child),
+                  (child as PageWithTitle).haveMargins
+                      ? const Expanded(child: SizedBox())
+                      : const SizedBox(),
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      children: [
+                        Expanded(child: child),
+                      ],
+                    ),
+                  ),
+                  (child as PageWithTitle).haveMargins
+                      ? const Expanded(child: SizedBox())
+                      : const SizedBox(),
                 ],
+              )
+            : Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: (child as PageWithTitle).haveMargins ? 16.0 : 0.0,
+                ),
+                child: Column(
+                  children: [
+                    Expanded(child: child),
+                  ],
+                ),
               ),
-            ),
-            (child as PageWithTitle).haveMargins
-                ? Expanded(child: Container())
-                : Container(),
-          ],
-        ),
       ),
     );
   }

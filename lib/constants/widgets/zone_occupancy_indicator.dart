@@ -24,7 +24,7 @@ class ZoneOccupancyIndicator extends StatelessWidget {
         ),
         SizedBox(height: 5),
         CircularPercentIndicator(
-          radius: 50,
+          radius: 45,
           lineWidth: 18,
           percent: occupied / capacity,
           progressColor: BasePage.defaultColors.primary, //Colors.blue,

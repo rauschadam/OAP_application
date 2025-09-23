@@ -72,7 +72,7 @@ class _MyDateRangePickerDialogState extends State<MyDateRangePickerDialog> {
           }
         }
 
-        // Ellenőrizzük, hogy az adott időpont foglalt-e (érkezéshez)
+        // Ellenőrizzük, hogy az adott időpont foglalt-e (érkezés napján)
         bool isArriveFullyBookedEverywhere = widget.fullyBookedDateTimes.values
             .every((zoneTimes) => zoneTimes.every((d) =>
                 d.year == (tempArriveDate?.year ?? 0) &&
@@ -81,7 +81,7 @@ class _MyDateRangePickerDialogState extends State<MyDateRangePickerDialog> {
                 d.hour == time.hour &&
                 d.minute == time.minute));
 
-        // Ellenőrizzük, hogy az adott időpont foglalt-e (távozáshoz)
+        // Ellenőrizzük, hogy az adott időpont foglalt-e (távozás napján)
         bool isLeaveFullyBookedEverywhere = widget.fullyBookedDateTimes.values
             .every((zoneTimes) => zoneTimes.every((d) =>
                 d.year == (tempLeaveDate?.year ?? 0) &&
@@ -330,7 +330,7 @@ class _MyDateRangePickerDialogState extends State<MyDateRangePickerDialog> {
 
             const SizedBox(height: 10),
 
-            // Confirm gomb
+            // Oké gomb
             if (tempArriveDate != null &&
                 tempLeaveDate != null &&
                 tempArriveTime != null)

@@ -7,20 +7,23 @@ class MyIconButton extends StatelessWidget {
   final String labelText;
   final VoidCallback onPressed;
   final FocusNode? focusNode;
+  final Color? textColor;
+  final Color? backgroundColor;
 
-  const MyIconButton({
-    super.key,
-    required this.icon,
-    required this.labelText,
-    required this.onPressed,
-    this.focusNode,
-  });
+  const MyIconButton(
+      {super.key,
+      required this.icon,
+      required this.labelText,
+      required this.onPressed,
+      this.focusNode,
+      this.textColor,
+      this.backgroundColor});
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton.icon(
       style: ElevatedButton.styleFrom(
-        backgroundColor: BasePage.defaultColors.primary,
+        backgroundColor: backgroundColor ?? BasePage.defaultColors.primary,
         padding: const EdgeInsets.all(AppPadding.medium),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppBorderRadius.small),
@@ -28,12 +31,12 @@ class MyIconButton extends StatelessWidget {
       ),
       icon: Icon(
         icon,
-        color: BasePage.defaultColors.background,
+        color: textColor ?? BasePage.defaultColors.background,
       ),
       label: Text(
         labelText,
         style: TextStyle(
-          color: BasePage.defaultColors.background,
+          color: textColor ?? BasePage.defaultColors.background,
         ),
       ),
       focusNode: focusNode,

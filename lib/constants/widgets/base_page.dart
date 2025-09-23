@@ -36,10 +36,10 @@ class BasePage extends StatelessWidget {
             ? Row(
                 children: [
                   (child as PageWithTitle).haveMargins
-                      ? const Expanded(child: SizedBox())
+                      ? const Expanded(flex: 2, child: SizedBox())
                       : const SizedBox(),
                   Expanded(
-                    flex: 2,
+                    flex: 3,
                     child: Column(
                       children: [
                         Expanded(child: child),
@@ -47,7 +47,7 @@ class BasePage extends StatelessWidget {
                     ),
                   ),
                   (child as PageWithTitle).haveMargins
-                      ? const Expanded(child: SizedBox())
+                      ? const Expanded(flex: 2, child: SizedBox())
                       : const SizedBox(),
                 ],
               )

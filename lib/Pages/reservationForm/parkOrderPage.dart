@@ -1,12 +1,11 @@
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/Pages/reservationForm/invoiceOptionPage.dart';
 import 'package:airport_test/Pages/reservationForm/washOrderPage.dart';
-import 'package:airport_test/constants/constant_functions.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
-import 'package:airport_test/constants/widgets/dialogs.dart';
 import 'package:airport_test/constants/widgets/my_checkbox.dart';
 import 'package:airport_test/constants/widgets/my_icon_button.dart';
 import 'package:airport_test/constants/widgets/my_radio_list_tile.dart';
+import 'package:airport_test/constants/widgets/my_sf_date_range_picker.dart';
 import 'package:airport_test/constants/widgets/my_text_form_field.dart';
 import 'package:airport_test/constants/widgets/next_page_button.dart';
 import 'package:airport_test/constants/widgets/parking_zone_selection_card.dart';
@@ -15,7 +14,6 @@ import 'package:airport_test/constants/enums/parkingFormEnums.dart';
 import 'package:airport_test/responsive.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class ParkOrderPage extends StatefulWidget with PageWithTitle {
   @override
@@ -343,309 +341,28 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   }
 
   /// Időpont választó dialógus a parkolási intervallum kiválasztásához.
-  void ShowDatePickerDialog() {
-    tempArriveDate = selectedArriveDate;
-    tempLeaveDate = selectedLeaveDate;
-
-    /// Megadja, hogy melyik időpontos Expansion Tile-ban hovereljük az időpontot.
-    Map<String, int> hoveredIndexMap = {
-      "Hajnal": -1,
-      "Reggel": -1,
-      "Nap": -1,
-      "Este": -1,
-      "Éjszaka": -1,
-    };
-
+  void showDatePickerDialog() {
     showDialog(
       context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setStateDialog) {
-            final allSlots = generateHalfHourTimeSlots();
-            final today = DateTime.now();
-            final currentTime = TimeOfDay.fromDateTime(today);
-
-            /// Időpont választó kártyák widgetje
-            Widget buildTimeSlotPicker(List<TimeOfDay> slots) {
-              Map<String, List<TimeOfDay>> groupedSlots = {
-                "Hajnal": [],
-                "Reggel": [],
-                "Nappal": [],
-                "Este": [],
-                "Éjszaka": [],
-              };
-
-              for (var time in slots) {
-                if (time.hour < 6) {
-                  groupedSlots["Hajnal"]!.add(time);
-                } else if (time.hour >= 6 && time.hour < 12) {
-                  groupedSlots["Reggel"]!.add(time);
-                } else if (time.hour >= 12 && time.hour < 18) {
-                  groupedSlots["Nappal"]!.add(time);
-                } else if (time.hour >= 18 && time.hour < 22) {
-                  groupedSlots["Este"]!.add(time);
-                } else {
-                  groupedSlots["Éjszaka"]!.add(time);
-                }
-              }
-
-              return Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  child: Column(
-                    children: groupedSlots.entries
-                        .where((entry) => entry.value.isNotEmpty)
-                        .map((entry) {
-                      return Theme(
-                        data: Theme.of(context).copyWith(
-                          dividerColor: Colors.transparent,
-                          splashColor: Colors.transparent,
-                          highlightColor: Colors.transparent,
-                          hoverColor: Colors.transparent,
-                        ),
-                        child: ExpansionTile(
-                          iconColor: Colors.grey.shade700,
-                          title: Text(entry.key,
-                              style: TextStyle(
-                                color: Colors.grey.shade700,
-                              )),
-                          initiallyExpanded: true,
-                          children: [
-                            GridView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 4,
-                                mainAxisSpacing: 8,
-                                crossAxisSpacing: 8,
-                                childAspectRatio: 3,
-                              ),
-                              itemCount: entry.value.length,
-                              itemBuilder: (context, index) {
-                                final time = entry.value[index];
-                                bool isSelected = tempArriveTime == time;
-                                bool isHovered =
-                                    hoveredIndexMap[entry.key] == index;
-
-                                Color cardColor;
-                                if (isSelected) {
-                                  cardColor = BasePage.defaultColors.primary;
-                                } else if (isHovered) {
-                                  cardColor = Colors.grey.shade400;
-                                } else {
-                                  cardColor = Colors.grey.shade300;
-                                }
-
-                                return MouseRegion(
-                                  onEnter: (_) {
-                                    setStateDialog(() {
-                                      hoveredIndexMap[entry.key] = index;
-                                    });
-                                  },
-                                  onExit: (_) {
-                                    setStateDialog(() {
-                                      hoveredIndexMap[entry.key] = -1;
-                                    });
-                                  },
-                                  cursor: SystemMouseCursors.click,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setStateDialog(() {
-                                        tempArriveTime = time;
-                                      });
-                                    },
-                                    child: Card(
-                                      elevation: 0,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                            AppBorderRadius.large),
-                                      ),
-                                      color: cardColor,
-                                      child: Center(
-                                        child: Text(
-                                          time.format(context),
-                                          style: TextStyle(
-                                            color: isSelected
-                                                ? Colors.white
-                                                : Colors.black,
-                                            fontWeight: isSelected
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              );
-            }
-
-            return Dialog(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppBorderRadius.medium)),
-              child: Container(
-                width: 600,
-                height: 800,
-                padding: const EdgeInsets.all(AppPadding.medium),
-                child: Column(
-                  children: [
-                    SfDateRangePicker(
-                      initialSelectedRange:
-                          tempArriveDate != null && tempLeaveDate != null
-                              ? PickerDateRange(tempArriveDate, tempLeaveDate)
-                              : null,
-                      selectionMode: DateRangePickerSelectionMode.range,
-                      todayHighlightColor: BasePage.defaultColors.primary,
-                      startRangeSelectionColor: BasePage.defaultColors.primary,
-                      endRangeSelectionColor: BasePage.defaultColors.primary,
-                      rangeSelectionColor: BasePage.defaultColors.secondary,
-                      enablePastDates: false,
-                      maxDate: DateTime.now().add(const Duration(days: 120)),
-                      onSelectionChanged: (args) {
-                        if (args.value is PickerDateRange) {
-                          final start = args.value.startDate;
-                          final end = args.value.endDate;
-
-                          setStateDialog(() {
-                            tempArriveDate = start;
-                            tempLeaveDate = end;
-
-                            if (tempArriveDate != null &&
-                                tempLeaveDate != null) {
-                              availableSlots = allSlots.where((time) {
-                                // Múltbeli időpontokat kiszűrjük
-                                if (tempArriveDate != null &&
-                                    tempArriveDate!.year == today.year &&
-                                    tempArriveDate!.month == today.month &&
-                                    tempArriveDate!.day == today.day) {
-                                  if (time.hour < currentTime.hour ||
-                                      (time.hour == currentTime.hour &&
-                                          time.minute <= currentTime.minute)) {
-                                    return false;
-                                  }
-                                }
-
-                                // Ellenőrizzük, hogy az adott időpont foglalt-e (érkezéshez)
-                                bool isArriveFullyBookedEverywhere =
-                                    fullyBookedDateTimes.values.every(
-                                        (zoneTimes) => zoneTimes.every((d) =>
-                                            d.year ==
-                                                (tempArriveDate?.year ?? 0) &&
-                                            d.month ==
-                                                (tempArriveDate?.month ?? 0) &&
-                                            d.day ==
-                                                (tempArriveDate?.day ?? 0) &&
-                                            d.hour == time.hour &&
-                                            d.minute == time.minute));
-
-                                // Ellenőrizzük, hogy az adott időpont foglalt-e (távozáshoz)
-                                bool isLeaveFullyBookedEverywhere =
-                                    fullyBookedDateTimes.values.every(
-                                        (zoneTimes) => zoneTimes.every((d) =>
-                                            d.year ==
-                                                (tempLeaveDate?.year ?? 0) &&
-                                            d.month ==
-                                                (tempLeaveDate?.month ?? 0) &&
-                                            d.day ==
-                                                (tempLeaveDate?.day ?? 0) &&
-                                            d.hour == time.hour &&
-                                            d.minute == time.minute));
-
-                                return !isArriveFullyBookedEverywhere &&
-                                    !isLeaveFullyBookedEverywhere;
-                              }).toList();
-                            }
-                          });
-                        }
-                      },
-                    ),
-                    // Amíg nincs kiválasztva dátum addig ne tudjunk időpontot választani
-                    (tempArriveDate != null && tempLeaveDate != null)
-                        // Ha nincs szabad időpont, akkor tudatjuk.
-                        ? (availableSlots.isNotEmpty
-                            ? buildTimeSlotPicker(availableSlots)
-                            : Text('Ezen a napon nincs szabad időpont'))
-                        : Text(
-                            'Válasszon ki érkezési és távozási dátumot, az időpontok megtekintéséhez'),
-                    const SizedBox(height: 10),
-                    (tempArriveDate != null &&
-                            tempLeaveDate != null &&
-                            tempArriveTime != null)
-                        ? SizedBox(
-                            height: 50,
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              style: ButtonStyle(
-                                  backgroundColor: WidgetStateProperty.all(
-                                      BasePage.defaultColors.primary),
-                                  foregroundColor: WidgetStateProperty.all(
-                                      BasePage.defaultColors.background)),
-                              onPressed: () {
-                                if (tempArriveDate != null &&
-                                    tempLeaveDate != null &&
-                                    tempArriveTime != null) {
-                                  final diff = tempLeaveDate!
-                                      .difference(tempArriveDate!)
-                                      .inDays;
-                                  if (diff < 1) {
-                                    showErrorDialog(context,
-                                        "A választott tartománynak legalább 1 napnak kell lennie.");
-                                    return;
-                                  }
-                                  if (diff > 30) {
-                                    showErrorDialog(context,
-                                        "A választott tartomány legfeljebb 30 nap lehet.");
-                                    return;
-                                  }
-
-                                  final arriveDateTime = DateTime(
-                                    tempArriveDate!.year,
-                                    tempArriveDate!.month,
-                                    tempArriveDate!.day,
-                                    tempArriveTime!.hour,
-                                    tempArriveTime!.minute,
-                                  );
-
-                                  final leaveDateTime = DateTime(
-                                    tempLeaveDate!.year,
-                                    tempLeaveDate!.month,
-                                    tempLeaveDate!.day,
-                                    tempArriveTime!.hour,
-                                    tempArriveTime!.minute,
-                                  );
-
-                                  setState(() {
-                                    selectedArriveDate = arriveDateTime;
-                                    selectedLeaveDate = leaveDateTime;
-                                    selectedArriveTime = tempArriveTime;
-                                    CheckZonesForAvailability();
-                                    UpdateParkingDays();
-                                  });
-
-                                  Navigator.of(context).pop();
-                                }
-                              },
-                              child: const Text("Időpont kiválasztása"),
-                            ),
-                          )
-                        : Container(),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
+      builder: (context) => MyDateRangePickerDialog(
+        initialArriveDate: selectedArriveDate,
+        initialLeaveDate: selectedLeaveDate,
+        initialArriveTime: selectedArriveTime,
+        fullyBookedDateTimes: fullyBookedDateTimes,
+        onDateSelected: (arriveDate, leaveDate, arriveTime) {
+          setState(() {
+            selectedArriveDate = arriveDate;
+            selectedLeaveDate = leaveDate;
+            selectedArriveTime = arriveTime;
+            CheckZonesForAvailability();
+            UpdateParkingDays();
+          });
+        },
+      ),
+    ).then((_) {
+      // A dialógus bezárása után fókusz átadása
+      FocusScope.of(context).requestFocus(transferFocus);
+    });
   }
 
   void OnNextPageButtonPressed() async {
@@ -825,43 +542,62 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   }
 
   Widget buildDatePickerRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
       children: [
-        MyIconButton(
-          icon: Icons.calendar_month_rounded,
-          labelText: "Válassz dátumot",
-          focusNode: datePickerFocus,
-          onPressed: () {
-            ShowDatePickerDialog();
-            FocusScope.of(context).requestFocus(transferFocus);
-          },
-        ),
-        Expanded(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Column(
-                children: [
-                  Text('Érkezés'),
-                  Text(selectedArriveDate != null
-                      ? DateFormat('yyyy.MM.dd HH:mm')
-                          .format(selectedArriveDate!)
-                      : "-")
-                ],
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            MyIconButton(
+              icon: Icons.calendar_month_rounded,
+              labelText: "Válassz dátumot",
+              focusNode: datePickerFocus,
+              onPressed: showDatePickerDialog,
+            ),
+            if (Responsive.isDesktop(context))
+              MyIconButton(
+                textColor: BasePage.defaultColors.primary,
+                backgroundColor: BasePage.defaultColors.background,
+                icon: Icons.flight_takeoff_rounded,
+                labelText:
+                    "Érkezés: ${selectedArriveDate != null ? DateFormat('yyyy.MM.dd HH:mm').format(selectedArriveDate!) : "-"}",
+                onPressed: showDatePickerDialog,
               ),
-              Column(
-                children: [
-                  Text('Távozás'),
-                  Text(selectedLeaveDate != null
-                      ? DateFormat('yyyy.MM.dd HH:mm')
-                          .format(selectedLeaveDate!)
-                      : "-")
-                ],
+            if (Responsive.isDesktop(context))
+              MyIconButton(
+                textColor: BasePage.defaultColors.primary,
+                backgroundColor: BasePage.defaultColors.background,
+                icon: Icons.flight_land_rounded,
+                labelText:
+                    "Távozás: ${selectedLeaveDate != null ? DateFormat('yyyy.MM.dd HH:mm').format(selectedLeaveDate!) : "-"}",
+                onPressed: showDatePickerDialog,
               ),
-            ],
-          ),
+          ],
         ),
+        // if (Responsive.isMobile(context)) SizedBox(height: AppPadding.medium),
+        // if (Responsive.isMobile(context) &&
+        //     selectedArriveDate != null &&
+        //     selectedLeaveDate != null)
+        //   Row(
+        //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        //     children: [
+        //       MyIconButton(
+        //         textColor: BasePage.defaultColors.primary,
+        //         backgroundColor: BasePage.defaultColors.background,
+        //         icon: Icons.flight_takeoff_rounded,
+        //         labelText:
+        //             "Érkezés: ${selectedArriveDate != null ? DateFormat('yyyy.MM.dd HH:mm').format(selectedArriveDate!) : "-"}",
+        //         onPressed: showDatePickerDialog,
+        //       ),
+        //       MyIconButton(
+        //         textColor: BasePage.defaultColors.primary,
+        //         backgroundColor: BasePage.defaultColors.background,
+        //         icon: Icons.flight_land_rounded,
+        //         labelText:
+        //             "Távozás: ${selectedLeaveDate != null ? DateFormat('yyyy.MM.dd HH:mm').format(selectedLeaveDate!) : "-"}",
+        //         onPressed: showDatePickerDialog,
+        //       ),
+        //     ],
+        //   )
       ],
     );
   }

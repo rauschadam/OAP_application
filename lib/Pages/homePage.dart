@@ -518,7 +518,7 @@ class _HomePageState extends State<HomePage> {
 
     fetchData();
     // percenként frissítjük a foglalásokat
-    refreshTimer = Timer.periodic(Duration(minutes: 1), (_) {
+    refreshTimer = Timer.periodic(Duration(minutes: 5), (_) {
       fetchData();
       setState(() {
         now = DateTime.now();

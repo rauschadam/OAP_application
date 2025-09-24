@@ -74,9 +74,19 @@ class _MyDateRangePickerDialogState extends State<MyDateRangePickerDialog> {
           }
         }
 
+        // Szűrjük ki az üres listákat
+        final nonEmptyZoneTimes = widget.fullyBookedDateTimes.values
+            .where((zoneTimes) => zoneTimes.isNotEmpty)
+            .toList();
+
+        // Ha nincs egyáltalán foglalt időpont, minden elérhető
+        if (nonEmptyZoneTimes.isEmpty) {
+          return true;
+        }
+
         // Ellenőrizzük, hogy az adott időpont foglalt-e (érkezés napján)
-        bool isArriveFullyBookedEverywhere = widget.fullyBookedDateTimes.values
-            .every((zoneTimes) => zoneTimes.every((d) =>
+        bool isArriveFullyBookedEverywhere = nonEmptyZoneTimes.every(
+            (zoneTimes) => zoneTimes.every((d) =>
                 d.year == (tempArriveDate?.year ?? 0) &&
                 d.month == (tempArriveDate?.month ?? 0) &&
                 d.day == (tempArriveDate?.day ?? 0) &&
@@ -84,8 +94,8 @@ class _MyDateRangePickerDialogState extends State<MyDateRangePickerDialog> {
                 d.minute == time.minute));
 
         // Ellenőrizzük, hogy az adott időpont foglalt-e (távozás napján)
-        bool isLeaveFullyBookedEverywhere = widget.fullyBookedDateTimes.values
-            .every((zoneTimes) => zoneTimes.every((d) =>
+        bool isLeaveFullyBookedEverywhere = nonEmptyZoneTimes.every(
+            (zoneTimes) => zoneTimes.every((d) =>
                 d.year == (tempLeaveDate?.year ?? 0) &&
                 d.month == (tempLeaveDate?.month ?? 0) &&
                 d.day == (tempLeaveDate?.day ?? 0) &&

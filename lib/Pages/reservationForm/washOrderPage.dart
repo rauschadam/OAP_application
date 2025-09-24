@@ -1,8 +1,8 @@
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/Pages/reservationForm/invoiceOptionPage.dart';
-import 'package:airport_test/constants/constant_functions.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/car_wash_selection_card.dart';
+import 'package:airport_test/constants/widgets/my_date_picker_dialog.dart';
 import 'package:airport_test/constants/widgets/my_icon_button.dart';
 import 'package:airport_test/constants/widgets/my_radio_list_tile.dart';
 import 'package:airport_test/constants/widgets/my_text_form_field.dart';
@@ -11,7 +11,6 @@ import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/constants/enums/parkingFormEnums.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class WashOrderPage extends StatefulWidget with PageWithTitle {
   @override
@@ -230,240 +229,25 @@ class WashOrderPageState extends State<WashOrderPage> {
   }
 
   /// Dátum választó pop-up dialog
-  void ShowDatePickerDialog() {
-    tempWashDate = selectedWashDate;
-
-    Map<String, int> hoveredIndexMap = {
-      "Hajnal": -1,
-      "Reggel": -1,
-      "Nap": -1,
-      "Este": -1,
-      "Éjszaka": -1,
-    };
-
+  /// Időpont választó dialógus a parkolási intervallum kiválasztásához.
+  void showDatePickerDialog() {
     showDialog(
       context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setStateDialog) {
-            final allSlots = generateHalfHourTimeSlots();
-            final today = DateTime.now();
-            final currentTime = TimeOfDay.fromDateTime(today);
-
-            // időpont választó kártyák widgetje
-            Widget buildTimeSlotPicker(List<TimeOfDay> slots) {
-              Map<String, List<TimeOfDay>> groupedSlots = {
-                "Hajnal": [],
-                "Reggel": [],
-                "Nappal": [],
-                "Este": [],
-                "Éjszaka": [],
-              };
-
-              for (var time in slots) {
-                if (time.hour < 6) {
-                  groupedSlots["Hajnal"]!.add(time);
-                } else if (time.hour >= 6 && time.hour < 12) {
-                  groupedSlots["Reggel"]!.add(time);
-                } else if (time.hour >= 12 && time.hour < 18) {
-                  groupedSlots["Nappal"]!.add(time);
-                } else if (time.hour >= 18 && time.hour < 22) {
-                  groupedSlots["Este"]!.add(time);
-                } else {
-                  groupedSlots["Éjszaka"]!.add(time);
-                }
-              }
-
-              return Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  child: Column(
-                    children: groupedSlots.entries
-                        .where((entry) => entry.value.isNotEmpty)
-                        .map((entry) {
-                      return Theme(
-                        data: Theme.of(context).copyWith(
-                          dividerColor: Colors.transparent,
-                          splashColor: Colors.transparent,
-                          highlightColor: Colors.transparent,
-                          hoverColor: Colors.transparent,
-                        ),
-                        child: ExpansionTile(
-                          iconColor: Colors.grey.shade700,
-                          title: Text(entry.key,
-                              style: TextStyle(
-                                color: Colors.grey.shade700,
-                              )),
-                          initiallyExpanded: true,
-                          children: [
-                            GridView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 4,
-                                mainAxisSpacing: 8,
-                                crossAxisSpacing: 8,
-                                childAspectRatio: 3,
-                              ),
-                              itemCount: entry.value.length,
-                              itemBuilder: (context, index) {
-                                final time = entry.value[index];
-                                bool isSelected = selectedWashTime == time;
-                                bool isHovered =
-                                    hoveredIndexMap[entry.key] == index;
-
-                                Color cardColor;
-                                if (isSelected) {
-                                  cardColor = BasePage.defaultColors.primary;
-                                } else if (isHovered) {
-                                  cardColor = Colors.grey.shade400;
-                                } else {
-                                  cardColor = Colors.grey.shade300;
-                                }
-
-                                return MouseRegion(
-                                  onEnter: (_) {
-                                    setStateDialog(() {
-                                      hoveredIndexMap[entry.key] = index;
-                                    });
-                                  },
-                                  onExit: (_) {
-                                    setStateDialog(() {
-                                      hoveredIndexMap[entry.key] = -1;
-                                    });
-                                  },
-                                  cursor: SystemMouseCursors.click,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setStateDialog(() {
-                                        selectedWashTime = time;
-                                      });
-                                    },
-                                    child: Card(
-                                      elevation: 0,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                            AppBorderRadius.large),
-                                      ),
-                                      color: cardColor,
-                                      child: Center(
-                                        child: Text(
-                                          time.format(context),
-                                          style: TextStyle(
-                                            color: isSelected
-                                                ? Colors.white
-                                                : Colors.black,
-                                            fontWeight: isSelected
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              );
-            }
-
-            return Dialog(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppBorderRadius.medium)),
-              child: Container(
-                width: 600,
-                height: 800,
-                padding: const EdgeInsets.all(AppPadding.medium),
-                child: Column(
-                  children: [
-                    SfDateRangePicker(
-                      initialDisplayDate: selectedWashDate,
-                      initialSelectedDate: selectedWashDate,
-                      selectionMode: DateRangePickerSelectionMode.single,
-                      todayHighlightColor: BasePage.defaultColors.primary,
-                      selectionColor: BasePage.defaultColors.primary,
-                      showNavigationArrow: true,
-                      enablePastDates: false,
-                      maxDate: DateTime.now().add(const Duration(days: 120)),
-                      onSelectionChanged: (args) {
-                        if (args.value is DateTime) {
-                          setStateDialog(() {
-                            tempWashDate = args.value;
-
-                            availableSlots = allSlots.where((time) {
-                              if (tempWashDate != null &&
-                                  tempWashDate!.year == today.year &&
-                                  tempWashDate!.month == today.month &&
-                                  tempWashDate!.day == today.day) {
-                                if (time.hour < currentTime.hour ||
-                                    (time.hour == currentTime.hour &&
-                                        time.minute <= currentTime.minute)) {
-                                  return false;
-                                }
-                              }
-
-                              bool isBooked = fullyBookedDateTimes.any((d) =>
-                                  d.year == (tempWashDate?.year ?? 0) &&
-                                  d.month == (tempWashDate?.month ?? 0) &&
-                                  d.day == (tempWashDate?.day ?? 0) &&
-                                  d.hour == time.hour &&
-                                  d.minute == time.minute);
-
-                              return !isBooked;
-                            }).toList();
-                          });
-                        }
-                      },
-                    ),
-                    tempWashDate != null
-                        ? buildTimeSlotPicker(availableSlots)
-                        : Text(
-                            'Válasszon ki mosási dátumot, az időpontok megtekintéséhez'),
-                    const SizedBox(height: 10),
-                    (tempWashDate != null && selectedWashTime != null)
-                        ? SizedBox(
-                            height: 50,
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              style: ButtonStyle(
-                                  backgroundColor: WidgetStateProperty.all(
-                                      BasePage.defaultColors.primary),
-                                  foregroundColor: WidgetStateProperty.all(
-                                      BasePage.defaultColors.background)),
-                              onPressed: () {
-                                final arriveDateTime = DateTime(
-                                  tempWashDate!.year,
-                                  tempWashDate!.month,
-                                  tempWashDate!.day,
-                                  selectedWashTime!.hour,
-                                  selectedWashTime!.minute,
-                                );
-
-                                setState(() {
-                                  selectedWashDate = arriveDateTime;
-                                });
-
-                                Navigator.of(context).pop();
-                              },
-                              child: const Text("Időpont kiválasztása"),
-                            ),
-                          )
-                        : Container()
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
+      builder: (context) => MyDatePickerDialog(
+        initialWashDate: selectedWashDate,
+        initialWashTime: selectedWashTime,
+        fullyBookedDateTimes: fullyBookedDateTimes,
+        onDateSelected: (washDate, washTime) {
+          setState(() {
+            selectedWashDate = washDate;
+            selectedWashTime = washTime;
+          });
+        },
+      ),
+    ).then((_) {
+      // A dialógus bezárása után fókusz átadása
+      //FocusScope.of(context).requestFocus(transferFocus);
+    });
   }
 
   void OnNextPageButtonPressed() async {
@@ -625,7 +409,7 @@ class WashOrderPageState extends State<WashOrderPage> {
         MyIconButton(
             icon: Icons.calendar_month_rounded,
             labelText: 'Válassz dátumot',
-            onPressed: ShowDatePickerDialog),
+            onPressed: showDatePickerDialog),
         const SizedBox(width: 50),
         Column(
           children: [

@@ -5,7 +5,7 @@ import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/my_checkbox.dart';
 import 'package:airport_test/constants/widgets/my_icon_button.dart';
 import 'package:airport_test/constants/widgets/my_radio_list_tile.dart';
-import 'package:airport_test/constants/widgets/my_sf_date_range_picker.dart';
+import 'package:airport_test/constants/widgets/my_date_range_picker_dialog.dart';
 import 'package:airport_test/constants/widgets/my_text_form_field.dart';
 import 'package:airport_test/constants/widgets/next_page_button.dart';
 import 'package:airport_test/constants/widgets/parking_zone_selection_card.dart';

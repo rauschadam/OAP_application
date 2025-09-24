@@ -249,10 +249,6 @@ class ParkOrderPageState extends State<ParkOrderPage> {
 
   /// Zónánként ellenőrzi, hogy van-e tiltott időpont az intervallumban
   Map<String, bool> CheckZonesForAvailability() {
-    if (tempArriveDate == null || tempLeaveDate == null) {
-      return {};
-    }
-
     /// Az érkezési és távozási időpont
     DateTime startDateTime = DateTime(
       selectedArriveDate!.year,

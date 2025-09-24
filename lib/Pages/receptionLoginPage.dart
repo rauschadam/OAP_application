@@ -77,7 +77,7 @@ class _ReceptionLoginPageState extends State<ReceptionLoginPage> {
           const SnackBar(content: Text('Sikertelen Bejelentkezés!')),
         );
       } else {
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (_) => BasePage(

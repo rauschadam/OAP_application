@@ -507,6 +507,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           );
+          dispose(); // Megszüntetjük a frissítést, mert különben a timer tovább fut
         },
       ),
     );
@@ -518,7 +519,7 @@ class _HomePageState extends State<HomePage> {
 
     fetchData();
     // percenként frissítjük a foglalásokat
-    refreshTimer = Timer.periodic(Duration(minutes: 5), (_) {
+    refreshTimer = Timer.periodic(Duration(seconds: 5), (_) {
       fetchData();
       setState(() {
         now = DateTime.now();

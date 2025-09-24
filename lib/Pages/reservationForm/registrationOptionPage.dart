@@ -103,6 +103,7 @@ class _RegistrationOptionPageState extends State<RegistrationOptionPage> {
             alreadyRegistered: false,
             withoutRegistration: false,
           ),
+          pushReplacement: false,
         );
       case RegistrationOption.registered:
         return NextPageButton(
@@ -111,6 +112,7 @@ class _RegistrationOptionPageState extends State<RegistrationOptionPage> {
             alreadyRegistered: true,
             withoutRegistration: false,
           ),
+          pushReplacement: false,
         );
       case RegistrationOption.withoutRegistration:
         return NextPageButton(
@@ -119,6 +121,7 @@ class _RegistrationOptionPageState extends State<RegistrationOptionPage> {
             alreadyRegistered: false,
             withoutRegistration: true,
           ),
+          pushReplacement: false,
         );
     }
   }

@@ -28,6 +28,7 @@ class _ReservationOptionPageState extends State<ReservationOptionPage> {
           nextPage: RegistrationOptionPage(
             bookingOption: selectedBookingOption,
           ),
+          pushReplacement: false,
         ),
       ],
     );

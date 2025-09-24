@@ -112,7 +112,6 @@ class _InvoiceOptionPageState extends State<InvoiceOptionPage> {
             submitReservation();
           },
           nextPage: HomePage(),
-          showBackButton: false,
         )
       ],
     );

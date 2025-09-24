@@ -121,6 +121,7 @@ class _LoginPageState extends State<LoginPage> {
             NextPageButton(
               focusNode: nextPageButtonFocus,
               onPressed: OnNextPageButtonPressed,
+              pushReplacement: false,
             ),
           ],
         ),

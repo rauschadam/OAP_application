@@ -7,7 +7,7 @@ class NextPageButton extends StatelessWidget {
   final Widget? nextPage;
   final VoidCallback? onPressed;
   final FocusNode? focusNode;
-  final bool showBackButton;
+  final bool pushReplacement;
 
   const NextPageButton({
     super.key,
@@ -15,7 +15,7 @@ class NextPageButton extends StatelessWidget {
     this.nextPage,
     this.onPressed,
     this.focusNode,
-    this.showBackButton = true,
+    this.pushReplacement = true,
   });
 
   @override
@@ -37,14 +37,26 @@ class NextPageButton extends StatelessWidget {
               onPressed!();
             }
             if (nextPage != null) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => BasePage(
-                          colors: BasePage.defaultColors,
-                          child: nextPage!,
-                        )),
-              );
+              if (pushReplacement) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => BasePage(
+                            colors: BasePage.defaultColors,
+                            child: nextPage!,
+                          )),
+                );
+                return;
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => BasePage(
+                            colors: BasePage.defaultColors,
+                            child: nextPage!,
+                          )),
+                );
+              }
             }
           },
           child: Text(

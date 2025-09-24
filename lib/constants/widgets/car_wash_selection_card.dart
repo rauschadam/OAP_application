@@ -8,15 +8,14 @@ class CarWashSelectionCard extends StatelessWidget {
   final int washCost;
   final bool selected;
   final VoidCallback onTap;
-  final bool available;
 
-  const CarWashSelectionCard(
-      {super.key,
-      required this.title,
-      required this.washCost,
-      required this.selected,
-      required this.onTap,
-      this.available = true});
+  const CarWashSelectionCard({
+    super.key,
+    required this.title,
+    required this.washCost,
+    required this.selected,
+    required this.onTap,
+  });
 
   void ShowUnavailableZoneDialog(BuildContext context) {
     showDialog(
@@ -47,11 +46,7 @@ class CarWashSelectionCard extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(AppBorderRadius.medium),
       onTap: () {
-        if (available) {
-          onTap();
-        } else {
-          ShowUnavailableZoneDialog(context);
-        }
+        onTap();
       },
       child: Container(
         padding: const EdgeInsets.all(AppPadding.medium),
@@ -71,43 +66,40 @@ class CarWashSelectionCard extends StatelessWidget {
             ),
           ],
         ),
-        child: Opacity(
-          opacity: available ? 1.0 : 0.3,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                height: 30,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: AppPadding.small,
-                    vertical: AppPadding.extraSmall),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(AppBorderRadius.small),
-                  color: selected
-                      ? BasePage.defaultColors.secondary
-                      : Colors.grey[200],
-                ),
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: selected
-                        ? BasePage.defaultColors.primary
-                        : Colors.black54,
-                  ),
-                ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: 30,
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppPadding.small,
+                  vertical: AppPadding.extraSmall),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AppBorderRadius.small),
+                color: selected
+                    ? BasePage.defaultColors.secondary
+                    : Colors.grey[200],
               ),
-              const SizedBox(height: 16),
-              Text(
-                "$formattedWashCost Ft",
+              child: Text(
+                title,
                 style: TextStyle(
-                  fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: selected
+                      ? BasePage.defaultColors.primary
+                      : Colors.black54,
                 ),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              "$formattedWashCost Ft",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+          ],
         ),
       ),
     );

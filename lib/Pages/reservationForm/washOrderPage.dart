@@ -99,14 +99,11 @@ class WashOrderPageState extends State<WashOrderPage> {
   List<dynamic>? serviceTemplates;
 
   /// Teljes időpontos foglalt időpontok
-  Map<String, List<DateTime>> fullyBookedDateTimes =
-      {}; // parkoló zóna ArticleId -> telített időpont
+  List<DateTime> fullyBookedDateTimes =
+      []; // parkoló zóna ArticleId -> telített időpont
 
   /// A teljes fizetendő összeg
   int totalCost = 0;
-
-  /// ArticleId -> Elérhető-e?
-  Map<String, bool> zoneAvailability = {};
 
   /// A megadott napon elérhető időpontok
   List<TimeOfDay> availableSlots = [];
@@ -137,13 +134,13 @@ class WashOrderPageState extends State<WashOrderPage> {
       setState(() {
         serviceTemplates = data;
         fullyBookedDateTimes =
-            mapBookedDateTimesByZones(reservations!, serviceTemplates!);
+            listFullyBookedDateTimes(reservations!, serviceTemplates!);
       });
     }
   }
 
-  // Mosó zóna -> telített időpontok
-  Map<String, List<DateTime>> mapBookedDateTimesByZones(
+  /// telített időpontok
+  List<DateTime> listFullyBookedDateTimes(
       List<dynamic> reservations, List<dynamic> serviceTemplates) {
     // Kiveszi a zónák kapacitását a Templates-ekből
     final Map<String, int> zoneCapacities = {}; // parkoló zóna -> kapacitás
@@ -157,12 +154,10 @@ class WashOrderPageState extends State<WashOrderPage> {
     }
 
     // időpont számláló zónánként
-    Map<String, Map<DateTime, int>> counters =
-        {}; // parkoló zóna -> (egy időpont hányszor szerepel)
+    Map<String, Map<DateTime, int>> counters = {};
 
     for (var reservation in reservations) {
       final carWashArticleId = reservation['CarWashArticleId'];
-
       if (carWashArticleId == null) continue;
 
       final washDateTime = DateTime.parse(reservation['WashDateTime']);
@@ -182,20 +177,22 @@ class WashOrderPageState extends State<WashOrderPage> {
           (counters[carWashArticleId]![current] ?? 0) + 1;
     }
 
-    /// Parkoló zóna -> telített időpontok
-    Map<String, List<DateTime>> fullyBookedDateTimesByZone = {};
+    // Összes foglalt időpont (ha bármelyik zóna tele van)
+    Set<DateTime> fullyBookedDateTimes = {};
 
     counters.forEach((washingArticleId, counter) {
       if (washingArticleId != "") {
         final capacity = zoneCapacities[washingArticleId];
-        fullyBookedDateTimesByZone[washingArticleId] = counter.entries
+        // Ha egy zóna tele van, az az időpont foglalt mindenkinek
+        counter.entries
             .where((entry) => entry.value >= capacity!)
-            .map((entry) => entry.key)
-            .toList();
+            .forEach((entry) {
+          fullyBookedDateTimes.add(entry.key);
+        });
       }
     });
 
-    return fullyBookedDateTimesByZone;
+    return fullyBookedDateTimes.toList();
   }
 
   /// Kiválasztott parkolózóna napijegy ára
@@ -230,39 +227,6 @@ class WashOrderPageState extends State<WashOrderPage> {
     setState(() {
       totalCost = baseCost;
     });
-  }
-
-  /// Zónánként ellenőrzi, hogy van-e tiltott időpont az intervallumban
-  Map<String, bool> CheckZonesForAvailability() {
-    if (tempWashDate == null) {
-      return {};
-    }
-
-    /// Az érkezési és távozási időpont
-    DateTime washDateTime = DateTime(
-      selectedWashDate!.year,
-      selectedWashDate!.month,
-      selectedWashDate!.day,
-      selectedWashTime!.hour,
-      selectedWashTime!.minute,
-    );
-
-    fullyBookedDateTimes.forEach((carWashArticleId, zoneTimes) {
-      final hasForbidden = zoneTimes.any((d) {
-        return d == washDateTime;
-      });
-
-      // Ha van tiltott időpont -> false, különben true
-      zoneAvailability[carWashArticleId] = !hasForbidden;
-
-      // Ha a kijelölt zóna foglalt lett, kinullázzuk
-      if (carWashArticleId == selectedCarWashArticleId &&
-          !zoneAvailability[carWashArticleId]!) {
-        selectedCarWashArticleId = null;
-      }
-    });
-
-    return zoneAvailability;
   }
 
   /// Dátum választó pop-up dialog
@@ -445,13 +409,12 @@ class WashOrderPageState extends State<WashOrderPage> {
                                 }
                               }
 
-                              bool isBooked = fullyBookedDateTimes.values.any(
-                                  (listOfDates) => listOfDates.any((d) =>
-                                      d.year == (tempWashDate?.year ?? 0) &&
-                                      d.month == (tempWashDate?.month ?? 0) &&
-                                      d.day == (tempWashDate?.day ?? 0) &&
-                                      d.hour == time.hour &&
-                                      d.minute == time.minute));
+                              bool isBooked = fullyBookedDateTimes.any((d) =>
+                                  d.year == (tempWashDate?.year ?? 0) &&
+                                  d.month == (tempWashDate?.month ?? 0) &&
+                                  d.day == (tempWashDate?.day ?? 0) &&
+                                  d.hour == time.hour &&
+                                  d.minute == time.minute);
 
                               return !isBooked;
                             }).toList();
@@ -694,7 +657,7 @@ class WashOrderPageState extends State<WashOrderPage> {
                   });
                   CalculateTotalCost();
                 },
-                zoneAvailability: zoneAvailability),
+              ),
         const SizedBox(height: 10),
       ],
     );
@@ -705,7 +668,6 @@ class WashOrderPageState extends State<WashOrderPage> {
     required List<dynamic> serviceTemplates,
     required String? selectedCarWashArticleId,
     required Function(String) onZoneSelected,
-    required Map<String, bool> zoneAvailability,
   }) {
     final washingZones = serviceTemplates
         .where((s) => s['ParkingServiceType'] == 2)
@@ -725,8 +687,6 @@ class WashOrderPageState extends State<WashOrderPage> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: washingZones.map((zone) {
             final String articleId = zone['ArticleId'];
-            final isAvailable = zoneAvailability[articleId] ??
-                true; // ha nincs benne, akkor true
             final String title = zone['ParkingServiceName'];
 
             return Padding(
@@ -736,7 +696,6 @@ class WashOrderPageState extends State<WashOrderPage> {
                 washCost: getCostForZone(articleId),
                 selected: selectedCarWashArticleId == articleId,
                 onTap: () => onZoneSelected(articleId),
-                available: isAvailable,
               ),
             );
           }).toList(),

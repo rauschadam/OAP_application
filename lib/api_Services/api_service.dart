@@ -163,7 +163,7 @@ class ApiService {
 
   /// Ügyfél érkeztetése
   Future<String?> logCustomerArrival(String? licensePlateNumber) async {
-    final uri = Uri.http(baseUrl, '/service/v1/airport/arriving?');
+    final uri = Uri.http(baseUrl, '/service/v1/airport/arriving');
 
     try {
       final response = await client.post(
@@ -172,7 +172,7 @@ class ApiService {
           'Content-Type': 'application/json',
           'Authorization': '$receptionistToken',
         },
-        body: jsonEncode(licensePlateNumber),
+        body: licensePlateNumber,
       );
 
       if (response.statusCode == 200) {
@@ -189,9 +189,9 @@ class ApiService {
     }
   }
 
-  /// Ügyfél távoztatása
-  Future<String?> logCustomerLeave(String? licensePlateNumber) async {
-    final uri = Uri.http(baseUrl, '/service/v1/airport/leaving?');
+  /// Ügyfél kiléptetése
+  Future<String?> logCustomerLeave(String licensePlateNumber) async {
+    final uri = Uri.http(baseUrl, '/service/v1/airport/leaving');
 
     try {
       final response = await client.post(
@@ -200,14 +200,14 @@ class ApiService {
           'Content-Type': 'application/json',
           'Authorization': '$receptionistToken',
         },
-        body: jsonEncode(licensePlateNumber),
+        body: licensePlateNumber,
       );
 
       if (response.statusCode == 200) {
-        print('Sikeres távoztatás!');
+        print('Sikeres kiléptetés!');
         return null;
       } else {
-        print('Távoztatási hiba: ${response.statusCode}');
+        print('Kiléptetés hiba: ${response.statusCode}');
         print(response.body);
         return null;
       }

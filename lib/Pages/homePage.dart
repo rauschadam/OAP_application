@@ -693,7 +693,7 @@ class _HomePageState extends State<HomePage> {
               child: Text('Mégsem'),
             ),
 
-            // Távoztatás gomb
+            // Kiléptetés gomb
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
@@ -707,7 +707,7 @@ class _HomePageState extends State<HomePage> {
                 backgroundColor: Colors.orange,
                 foregroundColor: Colors.white,
               ),
-              child: Text('Távoztatás'),
+              child: Text('Kiléptetés'),
             ),
 
             // Érkeztetés gomb

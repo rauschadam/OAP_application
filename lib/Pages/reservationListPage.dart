@@ -198,31 +198,8 @@ class _ReservationListPageState extends State<ReservationListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onTapDown: (details) {
-        if (showFilters) {
-          final renderBox = searchContainerKey.currentContext
-              ?.findRenderObject() as RenderBox?;
-          if (renderBox != null) {
-            final position = renderBox.localToGlobal(Offset.zero);
-            final rect = Rect.fromLTWH(
-              position.dx,
-              position.dy,
-              renderBox.size.width,
-              renderBox.size.height,
-            );
-
-            // ha NINCS benne a kattintás
-            if (!rect.contains(details.globalPosition)) {
-              setState(() {
-                showFilters = false;
-              });
-            }
-          }
-        }
-      },
-      child: Padding(
+    return detectClicks(
+      Padding(
         padding: EdgeInsets.symmetric(
             horizontal: AppPadding.xlarge, vertical: AppPadding.large),
         child: Container(
@@ -299,6 +276,35 @@ class _ReservationListPageState extends State<ReservationListPage> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget detectClicks(Widget child) {
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTapDown: (details) {
+        if (showFilters) {
+          final renderBox = searchContainerKey.currentContext
+              ?.findRenderObject() as RenderBox?;
+          if (renderBox != null) {
+            final position = renderBox.localToGlobal(Offset.zero);
+            final rect = Rect.fromLTWH(
+              position.dx,
+              position.dy,
+              renderBox.size.width,
+              renderBox.size.height,
+            );
+
+            // ha NINCS benne a kattintás
+            if (!rect.contains(details.globalPosition)) {
+              setState(() {
+                showFilters = false;
+              });
+            }
+          }
+        }
+      },
+      child: child,
     );
   }
 
@@ -467,6 +473,32 @@ class _ReservationListPageState extends State<ReservationListPage> {
   }
 
   Widget buildSearchBar() {
+    // return MySearchBar(
+    //   searchController: searchController,
+    //   trailingWidgets: Row(
+    //     mainAxisSize: MainAxisSize.min,
+    //     children: [
+    //       VerticalDivider(
+    //         color: BasePage.defaultColors.background,
+    //         width: 8,
+    //         thickness: 1,
+    //       ),
+    //       IconButton(
+    //         onPressed: () {
+    //           setState(() {
+    //             showFilters = !showFilters;
+    //           });
+    //         },
+    //         icon: Icon(
+    //           Icons.filter_list_rounded,
+    //           size: 20,
+    //           color: BasePage.defaultColors.background,
+    //         ),
+    //         constraints: BoxConstraints(),
+    //       ),
+    //     ],
+    //   ),
+    // );
     return SizedBox(
       width: 300,
       height: 35,

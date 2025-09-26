@@ -1,6 +1,7 @@
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/Pages/reservationForm/invoiceOptionPage.dart';
 import 'package:airport_test/Pages/reservationForm/washOrderPage.dart';
+import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/my_checkbox.dart';
 import 'package:airport_test/constants/widgets/my_icon_button.dart';
@@ -11,7 +12,6 @@ import 'package:airport_test/constants/widgets/next_page_button.dart';
 import 'package:airport_test/constants/widgets/parking_zone_selection_card.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/constants/enums/parkingFormEnums.dart';
-import 'package:airport_test/responsive.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -549,7 +549,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
               focusNode: datePickerFocus,
               onPressed: showDatePickerDialog,
             ),
-            if (Responsive.isDesktop(context))
+            if (!isMobileScreen!)
               MyIconButton(
                 textColor: BasePage.defaultColors.primary,
                 backgroundColor: BasePage.defaultColors.background,
@@ -558,7 +558,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                     "Érkezés: ${selectedArriveDate != null ? DateFormat('yyyy.MM.dd HH:mm').format(selectedArriveDate!) : "-"}",
                 onPressed: showDatePickerDialog,
               ),
-            if (Responsive.isDesktop(context))
+            if (!isMobileScreen!)
               MyIconButton(
                 textColor: BasePage.defaultColors.primary,
                 backgroundColor: BasePage.defaultColors.background,
@@ -632,7 +632,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
         Row(
           children: [
             Text('Transzferre váró személyek száma'),
-            SizedBox(width: Responsive.isMobile(context) ? 0 : 16),
+            SizedBox(width: isMobileScreen! ? 0 : 16),
             IconButton.filled(
               onPressed: () {
                 setState(() {
@@ -658,10 +658,10 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                 padding: EdgeInsets.zero,
               ),
             ),
-            SizedBox(width: Responsive.isMobile(context) ? 0 : 8),
+            SizedBox(width: isMobileScreen! ? 0 : 8),
             Text('$transferCount',
                 style: TextStyle(fontWeight: FontWeight.bold)),
-            SizedBox(width: Responsive.isMobile(context) ? 0 : 8),
+            SizedBox(width: isMobileScreen! ? 0 : 8),
             IconButton.filled(
               onPressed: () {
                 setState(() {
@@ -726,7 +726,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
             suitcaseWrappingRequested
                 ? Row(
                     children: [
-                      SizedBox(width: Responsive.isMobile(context) ? 0 : 16),
+                      SizedBox(width: isMobileScreen! ? 0 : 16),
                       IconButton.filled(
                         onPressed: () {
                           setState(() {
@@ -757,10 +757,10 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                           padding: EdgeInsets.zero,
                         ),
                       ),
-                      SizedBox(width: Responsive.isMobile(context) ? 0 : 8),
+                      SizedBox(width: isMobileScreen! ? 0 : 8),
                       Text('$suitcaseWrappingCount',
                           style: TextStyle(fontWeight: FontWeight.bold)),
-                      SizedBox(width: Responsive.isMobile(context) ? 0 : 8),
+                      SizedBox(width: isMobileScreen! ? 0 : 8),
                       IconButton.filled(
                         onPressed: () {
                           setState(() {

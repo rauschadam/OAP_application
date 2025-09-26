@@ -2,3 +2,7 @@
 
 /// Recepciós saját tokenje
 String? receptionistToken;
+
+/// Elindításkor megnézi mobilról van e megnyitva
+/// True -> Mobil | False -> Desktop
+bool? isMobileScreen;

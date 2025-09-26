@@ -172,15 +172,20 @@ class ApiService {
           'Content-Type': 'application/json',
           'Authorization': '$receptionistToken',
         },
-        body: licensePlateNumber,
+        body: jsonEncode(licensePlateNumber),
       );
 
-      if (response.statusCode == 200) {
+      final responseBody = json.decode(response.body);
+      final responseStatusCode = responseBody['responseStatusCode'];
+      final errorMessage = responseBody['responseMessage'];
+
+      if (response.statusCode == 200 && responseStatusCode == 200) {
         print('Sikeres Érkeztetés!');
         return null;
       } else {
-        print('Érkeztetési hiba: ${response.statusCode}');
-        print(response.body);
+        print('Érkeztetési hiba: $responseStatusCode');
+        print("Rendszám: $licensePlateNumber");
+        print(errorMessage);
         return null;
       }
     } catch (e) {
@@ -200,15 +205,20 @@ class ApiService {
           'Content-Type': 'application/json',
           'Authorization': '$receptionistToken',
         },
-        body: licensePlateNumber,
+        body: jsonEncode(licensePlateNumber),
       );
 
-      if (response.statusCode == 200) {
+      final responseBody = json.decode(response.body);
+      final responseStatusCode = responseBody['responseStatusCode'];
+      final errorMessage = responseBody['responseMessage'];
+
+      if (response.statusCode == 200 && responseStatusCode == 200) {
         print('Sikeres kiléptetés!');
         return null;
       } else {
-        print('Kiléptetés hiba: ${response.statusCode}');
-        print(response.body);
+        print('Kiléptetés hiba: $responseStatusCode');
+        print("Rendszám: $licensePlateNumber");
+        print(errorMessage);
         return null;
       }
     } catch (e) {

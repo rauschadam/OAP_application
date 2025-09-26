@@ -12,7 +12,6 @@ import 'package:airport_test/constants/widgets/side_menu.dart';
 import 'package:airport_test/constants/widgets/zone_occupancy_indicator.dart';
 import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/theme.dart';
-import 'package:airport_test/responsive.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -47,7 +46,10 @@ class _HomePageState extends State<HomePage> {
   List<dynamic>? reservations;
 
   /// Keresésésnek megfelelő foglalások
-  List<dynamic>? filteredReservations;
+  //List<dynamic>? filteredReservations;
+
+  /// Keresésnek megfelelő rendszámok listája
+  List<String>? searchResults;
 
   /// Lekérdezett szolgáltatások
   List<dynamic>? serviceTemplates;
@@ -538,15 +540,16 @@ class _HomePageState extends State<HomePage> {
 
     if (query.isEmpty) {
       setState(() {
-        filteredReservations = null;
+        searchResults = null;
       });
       return;
     }
 
     final Set<String> seenPlates = {};
     setState(() {
-      filteredReservations = reservations!.where((reservation) {
-        final licensePlate = reservation['LicensePlate'].toString();
+      searchResults = reservations!
+          .map((reservation) => reservation['LicensePlate'].toString())
+          .where((licensePlate) {
         final matches = licensePlate.contains(query);
         if (matches && !seenPlates.contains(licensePlate)) {
           seenPlates.add(licensePlate);
@@ -557,67 +560,8 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Widget buildSearchBar() {
-    return SizedBox(
-      width: 300,
-      height: 35,
-      child: Theme(
-        data: Theme.of(context).copyWith(
-          textSelectionTheme: TextSelectionThemeData(
-            cursorColor: BasePage.defaultColors.background,
-          ),
-        ),
-        child: SearchBar(
-          focusNode: searchFocus,
-          shadowColor: WidgetStateProperty.all(Colors.transparent),
-          surfaceTintColor: WidgetStateProperty.all(Colors.transparent),
-          backgroundColor:
-              WidgetStateProperty.all(BasePage.defaultColors.primary),
-          hintStyle: WidgetStateProperty.all<TextStyle>(
-            TextStyle(
-              color: BasePage.defaultColors.background.withAlpha(200),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          textStyle: WidgetStateProperty.all<TextStyle>(
-            TextStyle(
-              color: BasePage.defaultColors.background,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          controller: searchController,
-          hintText: 'Keresés...',
-          leading: Icon(
-            Icons.search,
-            size: 20,
-            color: BasePage.defaultColors.background,
-          ),
-          trailing: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (searchController.text.isNotEmpty)
-                  IconButton(
-                    icon: Icon(
-                      Icons.close,
-                      size: 20,
-                      color: BasePage.defaultColors.background,
-                    ),
-                    constraints: BoxConstraints(),
-                    onPressed: () {
-                      searchController.clear();
-                    },
-                  ),
-              ],
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget buildSearchResults() {
-    if (filteredReservations == null || filteredReservations!.isEmpty) {
+    if (searchResults == null || searchResults!.isEmpty) {
       return SizedBox();
     }
 
@@ -627,11 +571,9 @@ class _HomePageState extends State<HomePage> {
         width: 300,
         child: SingleChildScrollView(
           child: Column(
-            children: filteredReservations!.asMap().entries.map((entry) {
+            children: searchResults!.asMap().entries.map((entry) {
               final index = entry.key;
-              final reservation = entry.value;
-              final licensePlate =
-                  reservation['LicensePlate']?.toString() ?? 'Ismeretlen';
+              final licensePlate = entry.value;
 
               return Padding(
                 padding: const EdgeInsets.only(left: AppPadding.small),
@@ -660,7 +602,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       // Divider csak akkor, ha nem az utolsó elem
-                      if (index < filteredReservations!.length - 1)
+                      if (index < searchResults!.length - 1)
                         Divider(
                           height: 1,
                           thickness: 1,
@@ -699,7 +641,7 @@ class _HomePageState extends State<HomePage> {
                 Navigator.of(context).pop();
                 searchController.clear();
                 setState(() {
-                  filteredReservations = null;
+                  searchResults = null;
                 });
                 attemptRegisterLeave(licensePlate);
               },
@@ -716,7 +658,7 @@ class _HomePageState extends State<HomePage> {
                 Navigator.of(context).pop();
                 searchController.clear();
                 setState(() {
-                  filteredReservations = null;
+                  searchResults = null;
                 });
                 attemptRegisterArrival(licensePlate);
               },
@@ -801,12 +743,124 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    if (Responsive.isMobile(context)) {
+    if (isMobileScreen!) {
       return mobileBuild();
     } else {
       return desktopBuild();
     }
   }
+
+  // Widget desktopBuild() {
+  //   return Row(
+  //     children: [
+  //       Expanded(
+  //         flex: 1,
+  //         child: Padding(
+  //           padding: const EdgeInsets.only(right: AppPadding.medium),
+  //           child: buildSideMenu(),
+  //         ),
+  //       ),
+  //       Expanded(
+  //         flex: 4,
+  //         child: Padding(
+  //           padding: const EdgeInsets.all(AppPadding.medium),
+  //           child: Column(
+  //             children: [
+  //               Padding(
+  //                 padding: const EdgeInsets.only(top: AppPadding.medium),
+  //                 child: Align(
+  //                   alignment: Alignment.centerLeft,
+  //                   child: SearchBarContainer(
+  //                     searchContainerKey: searchContainerKey,
+  //                     transparency: searchFocus.hasFocus &&
+  //                         searchController.value.text.isNotEmpty,
+  //                     children: [
+  //                       MySearchBar(
+  //                         searchController: searchController,
+  //                         searchFocus: searchFocus,
+  //                       ),
+  //                       buildSearchResults(),
+  //                     ],
+  //                   ),
+  //                 ),
+  //               ),
+  //               Expanded(
+  //                 child: Column(
+  //                   mainAxisAlignment: MainAxisAlignment.end,
+  //                   children: [
+  //                     Padding(
+  //                       padding: EdgeInsets.only(bottom: AppPadding.small),
+  //                       child: newReservationButton(),
+  //                     ),
+  //                     Flexible(
+  //                       child: Padding(
+  //                         padding: EdgeInsets.only(bottom: AppPadding.medium),
+  //                         child: Container(
+  //                           decoration: BoxDecoration(
+  //                               borderRadius: BorderRadius.circular(
+  //                                   AppBorderRadius.medium),
+  //                               color: BasePage.defaultColors.secondary),
+  //                           child: Column(
+  //                             mainAxisSize: MainAxisSize.min,
+  //                             mainAxisAlignment: MainAxisAlignment.end,
+  //                             children: [
+  //                               Container(
+  //                                 constraints: BoxConstraints(maxHeight: 300),
+  //                                 child: buildTodoList(
+  //                                     listTitle: 'Ma',
+  //                                     reservations: reservations,
+  //                                     startTime: now,
+  //                                     endTime:
+  //                                         DateTime(now.year, now.month, now.day)
+  //                                             .add(const Duration(days: 1))),
+  //                               ),
+  //                               Container(
+  //                                 constraints: BoxConstraints(maxHeight: 300),
+  //                                 child: buildTodoList(
+  //                                     listTitle: 'Holnap',
+  //                                     reservations: reservations,
+  //                                     startTime:
+  //                                         DateTime(now.year, now.month, now.day)
+  //                                             .add(const Duration(days: 1)),
+  //                                     endTime:
+  //                                         DateTime(now.year, now.month, now.day)
+  //                                             .add(const Duration(days: 2))),
+  //                               ),
+  //                             ],
+  //                           ),
+  //                         ),
+  //                       ),
+  //                     ),
+  //                   ],
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       ),
+  //       Expanded(
+  //         flex: 2,
+  //         child: Padding(
+  //           padding: EdgeInsets.all(AppPadding.medium),
+  //           child: Column(
+  //             children: [
+  //               buildZoneOccupancyIndicators(
+  //                 serviceTemplates: serviceTemplates,
+  //                 zoneCounters: zoneCounters,
+  //                 parkingServiceType: 1,
+  //               ),
+  //               SizedBox(height: AppPadding.medium),
+  //               Flexible(
+  //                 child: buildFullyBookedTimeList(
+  //                     fullyBookedDateTimes: fullyBookedDateTimes),
+  //               )
+  //             ],
+  //           ),
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
 
   Widget desktopBuild() {
     return Row(
@@ -820,77 +874,91 @@ class _HomePageState extends State<HomePage> {
         ),
         Expanded(
           flex: 4,
-          child: Padding(
-            padding: const EdgeInsets.all(AppPadding.medium),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: AppPadding.medium),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: SearchBarContainer(
-                      searchContainerKey: searchContainerKey,
-                      transparency: searchFocus.hasFocus &&
-                          searchController.value.text.isNotEmpty,
-                      children: [
-                        buildSearchBar(),
-                        buildSearchResults(),
-                      ],
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(bottom: AppPadding.small),
-                        child: newReservationButton(),
-                      ),
-                      Flexible(
-                        child: Padding(
-                          padding: EdgeInsets.only(bottom: AppPadding.medium),
-                          child: Container(
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(
-                                    AppBorderRadius.medium),
-                                color: BasePage.defaultColors.secondary),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Container(
-                                  constraints: BoxConstraints(maxHeight: 300),
-                                  child: buildTodoList(
-                                      listTitle: 'Ma',
-                                      reservations: reservations,
-                                      startTime: now,
-                                      endTime:
-                                          DateTime(now.year, now.month, now.day)
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(AppPadding.medium),
+                child: Column(
+                  children: [
+                    // // Üres hely a search bar számára
+                    // SizedBox(
+                    //     height: 60), // A search bar magasságának megfelelő hely
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(bottom: AppPadding.small),
+                            child: newReservationButton(),
+                          ),
+                          Flexible(
+                            child: Padding(
+                              padding:
+                                  EdgeInsets.only(bottom: AppPadding.medium),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(
+                                        AppBorderRadius.medium),
+                                    color: BasePage.defaultColors.secondary),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Container(
+                                      constraints:
+                                          BoxConstraints(maxHeight: 300),
+                                      child: buildTodoList(
+                                          listTitle: 'Ma',
+                                          reservations: reservations,
+                                          startTime: now,
+                                          endTime: DateTime(
+                                                  now.year, now.month, now.day)
                                               .add(const Duration(days: 1))),
-                                ),
-                                Container(
-                                  constraints: BoxConstraints(maxHeight: 300),
-                                  child: buildTodoList(
-                                      listTitle: 'Holnap',
-                                      reservations: reservations,
-                                      startTime:
-                                          DateTime(now.year, now.month, now.day)
+                                    ),
+                                    Container(
+                                      constraints:
+                                          BoxConstraints(maxHeight: 300),
+                                      child: buildTodoList(
+                                          listTitle: 'Holnap',
+                                          reservations: reservations,
+                                          startTime: DateTime(
+                                                  now.year, now.month, now.day)
                                               .add(const Duration(days: 1)),
-                                      endTime:
-                                          DateTime(now.year, now.month, now.day)
+                                          endTime: DateTime(
+                                                  now.year, now.month, now.day)
                                               .add(const Duration(days: 2))),
+                                    ),
+                                  ],
                                 ),
-                              ],
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+
+              // Search bar a középső oszlop tetején
+              Positioned(
+                top: AppPadding.medium,
+                left: AppPadding.medium,
+                //right: AppPadding.medium,
+                child: SearchBarContainer(
+                  searchContainerKey: searchContainerKey,
+                  transparency: searchFocus.hasFocus &&
+                      searchController.value.text.isNotEmpty,
+                  children: [
+                    MySearchBar(
+                      searchController: searchController,
+                      searchFocus: searchFocus,
+                    ),
+                    buildSearchResults(),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
         Expanded(

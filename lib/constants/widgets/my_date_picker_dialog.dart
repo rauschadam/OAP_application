@@ -1,7 +1,7 @@
 import 'package:airport_test/constants/constant_functions.dart';
+import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
-import 'package:airport_test/responsive.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
@@ -130,10 +130,10 @@ class _MyDatePickerDialogState extends State<MyDatePickerDialog> {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: Responsive.isMobile(context) ? 3 : 4,
+                      crossAxisCount: isMobileScreen! ? 3 : 4,
                       mainAxisSpacing: 8,
-                      crossAxisSpacing: Responsive.isMobile(context) ? 2 : 8,
-                      childAspectRatio: Responsive.isMobile(context) ? 2.2 : 3,
+                      crossAxisSpacing: isMobileScreen! ? 2 : 8,
+                      childAspectRatio: isMobileScreen! ? 2.2 : 3,
                     ),
                     itemCount: entry.value.length,
                     itemBuilder: (context, index) {

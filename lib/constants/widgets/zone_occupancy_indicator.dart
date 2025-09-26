@@ -33,7 +33,7 @@ class ZoneOccupancyIndicator extends StatelessWidget {
           center: Text(
             "$occupied / $capacity",
             style: const TextStyle(
-              fontSize: 17,
+              fontSize: 15,
               fontWeight: FontWeight.bold,
             ),
           ),

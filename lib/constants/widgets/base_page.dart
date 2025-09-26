@@ -1,3 +1,4 @@
+import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/responsive.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +13,7 @@ class BasePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    isMobileScreen = Responsive.isMobile(context);
     if (colors != null) {
       defaultColors = colors!;
     }
@@ -32,7 +34,7 @@ class BasePage extends StatelessWidget {
       ),
       backgroundColor: defaultColors.background,
       body: Center(
-        child: Responsive.isDesktop(context)
+        child: !isMobileScreen!
             ? Row(
                 children: [
                   (child as PageWithTitle).haveMargins

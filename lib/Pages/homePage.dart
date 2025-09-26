@@ -47,6 +47,8 @@ class _HomePageState extends State<HomePage> {
   /// parkoló zóna article id-> foglalt helyek száma
   Map<String, int> zoneCounters = {};
 
+  bool loading = true;
+
   /// Foglalások és szolgáltatások lekérdezése
   Future<void> fetchData() async {
     final api = ApiService();
@@ -63,6 +65,7 @@ class _HomePageState extends State<HomePage> {
             mapCurrentOccupancyByZones(reservations!, serviceTemplates!);
         fullyBookedDateTimes =
             mapBookedDateTimesByZones(reservations!, serviceTemplates!);
+        loading = false;
       });
     }
   }
@@ -166,7 +169,7 @@ class _HomePageState extends State<HomePage> {
     required Map<String, int> zoneCounters,
     required int parkingServiceType,
   }) {
-    if (serviceTemplates == null) {
+    if (loading) {
       return Padding(
         padding: const EdgeInsets.only(
             top: AppPadding.medium,
@@ -184,7 +187,12 @@ class _HomePageState extends State<HomePage> {
         ),
       );
     }
-    final parkingTemplates = serviceTemplates
+
+    if (!loading && serviceTemplates == null) {
+      return Center(child: Text('Nem találhatóak parkoló zónák'));
+    }
+
+    final parkingTemplates = serviceTemplates!
         .where((t) => t['ParkingServiceType'] == parkingServiceType)
         .toList();
 
@@ -230,7 +238,7 @@ class _HomePageState extends State<HomePage> {
   /// Telített időpontok listáját jeleníti meg
   Widget buildFullyBookedTimeList(
       {required Map<String, List<DateTime>> fullyBookedDateTimes}) {
-    if (fullyBookedDateTimes.isEmpty) {
+    if (loading) {
       return Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppBorderRadius.medium),
@@ -239,6 +247,24 @@ class _HomePageState extends State<HomePage> {
         child: ShimmerPlaceholderTemplate(
           width: double.infinity,
           height: 240,
+        ),
+      );
+    }
+    // Szűrjük ki az üres listákat
+    final nonEmptyZoneTimes = fullyBookedDateTimes.values
+        .where((zoneTimes) => zoneTimes.isNotEmpty)
+        .toList();
+
+    if (nonEmptyZoneTimes.isEmpty) {
+      return Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppBorderRadius.medium),
+          color: BasePage.defaultColors.secondary,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppPadding.medium),
+          child: Text("Nincsenek telített időpontok"),
         ),
       );
     }
@@ -369,9 +395,13 @@ class _HomePageState extends State<HomePage> {
     required String listTitle,
     double? maxHeight,
   }) {
-    if (reservations == null) {
+    if (loading) {
       return ShimmerPlaceholderTemplate(
           width: double.infinity, height: maxHeight ?? double.infinity);
+    }
+
+    if (!loading && reservations == null) {
+      return Center(child: Text('Nem találhatóak foglalások'));
     }
 
     /// Szűrés: csak az adott intervallumban érkező, távozó vagy mosást igénylő foglalások
@@ -391,7 +421,7 @@ class _HomePageState extends State<HomePage> {
       }
     }
 
-    for (var reservation in reservations) {
+    for (var reservation in reservations!) {
       final arriveDate = DateTime.parse(reservation['ArriveDate']);
       final leaveDate = DateTime.parse(reservation['LeaveDate']);
 
@@ -519,7 +549,7 @@ class _HomePageState extends State<HomePage> {
 
     fetchData();
     // percenként frissítjük a foglalásokat
-    refreshTimer = Timer.periodic(Duration(seconds: 5), (_) {
+    refreshTimer = Timer.periodic(Duration(minutes: 5), (_) {
       fetchData();
       setState(() {
         now = DateTime.now();

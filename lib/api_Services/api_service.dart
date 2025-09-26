@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:airport_test/api_services/api_classes/reservation.dart';
 import 'package:airport_test/api_services/api_classes/registration.dart';
+import 'package:airport_test/constants/globals.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
@@ -11,7 +12,7 @@ class ApiService {
     client.close();
   }
 
-  /// Regisztráció
+  /// Ügyfél regisztrációja
   Future<String?> registerUser(Registration registration) async {
     final uri = Uri.http(baseUrl, '/service/v1/airport/registration');
 
@@ -48,7 +49,7 @@ class ApiService {
     }
   }
 
-  /// Bejelentkezés
+  /// Ügyfél bejelentkeztetése
   Future<String?> loginUser(String loginName, String password) async {
     final uri = Uri.http(baseUrl, '/service/v1/auth/login');
 
@@ -77,7 +78,7 @@ class ApiService {
     }
   }
 
-  /// Foglalás
+  /// Foglalás rögzítése
   Future<void> submitReservation(Reservation reservation, String? token) async {
     final uri = Uri.http(baseUrl, '/service/v1/airport/reserve');
 
@@ -158,5 +159,61 @@ class ApiService {
       print('Hálózati hiba: $e');
     }
     return null;
+  }
+
+  /// Ügyfél érkeztetése
+  Future<String?> logCustomerArrival(String? licensePlateNumber) async {
+    final uri = Uri.http(baseUrl, '/service/v1/airport/arriving?');
+
+    try {
+      final response = await client.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '$receptionistToken',
+        },
+        body: jsonEncode(licensePlateNumber),
+      );
+
+      if (response.statusCode == 200) {
+        print('Sikeres Érkeztetés!');
+        return null;
+      } else {
+        print('Érkeztetési hiba: ${response.statusCode}');
+        print(response.body);
+        return null;
+      }
+    } catch (e) {
+      print('Hálózati hiba: $e');
+      return null;
+    }
+  }
+
+  /// Ügyfél távoztatása
+  Future<String?> logCustomerLeave(String? licensePlateNumber) async {
+    final uri = Uri.http(baseUrl, '/service/v1/airport/leaving?');
+
+    try {
+      final response = await client.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '$receptionistToken',
+        },
+        body: jsonEncode(licensePlateNumber),
+      );
+
+      if (response.statusCode == 200) {
+        print('Sikeres távoztatás!');
+        return null;
+      } else {
+        print('Távoztatási hiba: ${response.statusCode}');
+        print(response.body);
+        return null;
+      }
+    } catch (e) {
+      print('Hálózati hiba: $e');
+      return null;
+    }
   }
 }

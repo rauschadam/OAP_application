@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:airport_test/Pages/reservationForm/reservationOptionPage.dart';
 import 'package:airport_test/api_services/api_service.dart';
+import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/my_icon_button.dart';
 import 'package:airport_test/constants/widgets/reservation_list.dart';
@@ -17,8 +18,7 @@ class ReservationListPage extends StatefulWidget with PageWithTitle {
   @override
   bool get haveMargins => false;
 
-  final String? authToken;
-  const ReservationListPage({super.key, required this.authToken});
+  const ReservationListPage({super.key});
 
   @override
   State<ReservationListPage> createState() => _ReservationListPageState();
@@ -56,9 +56,9 @@ class _ReservationListPageState extends State<ReservationListPage> {
   Future<void> fetchData() async {
     final api = ApiService();
     // Foglalások lekérdezése
-    final reservationsData = await api.getReservations(widget.authToken);
+    final reservationsData = await api.getReservations(receptionistToken);
     // Szolgáltatások lekérdezése
-    final servicesData = await api.getServiceTemplates(widget.authToken);
+    final servicesData = await api.getServiceTemplates(receptionistToken);
 
     if (reservationsData != null && servicesData != null) {
       setState(() {

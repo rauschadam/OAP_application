@@ -4,6 +4,10 @@ class Registration {
   final String email;
   final String phone;
   final String favoriteLicensePlateNumber;
+  final String? taxNumber;
+  final String? currencyId;
+  final String? payTypeId;
+  final String? countryId;
 
   Registration({
     required this.name,
@@ -11,6 +15,10 @@ class Registration {
     required this.email,
     required this.phone,
     required this.favoriteLicensePlateNumber,
+    this.taxNumber,
+    this.currencyId,
+    this.payTypeId,
+    this.countryId,
   });
 
   Map<String, dynamic> toJson() {
@@ -20,6 +28,10 @@ class Registration {
       "Email": email,
       "Phone": phone,
       "FavoriteLicensePlateNumber": favoriteLicensePlateNumber,
+      "TaxNumber": null,
+      "CurrencyId": null,
+      "PayTypeId": null,
+      "CountryId": null,
     };
   }
 
@@ -30,6 +42,10 @@ class Registration {
       email: json['Email'],
       phone: json['Phone'],
       favoriteLicensePlateNumber: json['FavoriteLicensePlateNumber'],
+      taxNumber: json['TaxNumber'],
+      currencyId: json['CurrencyId'],
+      payTypeId: json['PayTypeId'],
+      countryId: json['CountryId'],
     );
   }
 }

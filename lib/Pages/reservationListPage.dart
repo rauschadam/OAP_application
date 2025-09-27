@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:airport_test/Pages/reservationForm/reservationOptionPage.dart';
-import 'package:airport_test/api_services/api_service.dart';
+import 'package:airport_test/api_Services/api_service.dart';
 import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/my_icon_button.dart';
@@ -56,9 +56,11 @@ class _ReservationListPageState extends State<ReservationListPage> {
   Future<void> fetchData() async {
     final api = ApiService();
     // Foglalások lekérdezése
-    final reservationsData = await api.getReservations(receptionistToken);
+    final reservationsData =
+        await api.getReservations(context, receptionistToken);
     // Szolgáltatások lekérdezése
-    final servicesData = await api.getServiceTemplates(receptionistToken);
+    final servicesData =
+        await api.getServiceTemplates(context, receptionistToken);
 
     if (reservationsData != null && servicesData != null) {
       setState(() {

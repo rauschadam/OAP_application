@@ -45,9 +45,6 @@ class _HomePageState extends State<HomePage> {
   /// Lekérdezett foglalások
   List<dynamic>? reservations;
 
-  /// Keresésésnek megfelelő foglalások
-  //List<dynamic>? filteredReservations;
-
   /// Keresésnek megfelelő rendszámok listája
   List<String>? searchResults;
 
@@ -64,9 +61,11 @@ class _HomePageState extends State<HomePage> {
   Future<void> fetchData() async {
     final api = ApiService();
     // Foglalások lekérdezése
-    final reservationsData = await api.getReservations(receptionistToken);
+    final reservationsData =
+        await api.getReservations(context, receptionistToken);
     // Szolgáltatások lekérdezése
-    final servicesData = await api.getServiceTemplates(receptionistToken);
+    final servicesData =
+        await api.getServiceTemplates(context, receptionistToken);
 
     if (reservationsData != null && servicesData != null) {
       setState(() {
@@ -84,23 +83,13 @@ class _HomePageState extends State<HomePage> {
   /// Ügyfél érkeztetése
   Future<void> attemptRegisterArrival(String licensePlate) async {
     final api = ApiService();
-    // Foglalások lekérdezése
-    final customerArrivalData = await api.logCustomerArrival(licensePlate);
-
-    if (customerArrivalData != null) {
-      setState(() {});
-    }
+    await api.logCustomerArrival(context, licensePlate);
   }
 
   /// Ügyfél távoztatása
   Future<void> attemptRegisterLeave(String licensePlate) async {
     final api = ApiService();
-    // Foglalások lekérdezése
-    final customerArrivalData = await api.logCustomerLeave(licensePlate);
-
-    if (customerArrivalData != null) {
-      setState(() {});
-    }
+    await api.logCustomerLeave(context, licensePlate);
   }
 
   /// Foglalt időpontok
@@ -750,118 +739,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Widget desktopBuild() {
-  //   return Row(
-  //     children: [
-  //       Expanded(
-  //         flex: 1,
-  //         child: Padding(
-  //           padding: const EdgeInsets.only(right: AppPadding.medium),
-  //           child: buildSideMenu(),
-  //         ),
-  //       ),
-  //       Expanded(
-  //         flex: 4,
-  //         child: Padding(
-  //           padding: const EdgeInsets.all(AppPadding.medium),
-  //           child: Column(
-  //             children: [
-  //               Padding(
-  //                 padding: const EdgeInsets.only(top: AppPadding.medium),
-  //                 child: Align(
-  //                   alignment: Alignment.centerLeft,
-  //                   child: SearchBarContainer(
-  //                     searchContainerKey: searchContainerKey,
-  //                     transparency: searchFocus.hasFocus &&
-  //                         searchController.value.text.isNotEmpty,
-  //                     children: [
-  //                       MySearchBar(
-  //                         searchController: searchController,
-  //                         searchFocus: searchFocus,
-  //                       ),
-  //                       buildSearchResults(),
-  //                     ],
-  //                   ),
-  //                 ),
-  //               ),
-  //               Expanded(
-  //                 child: Column(
-  //                   mainAxisAlignment: MainAxisAlignment.end,
-  //                   children: [
-  //                     Padding(
-  //                       padding: EdgeInsets.only(bottom: AppPadding.small),
-  //                       child: newReservationButton(),
-  //                     ),
-  //                     Flexible(
-  //                       child: Padding(
-  //                         padding: EdgeInsets.only(bottom: AppPadding.medium),
-  //                         child: Container(
-  //                           decoration: BoxDecoration(
-  //                               borderRadius: BorderRadius.circular(
-  //                                   AppBorderRadius.medium),
-  //                               color: BasePage.defaultColors.secondary),
-  //                           child: Column(
-  //                             mainAxisSize: MainAxisSize.min,
-  //                             mainAxisAlignment: MainAxisAlignment.end,
-  //                             children: [
-  //                               Container(
-  //                                 constraints: BoxConstraints(maxHeight: 300),
-  //                                 child: buildTodoList(
-  //                                     listTitle: 'Ma',
-  //                                     reservations: reservations,
-  //                                     startTime: now,
-  //                                     endTime:
-  //                                         DateTime(now.year, now.month, now.day)
-  //                                             .add(const Duration(days: 1))),
-  //                               ),
-  //                               Container(
-  //                                 constraints: BoxConstraints(maxHeight: 300),
-  //                                 child: buildTodoList(
-  //                                     listTitle: 'Holnap',
-  //                                     reservations: reservations,
-  //                                     startTime:
-  //                                         DateTime(now.year, now.month, now.day)
-  //                                             .add(const Duration(days: 1)),
-  //                                     endTime:
-  //                                         DateTime(now.year, now.month, now.day)
-  //                                             .add(const Duration(days: 2))),
-  //                               ),
-  //                             ],
-  //                           ),
-  //                         ),
-  //                       ),
-  //                     ),
-  //                   ],
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-  //       ),
-  //       Expanded(
-  //         flex: 2,
-  //         child: Padding(
-  //           padding: EdgeInsets.all(AppPadding.medium),
-  //           child: Column(
-  //             children: [
-  //               buildZoneOccupancyIndicators(
-  //                 serviceTemplates: serviceTemplates,
-  //                 zoneCounters: zoneCounters,
-  //                 parkingServiceType: 1,
-  //               ),
-  //               SizedBox(height: AppPadding.medium),
-  //               Flexible(
-  //                 child: buildFullyBookedTimeList(
-  //                     fullyBookedDateTimes: fullyBookedDateTimes),
-  //               )
-  //             ],
-  //           ),
-  //         ),
-  //       ),
-  //     ],
-  //   );
-  // }
-
   Widget desktopBuild() {
     return Row(
       children: [
@@ -880,9 +757,6 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.all(AppPadding.medium),
                 child: Column(
                   children: [
-                    // // Üres hely a search bar számára
-                    // SizedBox(
-                    //     height: 60), // A search bar magasságának megfelelő hely
                     Expanded(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.end,
@@ -944,7 +818,6 @@ class _HomePageState extends State<HomePage> {
               Positioned(
                 top: AppPadding.medium,
                 left: AppPadding.medium,
-                //right: AppPadding.medium,
                 child: SearchBarContainer(
                   searchContainerKey: searchContainerKey,
                   transparency: searchFocus.hasFocus &&
@@ -976,7 +849,7 @@ class _HomePageState extends State<HomePage> {
                 Flexible(
                   child: buildFullyBookedTimeList(
                       fullyBookedDateTimes: fullyBookedDateTimes),
-                )
+                ),
               ],
             ),
           ),

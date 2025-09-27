@@ -1,4 +1,4 @@
-import 'package:airport_test/api_services/api_service.dart';
+import 'package:airport_test/api_Services/api_service.dart';
 import 'package:airport_test/api_services/api_classes/registration.dart';
 import 'package:airport_test/Pages/reservationForm/parkOrderPage.dart';
 import 'package:airport_test/Pages/reservationForm/washOrderPage.dart';
@@ -61,12 +61,12 @@ class _RegistrationPageState extends State<RegistrationPage> {
       favoriteLicensePlateNumber: favoriteLicensePlateNumberController.text,
     );
 
-    await ApiService().registerUser(registration);
+    await ApiService().registerUser(context, registration);
 
     /// Egyben be is jelentkezteti a felhasználót
     final api = ApiService();
-    final token =
-        await api.loginUser(emailController.text, passwordController.text);
+    final token = await api.loginUser(
+        context, emailController.text, passwordController.text);
 
     if (token == null) {
       print('Nem sikerült bejelentkezni');

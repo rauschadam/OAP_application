@@ -7,7 +7,10 @@ environment:
   sdk: '>=3.2.3 <4.0.0'
 
 dependencies:
+  awesome: ^0.0.3
+  awesome_dialog: ^3.2.1
   country_phone_validator: ^1.0.1
+  dialog: ^0.8.0
   email_validator: ^3.0.0
   flutter:
     sdk: flutter

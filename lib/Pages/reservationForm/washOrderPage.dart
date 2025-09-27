@@ -1,5 +1,5 @@
-import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/Pages/reservationForm/invoiceOptionPage.dart';
+import 'package:airport_test/api_Services/api_service.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/car_wash_selection_card.dart';
 import 'package:airport_test/constants/widgets/my_date_picker_dialog.dart';
@@ -110,7 +110,7 @@ class WashOrderPageState extends State<WashOrderPage> {
   /// Foglalások lekérdezése
   Future<void> fetchReservations() async {
     final api = ApiService();
-    final data = await api.getReservations(widget.authToken);
+    final data = await api.getReservations(context, widget.authToken);
 
     if (data == null) {
       print('Nem sikerült a lekérdezés');
@@ -125,7 +125,7 @@ class WashOrderPageState extends State<WashOrderPage> {
   /// Szolgáltatások lekérdezése
   Future<void> fetchServiceTemplates() async {
     final api = ApiService();
-    final data = await api.getServiceTemplates(widget.authToken);
+    final data = await api.getServiceTemplates(context, widget.authToken);
 
     if (data == null) {
       print('Nem sikerült a lekérdezés');

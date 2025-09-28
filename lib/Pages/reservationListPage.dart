@@ -203,7 +203,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
     return detectClicks(
       Padding(
         padding: EdgeInsets.symmetric(
-            horizontal: AppPadding.xlarge, vertical: AppPadding.large),
+            horizontal: AppPadding.large, vertical: AppPadding.large),
         child: Container(
           color: AppColors.background,
           child: Row(
@@ -280,6 +280,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
     );
   }
 
+  /// Figyeli mikor nyomunk a searchBar-on kívülre
   Widget detectClicks(Widget child) {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
@@ -309,6 +310,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
     );
   }
 
+  /// Aktív / Jövőbeli foglalási listák
   Widget buildReservationList({
     required List<dynamic>? reservations,
     double? maxHeight,
@@ -373,6 +375,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
     );
   }
 
+  /// Segédfüggvény, ha a dátum null, vagy '0001-01-01' -> nem volt kiválasztva dátum -> '-' jelenítünk meg
   String reservationDateFormatter(dynamic value) {
     if (value == null ||
         value.toString().isEmpty ||
@@ -387,6 +390,8 @@ class _ReservationListPageState extends State<ReservationListPage> {
     }
   }
 
+  /// Megmondja a zóna nevét id alapján
+  // TODO: egyenlőre a template hosszú nevéből az utolsó szó
   String getZoneNameById(String articleId) {
     final template = serviceTemplates?.firstWhere(
       (t) => t['ArticleId'] == articleId,
@@ -397,6 +402,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
         : 'Egyéb';
   }
 
+  /// Részletes foglalási információk
   Widget ReservationInformation({required dynamic reservation}) {
     String formatDate(String dateString) {
       try {
@@ -472,6 +478,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
     );
   }
 
+  /// Kereső, mellyel a foglalások között tudunk keresni
   Widget buildSearchBar() {
     // return MySearchBar(
     //   searchController: searchController,
@@ -574,6 +581,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
     );
   }
 
+  /// Szűrők a kereső alatt
   Widget buildSearchFilters() {
     if (!showFilters) return Container();
 

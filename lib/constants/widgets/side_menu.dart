@@ -22,7 +22,7 @@ class _SideMenuState extends State<SideMenu> {
       child: Container(
         color: AppColors.secondary,
         child: Padding(
-          padding: const EdgeInsets.only(top: AppPadding.xlarge),
+          padding: const EdgeInsets.only(top: AppPadding.large),
           child: ListView.builder(
             itemCount: widget.menuItems.length,
             itemBuilder: (context, index) {

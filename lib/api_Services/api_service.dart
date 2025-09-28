@@ -127,7 +127,14 @@ class ApiService {
         body: jsonEncode(reservation.toJson()),
       );
 
-      if (response.statusCode != 200 || response.statusCode != 201) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        AwesomeDialog(
+          context: context,
+          width: 300,
+          dialogType: DialogType.success,
+          title: "Foglalás rögzítése sikeres",
+        ).show();
+      } else {
         final errorMessage =
             jsonDecode(response.body)['responseMessage'] ?? 'Ismeretlen hiba';
         AwesomeDialog(

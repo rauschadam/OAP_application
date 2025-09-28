@@ -21,8 +21,6 @@ enum InvoiceOption {
   yes, // Kérek számlát
 }
 
-enum TimeOfDayPeriod { morning, daytime, night, nighttime }
-
 enum MyTextFormFieldType {
   licensePlate,
   phone,

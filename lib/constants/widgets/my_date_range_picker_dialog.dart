@@ -1,4 +1,4 @@
-import 'package:airport_test/constants/constant_functions.dart';
+import 'package:airport_test/constants/functions/timeslot_generator.dart';
 import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/constants/widgets/dialogs.dart';

@@ -205,7 +205,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
         padding: EdgeInsets.symmetric(
             horizontal: AppPadding.xlarge, vertical: AppPadding.large),
         child: Container(
-          color: BasePage.defaultColors.background,
+          color: AppColors.background,
           child: Row(
             children: [
               Expanded(
@@ -225,7 +225,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
                         decoration: BoxDecoration(
                           border: Border.all(
                             color: showFilters
-                                ? BasePage.defaultColors.primary
+                                ? AppColors.primary
                                 : Colors.transparent,
                           ),
                           borderRadius:
@@ -249,7 +249,6 @@ class _ReservationListPageState extends State<ReservationListPage> {
                         icon: Icons.add_rounded,
                         labelText: "Foglalás rögzítése",
                         onPressed: () {
-                          BasePage.defaultColors = AppColors.blue;
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -342,7 +341,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
     return Container(
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppBorderRadius.medium),
-          color: BasePage.defaultColors.secondary),
+          color: AppColors.secondary),
       child: ReservationList(
           selectedReservation: selectedReservation,
           onRowTap: (reservation) {
@@ -445,7 +444,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
 
     return Container(
       decoration: BoxDecoration(
-          color: BasePage.defaultColors.secondary,
+          color: AppColors.secondary,
           borderRadius: BorderRadius.circular(AppBorderRadius.medium)),
       padding: EdgeInsets.all(AppPadding.large),
       width: double.infinity,
@@ -458,12 +457,11 @@ class _ReservationListPageState extends State<ReservationListPage> {
                   title: Text(
                     formatKey(entry.key),
                     style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: BasePage.defaultColors.text),
+                        fontWeight: FontWeight.bold, color: AppColors.text),
                   ),
                   subtitle: Text(
                     formatValue(entry.key, entry.value),
-                    style: TextStyle(color: BasePage.defaultColors.text),
+                    style: TextStyle(color: AppColors.text),
                   ),
                 ),
                 Divider(height: 1),
@@ -507,24 +505,23 @@ class _ReservationListPageState extends State<ReservationListPage> {
       child: Theme(
         data: Theme.of(context).copyWith(
           textSelectionTheme: TextSelectionThemeData(
-            cursorColor: BasePage.defaultColors.background,
+            cursorColor: AppColors.background,
           ),
         ),
         child: SearchBar(
           focusNode: searchFocus,
           shadowColor: WidgetStateProperty.all(Colors.transparent),
           surfaceTintColor: WidgetStateProperty.all(Colors.transparent),
-          backgroundColor:
-              WidgetStateProperty.all(BasePage.defaultColors.primary),
+          backgroundColor: WidgetStateProperty.all(AppColors.primary),
           hintStyle: WidgetStateProperty.all<TextStyle>(
             TextStyle(
-              color: BasePage.defaultColors.background.withAlpha(200),
+              color: AppColors.background.withAlpha(200),
               fontWeight: FontWeight.w600,
             ),
           ),
           textStyle: WidgetStateProperty.all<TextStyle>(
             TextStyle(
-              color: BasePage.defaultColors.background,
+              color: AppColors.background,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -533,7 +530,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
           leading: Icon(
             Icons.search,
             size: 20,
-            color: BasePage.defaultColors.background,
+            color: AppColors.background,
           ),
           trailing: [
             Row(
@@ -544,7 +541,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
                     icon: Icon(
                       Icons.close,
                       size: 20,
-                      color: BasePage.defaultColors.background,
+                      color: AppColors.background,
                     ),
                     constraints: BoxConstraints(),
                     onPressed: () {
@@ -552,7 +549,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
                     },
                   ),
                 VerticalDivider(
-                  color: BasePage.defaultColors.background,
+                  color: AppColors.background,
                   width: 8,
                   thickness: 1,
                 ),
@@ -565,7 +562,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
                   icon: Icon(
                     Icons.filter_list_rounded,
                     size: 20,
-                    color: BasePage.defaultColors.background,
+                    color: AppColors.background,
                   ),
                   constraints: BoxConstraints(),
                 ),
@@ -591,7 +588,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
                 title: Text(
                   entry.key,
                   style: TextStyle(
-                    color: BasePage.defaultColors.text,
+                    color: AppColors.text,
                     fontSize: 13,
                   ),
                 ),
@@ -604,8 +601,8 @@ class _ReservationListPageState extends State<ReservationListPage> {
                   applySearchFilter();
                 },
                 dense: true,
-                activeColor: BasePage.defaultColors.primary,
-                checkColor: BasePage.defaultColors.background,
+                activeColor: AppColors.primary,
+                checkColor: AppColors.background,
               );
             }).toList(),
           ),

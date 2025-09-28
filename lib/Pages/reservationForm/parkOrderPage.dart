@@ -551,8 +551,8 @@ class ParkOrderPageState extends State<ParkOrderPage> {
             ),
             if (!isMobileScreen!)
               MyIconButton(
-                textColor: BasePage.defaultColors.primary,
-                backgroundColor: BasePage.defaultColors.background,
+                textColor: AppColors.primary,
+                backgroundColor: AppColors.background,
                 icon: Icons.flight_takeoff_rounded,
                 labelText:
                     "Érkezés: ${selectedArriveDate != null ? DateFormat('yyyy.MM.dd HH:mm').format(selectedArriveDate!) : "-"}",
@@ -560,8 +560,8 @@ class ParkOrderPageState extends State<ParkOrderPage> {
               ),
             if (!isMobileScreen!)
               MyIconButton(
-                textColor: BasePage.defaultColors.primary,
-                backgroundColor: BasePage.defaultColors.background,
+                textColor: AppColors.primary,
+                backgroundColor: AppColors.background,
                 icon: Icons.flight_land_rounded,
                 labelText:
                     "Távozás: ${selectedLeaveDate != null ? DateFormat('yyyy.MM.dd HH:mm').format(selectedLeaveDate!) : "-"}",

@@ -46,7 +46,7 @@ class _ReceptionLoginPageState extends State<ReceptionLoginPage> {
       setState(() {
         receptionistToken = token;
       });
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (_) => BasePage(

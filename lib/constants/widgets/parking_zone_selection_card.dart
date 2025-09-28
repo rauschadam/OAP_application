@@ -1,4 +1,3 @@
-import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -67,8 +66,7 @@ class ParkingZoneSelectionCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppBorderRadius.medium),
           color: selected ? Colors.white : Colors.white,
           border: Border.all(
-            color:
-                selected ? BasePage.defaultColors.primary : Colors.transparent,
+            color: selected ? AppColors.primary : Colors.transparent,
             width: 2,
           ),
           boxShadow: [
@@ -89,18 +87,14 @@ class ParkingZoneSelectionCard extends StatelessWidget {
                     horizontal: AppPadding.small,
                     vertical: AppPadding.extraSmall),
                 decoration: BoxDecoration(
-                  color: selected
-                      ? BasePage.defaultColors.secondary
-                      : Colors.grey[200],
+                  color: selected ? AppColors.secondary : Colors.grey[200],
                   borderRadius: BorderRadius.circular(AppBorderRadius.small),
                 ),
                 child: Text(
                   title,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: selected
-                        ? BasePage.defaultColors.primary
-                        : Colors.black54,
+                    color: selected ? AppColors.primary : Colors.black54,
                   ),
                 ),
               ),

@@ -1,7 +1,6 @@
 import 'package:airport_test/constants/constant_functions.dart';
 import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/theme.dart';
-import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
@@ -143,7 +142,7 @@ class _MyDatePickerDialogState extends State<MyDatePickerDialog> {
 
                       Color cardColor;
                       if (isSelected) {
-                        cardColor = BasePage.defaultColors.primary;
+                        cardColor = AppColors.primary;
                       } else if (isHovered) {
                         cardColor = Colors.grey.shade400;
                       } else {
@@ -241,8 +240,8 @@ class _MyDatePickerDialogState extends State<MyDatePickerDialog> {
               initialDisplayDate: tempWashDate,
               initialSelectedDate: tempWashDate,
               selectionMode: DateRangePickerSelectionMode.single,
-              todayHighlightColor: BasePage.defaultColors.primary,
-              selectionColor: BasePage.defaultColors.primary,
+              todayHighlightColor: AppColors.primary,
+              selectionColor: AppColors.primary,
               showNavigationArrow: true,
               enablePastDates: false,
               maxDate: DateTime.now().add(const Duration(days: 120)),
@@ -280,10 +279,9 @@ class _MyDatePickerDialogState extends State<MyDatePickerDialog> {
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ButtonStyle(
-                    backgroundColor:
-                        WidgetStateProperty.all(BasePage.defaultColors.primary),
-                    foregroundColor: WidgetStateProperty.all(
-                        BasePage.defaultColors.background),
+                    backgroundColor: WidgetStateProperty.all(AppColors.primary),
+                    foregroundColor:
+                        WidgetStateProperty.all(AppColors.background),
                   ),
                   onPressed: onConfirmSelection,
                   child: const Text("Időpont kiválasztása"),

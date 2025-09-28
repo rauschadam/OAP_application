@@ -1,28 +1,11 @@
 import 'dart:ui';
 
 class AppColors {
-  final Color primary;
-  final Color secondary;
-  final Color accent;
-  final Color background;
-  final Color text;
-
-  const AppColors({
-    required this.primary,
-    required this.secondary,
-    required this.accent,
-    required this.background,
-    required this.text,
-  });
-
-  // előre definiált template-ek
-  static const AppColors blue = AppColors(
-    primary: Color.fromARGB(255, 47, 39, 206),
-    secondary: Color.fromARGB(255, 222, 220, 255),
-    accent: Color.fromARGB(255, 67, 59, 255),
-    background: Color.fromARGB(255, 255, 255, 255),
-    text: Color.fromARGB(255, 5, 3, 21),
-  );
+  static const Color primary = Color.fromARGB(255, 47, 39, 206);
+  static const Color secondary = Color.fromARGB(255, 222, 220, 255);
+  static const Color accent = Color.fromARGB(255, 67, 59, 255);
+  static const Color background = Color.fromARGB(255, 255, 255, 255);
+  static const Color text = Color.fromARGB(255, 5, 3, 21);
 }
 
 // Padding/margin értékek

@@ -1,5 +1,4 @@
 import 'package:airport_test/constants/theme.dart';
-import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:flutter/material.dart';
 
 class MySearchBar extends StatelessWidget {
@@ -21,24 +20,23 @@ class MySearchBar extends StatelessWidget {
       child: Theme(
         data: Theme.of(context).copyWith(
           textSelectionTheme: TextSelectionThemeData(
-            cursorColor: BasePage.defaultColors.background,
+            cursorColor: AppColors.background,
           ),
         ),
         child: SearchBar(
           focusNode: searchFocus,
           shadowColor: WidgetStateProperty.all(Colors.transparent),
           surfaceTintColor: WidgetStateProperty.all(Colors.transparent),
-          backgroundColor:
-              WidgetStateProperty.all(BasePage.defaultColors.primary),
+          backgroundColor: WidgetStateProperty.all(AppColors.primary),
           hintStyle: WidgetStateProperty.all<TextStyle>(
             TextStyle(
-              color: BasePage.defaultColors.background.withAlpha(200),
+              color: AppColors.background.withAlpha(200),
               fontWeight: FontWeight.w600,
             ),
           ),
           textStyle: WidgetStateProperty.all<TextStyle>(
             TextStyle(
-              color: BasePage.defaultColors.background,
+              color: AppColors.background,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -47,7 +45,7 @@ class MySearchBar extends StatelessWidget {
           leading: Icon(
             Icons.search,
             size: 20,
-            color: BasePage.defaultColors.background,
+            color: AppColors.background,
           ),
           trailing: [
             Row(
@@ -58,7 +56,7 @@ class MySearchBar extends StatelessWidget {
                     icon: Icon(
                       Icons.close,
                       size: 20,
-                      color: BasePage.defaultColors.background,
+                      color: AppColors.background,
                     ),
                     constraints: BoxConstraints(),
                     onPressed: () {
@@ -93,9 +91,7 @@ class SearchBarContainer extends StatelessWidget {
       key: searchContainerKey,
       decoration: BoxDecoration(
         border: Border.all(
-          color: transparency
-              ? BasePage.defaultColors.primary
-              : Colors.transparent,
+          color: transparency ? AppColors.primary : Colors.transparent,
         ),
         borderRadius: BorderRadius.circular(AppBorderRadius.large),
         color: transparency ? Colors.white : Colors.transparent,

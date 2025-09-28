@@ -1,4 +1,3 @@
-import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:flutter/material.dart';
 
@@ -21,7 +20,7 @@ class _SideMenuState extends State<SideMenu> {
         borderRadius: BorderRadius.zero,
       ),
       child: Container(
-        color: BasePage.defaultColors.secondary,
+        color: AppColors.secondary,
         child: Padding(
           padding: const EdgeInsets.only(top: AppPadding.xlarge),
           child: ListView.builder(
@@ -42,16 +41,16 @@ class _SideMenuState extends State<SideMenu> {
                         horizontal: AppPadding.medium,
                         vertical: AppPadding.small),
                     color: isHovered
-                        ? BasePage.defaultColors.primary.withAlpha(40)
+                        ? AppColors.primary.withAlpha(40)
                         : Colors.transparent,
                     child: Row(
                       children: [
-                        Icon(item.icon, color: BasePage.defaultColors.primary),
+                        Icon(item.icon, color: AppColors.primary),
                         const SizedBox(width: 12),
                         Text(
                           item.title,
                           style: TextStyle(
-                            color: BasePage.defaultColors.primary,
+                            color: AppColors.primary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),

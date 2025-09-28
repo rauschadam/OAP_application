@@ -1,4 +1,4 @@
-import 'package:airport_test/constants/widgets/base_page.dart';
+import 'package:airport_test/constants/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 
@@ -27,7 +27,7 @@ class ZoneOccupancyIndicator extends StatelessWidget {
           radius: 45,
           lineWidth: 18,
           percent: (occupied / capacity) > 1.0 ? 1.0 : (occupied / capacity),
-          progressColor: BasePage.defaultColors.primary,
+          progressColor: AppColors.primary,
           backgroundColor: Colors.blue.shade400,
           circularStrokeCap: CircularStrokeCap.round,
           center: Text(

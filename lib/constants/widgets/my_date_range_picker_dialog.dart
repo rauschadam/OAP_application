@@ -4,7 +4,6 @@ import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/constants/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
-import 'package:airport_test/constants/widgets/base_page.dart';
 
 /// A ParkOrderPage-n használjuk
 class MyDateRangePickerDialog extends StatefulWidget {
@@ -170,7 +169,7 @@ class _MyDateRangePickerDialogState extends State<MyDateRangePickerDialog> {
 
                       Color cardColor;
                       if (isSelected) {
-                        cardColor = BasePage.defaultColors.primary;
+                        cardColor = AppColors.primary;
                       } else if (isHovered) {
                         cardColor = Colors.grey.shade400;
                       } else {
@@ -292,10 +291,10 @@ class _MyDateRangePickerDialogState extends State<MyDateRangePickerDialog> {
                       ? PickerDateRange(tempArriveDate, tempLeaveDate)
                       : null,
               selectionMode: DateRangePickerSelectionMode.range,
-              todayHighlightColor: BasePage.defaultColors.primary,
-              startRangeSelectionColor: BasePage.defaultColors.primary,
-              endRangeSelectionColor: BasePage.defaultColors.primary,
-              rangeSelectionColor: BasePage.defaultColors.secondary,
+              todayHighlightColor: AppColors.primary,
+              startRangeSelectionColor: AppColors.primary,
+              endRangeSelectionColor: AppColors.primary,
+              rangeSelectionColor: AppColors.secondary,
               enablePastDates: false,
               maxDate: DateTime.now().add(const Duration(days: 120)),
               onSelectionChanged: (args) {
@@ -336,10 +335,9 @@ class _MyDateRangePickerDialogState extends State<MyDateRangePickerDialog> {
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ButtonStyle(
-                    backgroundColor:
-                        WidgetStateProperty.all(BasePage.defaultColors.primary),
-                    foregroundColor: WidgetStateProperty.all(
-                        BasePage.defaultColors.background),
+                    backgroundColor: WidgetStateProperty.all(AppColors.primary),
+                    foregroundColor:
+                        WidgetStateProperty.all(AppColors.background),
                   ),
                   onPressed: onConfirmSelection,
                   child: const Text("Időpont kiválasztása"),

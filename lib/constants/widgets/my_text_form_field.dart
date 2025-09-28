@@ -1,4 +1,3 @@
-import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/constants/enums/parkingFormEnums.dart';
 import 'package:flutter/material.dart';
@@ -36,16 +35,15 @@ class MyTextFormField extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: AppPadding.extraSmall),
-          child: Text(hintText,
-              style: TextStyle(color: BasePage.defaultColors.primary)),
+          child: Text(hintText, style: TextStyle(color: AppColors.primary)),
         ),
         TextFormField(
           controller: controller,
           focusNode: focusNode,
           textInputAction: textInputAction,
           validator: validator,
-          cursorColor: BasePage.defaultColors.primary,
-          cursorErrorColor: BasePage.defaultColors.primary,
+          cursorColor: AppColors.primary,
+          cursorErrorColor: AppColors.primary,
           onEditingComplete: () {
             if (nextFocus != null) {
               FocusScope.of(context).requestFocus(nextFocus);
@@ -78,7 +76,7 @@ class MyTextFormField extends StatelessWidget {
                 ? TextStyle(color: Colors.black)
                 : null,
             filled: true,
-            fillColor: BasePage.defaultColors.secondary,
+            fillColor: AppColors.secondary,
             border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none),

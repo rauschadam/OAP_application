@@ -26,10 +26,8 @@ class NextPageButton extends StatelessWidget {
         alignment: Alignment.centerRight,
         child: ElevatedButton(
           style: ButtonStyle(
-            backgroundColor:
-                WidgetStateProperty.all(BasePage.defaultColors.primary),
-            foregroundColor:
-                WidgetStateProperty.all(BasePage.defaultColors.background),
+            backgroundColor: WidgetStateProperty.all(AppColors.primary),
+            foregroundColor: WidgetStateProperty.all(AppColors.background),
           ),
           focusNode: focusNode,
           onPressed: () {
@@ -42,7 +40,6 @@ class NextPageButton extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                       builder: (_) => BasePage(
-                            colors: BasePage.defaultColors,
                             child: nextPage!,
                           )),
                 );
@@ -52,7 +49,6 @@ class NextPageButton extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                       builder: (_) => BasePage(
-                            colors: BasePage.defaultColors,
                             child: nextPage!,
                           )),
                 );

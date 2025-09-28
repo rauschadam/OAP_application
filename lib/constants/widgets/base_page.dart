@@ -4,26 +4,19 @@ import 'package:airport_test/responsive.dart';
 import 'package:flutter/material.dart';
 
 class BasePage extends StatelessWidget {
-  static AppColors defaultColors = AppColors.blue;
-
   final Widget child;
-  final AppColors? colors;
 
-  const BasePage({super.key, required this.child, this.colors});
+  const BasePage({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
     isMobileScreen = Responsive.isMobile(context);
-    if (colors != null) {
-      defaultColors = colors!;
-    }
 
     return Scaffold(
       appBar: AppBar(
         title: Text((child as PageWithTitle).pageTitle),
-        automaticallyImplyLeading: (child as PageWithTitle).showBackButton,
-        backgroundColor: defaultColors.background,
-        foregroundColor: defaultColors.text,
+        backgroundColor: AppColors.background,
+        foregroundColor: AppColors.text,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
@@ -32,7 +25,7 @@ class BasePage extends StatelessWidget {
           ),
         ),
       ),
-      backgroundColor: defaultColors.background,
+      backgroundColor: AppColors.background,
       body: Center(
         child: !isMobileScreen!
             ? Row(
@@ -70,6 +63,5 @@ class BasePage extends StatelessWidget {
 
 mixin PageWithTitle {
   String get pageTitle;
-  bool get showBackButton => true;
   bool get haveMargins => true;
 }

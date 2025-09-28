@@ -1,4 +1,3 @@
-import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:flutter/material.dart';
 
@@ -23,7 +22,7 @@ class MyIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton.icon(
       style: ElevatedButton.styleFrom(
-        backgroundColor: backgroundColor ?? BasePage.defaultColors.primary,
+        backgroundColor: backgroundColor ?? AppColors.primary,
         padding: const EdgeInsets.all(AppPadding.medium),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppBorderRadius.small),
@@ -31,12 +30,12 @@ class MyIconButton extends StatelessWidget {
       ),
       icon: Icon(
         icon,
-        color: textColor ?? BasePage.defaultColors.background,
+        color: textColor ?? AppColors.background,
       ),
       label: Text(
         labelText,
         style: TextStyle(
-          color: textColor ?? BasePage.defaultColors.background,
+          color: textColor ?? AppColors.background,
         ),
       ),
       focusNode: focusNode,

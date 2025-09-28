@@ -1,4 +1,4 @@
-import 'package:airport_test/constants/widgets/base_page.dart';
+import 'package:airport_test/constants/theme.dart';
 import 'package:flutter/material.dart';
 
 class MyCheckBox extends StatelessWidget {
@@ -25,7 +25,7 @@ class MyCheckBox extends StatelessWidget {
             : FocusScope.of(context).unfocus();
         onChanged(value ?? false);
       },
-      activeColor: BasePage.defaultColors.primary,
+      activeColor: AppColors.primary,
     );
   }
 }

@@ -1,4 +1,3 @@
-import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:flutter/material.dart';
 
@@ -37,13 +36,12 @@ class MyRadioListTile<T> extends StatelessWidget {
       overlayColor: WidgetStateProperty.resolveWith<Color?>(
         (Set<WidgetState> states) {
           if (states.contains(WidgetState.pressed)) {
-            return BasePage.defaultColors.secondary
-                .withValues(alpha: 0.3); // splash szín
+            return AppColors.secondary.withValues(alpha: 0.3); // splash szín
           }
           return null;
         },
       ),
-      activeColor: BasePage.defaultColors.primary,
+      activeColor: AppColors.primary,
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppBorderRadius.large)),
       value: value,

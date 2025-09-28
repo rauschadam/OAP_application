@@ -22,9 +22,6 @@ class HomePage extends StatefulWidget with PageWithTitle {
   String get pageTitle => 'Menü';
 
   @override
-  bool get showBackButton => false;
-
-  @override
   bool get haveMargins => false;
 
   @override
@@ -200,7 +197,7 @@ class _HomePageState extends State<HomePage> {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppBorderRadius.medium),
-            color: BasePage.defaultColors.secondary,
+            color: AppColors.secondary,
           ),
           child: ShimmerPlaceholderTemplate(
             width: double.infinity,
@@ -221,7 +218,7 @@ class _HomePageState extends State<HomePage> {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppBorderRadius.medium),
-        color: BasePage.defaultColors.secondary,
+        color: AppColors.secondary,
       ),
       width: double.infinity,
       child: Padding(
@@ -264,7 +261,7 @@ class _HomePageState extends State<HomePage> {
       return Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppBorderRadius.medium),
-          color: BasePage.defaultColors.secondary,
+          color: AppColors.secondary,
         ),
         child: ShimmerPlaceholderTemplate(
           width: double.infinity,
@@ -282,7 +279,7 @@ class _HomePageState extends State<HomePage> {
         width: double.infinity,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppBorderRadius.medium),
-          color: BasePage.defaultColors.secondary,
+          color: AppColors.secondary,
         ),
         child: Padding(
           padding: const EdgeInsets.all(AppPadding.medium),
@@ -305,7 +302,7 @@ class _HomePageState extends State<HomePage> {
     return Container(
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppBorderRadius.medium),
-          color: BasePage.defaultColors.secondary),
+          color: AppColors.secondary),
       // Tartalom padding
       padding: EdgeInsets.all(AppPadding.large),
       width: double.infinity,
@@ -581,7 +578,7 @@ class _HomePageState extends State<HomePage> {
                               child: Text(
                                 licensePlate,
                                 style: TextStyle(
-                                  color: BasePage.defaultColors.text,
+                                  color: AppColors.text,
                                   fontSize: 13,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -773,7 +770,7 @@ class _HomePageState extends State<HomePage> {
                                 decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(
                                         AppBorderRadius.medium),
-                                    color: BasePage.defaultColors.secondary),
+                                    color: AppColors.secondary),
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   mainAxisAlignment: MainAxisAlignment.end,

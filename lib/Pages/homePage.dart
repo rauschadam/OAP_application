@@ -334,45 +334,46 @@ class _HomePageState extends State<HomePage> {
               shrinkWrap: true,
               children: [
                 for (var entry in fullyBookedDateTimes.entries)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Theme(
-                        data: Theme.of(context).copyWith(
-                          dividerColor: Colors.transparent,
-                          splashColor: Colors.transparent,
-                          highlightColor: Colors.transparent,
-                          hoverColor: Colors.transparent,
-                        ),
-                        // Zóna név
-                        child: ExpansionTile(
-                          title: Text(
-                            getZoneNameById(entry.key),
+                  if (entry.value.isNotEmpty)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Theme(
+                          data: Theme.of(context).copyWith(
+                            dividerColor: Colors.transparent,
+                            splashColor: Colors.transparent,
+                            highlightColor: Colors.transparent,
+                            hoverColor: Colors.transparent,
                           ),
-                          children: [
-                            // Dátumtartományok csoportosítása
-                            ...groupConsecutiveTimeSlots(entry.value).map(
-                              (range) => Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: AppPadding.large,
-                                  vertical: AppPadding.small,
-                                ),
-                                child: Text(
-                                  range.length == 1
-                                      ? DateFormat('yyyy.MM.dd HH:mm')
-                                          .format(range.first)
-                                      : '${DateFormat('yyyy.MM.dd HH:mm').format(range.first)} - ${DateFormat('yyyy.MM.dd HH:mm').format(range.last)}',
-                                  style: TextStyle(
-                                    fontSize: 16,
+                          // Zóna név
+                          child: ExpansionTile(
+                            title: Text(
+                              getZoneNameById(entry.key),
+                            ),
+                            children: [
+                              // Dátumtartományok csoportosítása
+                              ...groupConsecutiveTimeSlots(entry.value).map(
+                                (range) => Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppPadding.large,
+                                    vertical: AppPadding.small,
+                                  ),
+                                  child: Text(
+                                    range.length == 1
+                                        ? DateFormat('yyyy.MM.dd HH:mm')
+                                            .format(range.first)
+                                        : '${DateFormat('yyyy.MM.dd HH:mm').format(range.first)} - ${DateFormat('yyyy.MM.dd HH:mm').format(range.last)}',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
               ],
             ),
           ),

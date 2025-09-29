@@ -543,57 +543,66 @@ class ParkOrderPageState extends State<ParkOrderPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            MyIconButton(
-              icon: Icons.calendar_month_rounded,
-              labelText: "Válassz dátumot",
-              focusNode: datePickerFocus,
-              onPressed: showDatePickerDialog,
-            ),
-            if (!isMobileScreen!)
+            if (selectedArriveDate == null && selectedLeaveDate == null)
               MyIconButton(
-                textColor: AppColors.primary,
-                backgroundColor: AppColors.background,
-                icon: Icons.flight_takeoff_rounded,
-                labelText:
-                    "Érkezés: ${selectedArriveDate != null ? DateFormat('yyyy.MM.dd HH:mm').format(selectedArriveDate!) : "-"}",
+                icon: Icons.calendar_month_rounded,
+                labelText: "Válassz dátumot",
+                focusNode: datePickerFocus,
                 onPressed: showDatePickerDialog,
               ),
-            if (!isMobileScreen!)
-              MyIconButton(
-                textColor: AppColors.primary,
-                backgroundColor: AppColors.background,
-                icon: Icons.flight_land_rounded,
-                labelText:
-                    "Távozás: ${selectedLeaveDate != null ? DateFormat('yyyy.MM.dd HH:mm').format(selectedLeaveDate!) : "-"}",
-                onPressed: showDatePickerDialog,
+            if (selectedArriveDate != null && selectedLeaveDate != null)
+              Expanded(
+                child: InkWell(
+                  onTap: showDatePickerDialog,
+                  borderRadius: BorderRadius.circular(AppBorderRadius.small),
+                  child: Container(
+                    padding: const EdgeInsets.all(AppPadding.small),
+                    decoration: BoxDecoration(
+                      color: AppColors.background,
+                      borderRadius:
+                          BorderRadius.circular(AppBorderRadius.small),
+                      border: Border.all(color: AppColors.primary, width: 1),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Icon(Icons.flight_takeoff_rounded,
+                                color: AppColors.primary),
+                            SizedBox(width: 8),
+                            Text(
+                              "Érkezés: ${selectedArriveDate != null ? DateFormat('yyyy.MM.dd HH:mm').format(selectedArriveDate!) : "-"}",
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.flight_land_rounded,
+                                color: AppColors.primary),
+                            SizedBox(width: 8),
+                            Text(
+                              "Távozás: ${selectedLeaveDate != null ? DateFormat('yyyy.MM.dd HH:mm').format(selectedLeaveDate!) : "-"}",
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
           ],
         ),
-        // if (Responsive.isMobile(context)) SizedBox(height: AppPadding.medium),
-        // if (Responsive.isMobile(context) &&
-        //     selectedArriveDate != null &&
-        //     selectedLeaveDate != null)
-        //   Row(
-        //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        //     children: [
-        //       MyIconButton(
-        //         textColor: BasePage.defaultColors.primary,
-        //         backgroundColor: BasePage.defaultColors.background,
-        //         icon: Icons.flight_takeoff_rounded,
-        //         labelText:
-        //             "Érkezés: ${selectedArriveDate != null ? DateFormat('yyyy.MM.dd HH:mm').format(selectedArriveDate!) : "-"}",
-        //         onPressed: showDatePickerDialog,
-        //       ),
-        //       MyIconButton(
-        //         textColor: BasePage.defaultColors.primary,
-        //         backgroundColor: BasePage.defaultColors.background,
-        //         icon: Icons.flight_land_rounded,
-        //         labelText:
-        //             "Távozás: ${selectedLeaveDate != null ? DateFormat('yyyy.MM.dd HH:mm').format(selectedLeaveDate!) : "-"}",
-        //         onPressed: showDatePickerDialog,
-        //       ),
-        //     ],
-        //   )
       ],
     );
   }

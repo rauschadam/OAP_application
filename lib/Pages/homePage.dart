@@ -43,7 +43,8 @@ class _HomePageState extends State<HomePage> {
   List<dynamic>? reservations;
 
   /// Keresésnek megfelelő rendszámok listája
-  List<String>? searchResults;
+  //List<String>? searchResults;
+  Map<String, int>? searchResults;
 
   /// Lekérdezett szolgáltatások
   List<dynamic>? serviceTemplates;
@@ -519,6 +520,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// Itt válogatjuk ki a keresésnek megfelelő rendszámokat
   void applySearch() {
     if (reservations == null) return;
 
@@ -532,17 +534,20 @@ class _HomePageState extends State<HomePage> {
     }
 
     final Set<String> seenPlates = {};
+    final Map<String, int> results = {};
+    for (var reservation in reservations!) {
+      final licensePlate = reservation['LicensePlate'].toString();
+      final state = reservation['State'] is int
+          ? reservation['State'] as int
+          : int.tryParse(reservation['State'].toString()) ?? 0;
+      final matches = licensePlate.contains(query);
+      if (matches && !seenPlates.contains(licensePlate)) {
+        seenPlates.add(licensePlate);
+        results[licensePlate] = state;
+      }
+    }
     setState(() {
-      searchResults = reservations!
-          .map((reservation) => reservation['LicensePlate'].toString())
-          .where((licensePlate) {
-        final matches = licensePlate.contains(query);
-        if (matches && !seenPlates.contains(licensePlate)) {
-          seenPlates.add(licensePlate);
-          return true;
-        }
-        return false;
-      }).toList();
+      searchResults = results.isEmpty ? null : results;
     });
   }
 
@@ -557,14 +562,40 @@ class _HomePageState extends State<HomePage> {
         width: 300,
         child: SingleChildScrollView(
           child: Column(
-            children: searchResults!.asMap().entries.map((entry) {
+            children:
+                searchResults!.entries.toList().asMap().entries.map((entry) {
               final index = entry.key;
-              final licensePlate = entry.value;
+              final licensePlate = entry.value.key;
+              final state = entry.value.value;
+
+              String stateText;
+              switch (state) {
+                case 0:
+                  stateText = "Nem érkezett még meg";
+                  break;
+                case 1:
+                  stateText = "Beérkezett";
+                  break;
+                case 2:
+                  stateText = "Beérkezett - visszajött";
+                  break;
+                case 3:
+                  stateText = "Túlfizetés";
+                  break;
+                case 4:
+                  stateText = "Elment";
+                  break;
+                case 5:
+                  stateText = "Foglalás lemondva";
+                  break;
+                default:
+                  stateText = "Ismeretlen";
+              }
 
               return Padding(
                 padding: const EdgeInsets.only(left: AppPadding.small),
                 child: InkWell(
-                  onTap: () => showArrivalDepartureDialog(licensePlate),
+                  onTap: () => showArrivalDepartureDialog(licensePlate, state),
                   child: Column(
                     children: [
                       Padding(
@@ -582,6 +613,14 @@ class _HomePageState extends State<HomePage> {
                                   fontSize: 13,
                                   fontWeight: FontWeight.w500,
                                 ),
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              stateText,
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 12,
                               ),
                             ),
                           ],
@@ -605,7 +644,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void showArrivalDepartureDialog(String licensePlate) {
+  void showArrivalDepartureDialog(String licensePlate, int state) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -622,38 +661,40 @@ class _HomePageState extends State<HomePage> {
             ),
 
             // Kiléptetés gomb
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                searchController.clear();
-                setState(() {
-                  searchResults = null;
-                });
-                attemptRegisterLeave(licensePlate);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-                foregroundColor: Colors.white,
+            if (state == 1 || state == 2)
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  searchController.clear();
+                  setState(() {
+                    searchResults = null;
+                  });
+                  attemptRegisterLeave(licensePlate);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white,
+                ),
+                child: Text('Kiléptetés'),
               ),
-              child: Text('Kiléptetés'),
-            ),
 
             // Érkeztetés gomb
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                searchController.clear();
-                setState(() {
-                  searchResults = null;
-                });
-                attemptRegisterArrival(licensePlate);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
+            if (state == 0 || state == 4)
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  searchController.clear();
+                  setState(() {
+                    searchResults = null;
+                  });
+                  attemptRegisterArrival(licensePlate);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                ),
+                child: Text('Érkeztetés'),
               ),
-              child: Text('Érkeztetés'),
-            ),
           ],
         );
       },

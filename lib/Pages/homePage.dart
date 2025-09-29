@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:airport_test/Pages/reservationListPage.dart';
 import 'package:airport_test/Pages/reservationForm/reservationOptionPage.dart';
-import 'package:airport_test/api_Services/api_service.dart';
+import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/my_icon_button.dart';
 import 'package:airport_test/constants/widgets/reservation_list.dart';
@@ -52,7 +52,7 @@ class _HomePageState extends State<HomePage> {
   /// parkoló zóna article id-> foglalt helyek száma
   Map<String, int> zoneCounters = {};
 
-  /// Lekérdezések még folyamatban vannak
+  /// True -> Lekérdezések még folyamatban vannak
   bool loading = true;
 
   /// Foglalások és szolgáltatások lekérdezése
@@ -82,12 +82,14 @@ class _HomePageState extends State<HomePage> {
   Future<void> attemptRegisterArrival(String licensePlate) async {
     final api = ApiService();
     await api.logCustomerArrival(context, licensePlate);
+    fetchData();
   }
 
   /// Ügyfél távoztatása
   Future<void> attemptRegisterLeave(String licensePlate) async {
     final api = ApiService();
     await api.logCustomerLeave(context, licensePlate);
+    fetchData();
   }
 
   /// Foglalt időpontok
@@ -208,11 +210,11 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    if (!loading && serviceTemplates == null) {
+    if (serviceTemplates == null) {
       return Center(child: Text('Nem találhatóak parkoló zónák'));
     }
 
-    final parkingTemplates = serviceTemplates!
+    final parkingTemplates = serviceTemplates
         .where((t) => t['ParkingServiceType'] == parkingServiceType)
         .toList();
 
@@ -259,14 +261,17 @@ class _HomePageState extends State<HomePage> {
   Widget buildFullyBookedTimeList(
       {required Map<String, List<DateTime>> fullyBookedDateTimes}) {
     if (loading) {
-      return Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppBorderRadius.medium),
-          color: AppColors.secondary,
-        ),
-        child: ShimmerPlaceholderTemplate(
-          width: double.infinity,
-          height: 240,
+      return Padding(
+        padding: const EdgeInsets.all(AppPadding.medium),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppBorderRadius.medium),
+            color: AppColors.secondary,
+          ),
+          child: ShimmerPlaceholderTemplate(
+            width: double.infinity,
+            height: 60,
+          ),
         ),
       );
     }
@@ -416,8 +421,7 @@ class _HomePageState extends State<HomePage> {
     double? maxHeight,
   }) {
     if (loading) {
-      return ShimmerPlaceholderTemplate(
-          width: double.infinity, height: maxHeight ?? double.infinity);
+      return ShimmerPlaceholderTemplate(width: double.infinity, height: 155);
     }
 
     if (!loading && reservations == null) {
@@ -537,9 +541,10 @@ class _HomePageState extends State<HomePage> {
     final Map<String, int> results = {};
     for (var reservation in reservations!) {
       final licensePlate = reservation['LicensePlate'].toString();
-      final state = reservation['State'] is int
-          ? reservation['State'] as int
-          : int.tryParse(reservation['State'].toString()) ?? 0;
+
+      /// A foglalás státusza
+      final int state =
+          int.tryParse(reservation['State']?.toString() ?? '') ?? -1;
       final matches = licensePlate.contains(query);
       if (matches && !seenPlates.contains(licensePlate)) {
         seenPlates.add(licensePlate);
@@ -568,6 +573,7 @@ class _HomePageState extends State<HomePage> {
               final licensePlate = entry.value.key;
               final state = entry.value.value;
 
+              /// Foglalás státuszai
               String stateText;
               switch (state) {
                 case 0:
@@ -765,6 +771,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     refreshTimer?.cancel();
+    searchController.dispose();
     super.dispose();
   }
 
@@ -827,19 +834,19 @@ class _HomePageState extends State<HomePage> {
                                                   now.year, now.month, now.day)
                                               .add(const Duration(days: 1))),
                                     ),
-                                    Container(
-                                      constraints:
-                                          BoxConstraints(maxHeight: 300),
-                                      child: buildTodoList(
-                                          listTitle: 'Holnap',
-                                          reservations: reservations,
-                                          startTime: DateTime(
-                                                  now.year, now.month, now.day)
-                                              .add(const Duration(days: 1)),
-                                          endTime: DateTime(
-                                                  now.year, now.month, now.day)
-                                              .add(const Duration(days: 2))),
-                                    ),
+                                    // Container(
+                                    //   constraints:
+                                    //       BoxConstraints(maxHeight: 200),
+                                    //   child: buildTodoList(
+                                    //       listTitle: 'Holnap',
+                                    //       reservations: reservations,
+                                    //       startTime: DateTime(
+                                    //               now.year, now.month, now.day)
+                                    //           .add(const Duration(days: 1)),
+                                    //       endTime: DateTime(
+                                    //               now.year, now.month, now.day)
+                                    //           .add(const Duration(days: 2))),
+                                    // ),
                                   ],
                                 ),
                               ),

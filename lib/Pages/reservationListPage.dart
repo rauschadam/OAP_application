@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:airport_test/Pages/reservationForm/reservationOptionPage.dart';
-import 'package:airport_test/api_Services/api_service.dart';
+import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/my_icon_button.dart';
@@ -40,6 +40,9 @@ class _ReservationListPageState extends State<ReservationListPage> {
 
   bool showFilters = false;
 
+  /// True -> Lekérdezések még folyamatban vannak
+  bool loading = true;
+
   /// Kereséi szűrők, a bekapcsolt oszlopokban kereshetünk
   final Map<String, bool> searchOptions = {
     'Név': true,
@@ -66,6 +69,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
       setState(() {
         reservations = reservationsData;
         serviceTemplates = servicesData;
+        loading = false;
       });
     }
   }
@@ -315,9 +319,19 @@ class _ReservationListPageState extends State<ReservationListPage> {
     required List<dynamic>? reservations,
     double? maxHeight,
   }) {
+    if (loading) {
+      return Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppBorderRadius.medium),
+          color: AppColors.secondary,
+        ),
+        child: ShimmerPlaceholderTemplate(
+            width: double.infinity, height: maxHeight ?? double.infinity),
+      );
+    }
+
     if (reservations == null) {
-      return ShimmerPlaceholderTemplate(
-          width: double.infinity, height: maxHeight ?? double.infinity);
+      return Center(child: Text('Nem találhatóak parkoló zónák'));
     }
 
     final List<dynamic> upcomingReservations =

@@ -103,36 +103,59 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   /// Lekérdezett foglalások
   List<dynamic>? reservations;
 
-  /// Foglalások lekérdezése
-  Future<void> fetchReservations() async {
-    final api = ApiService();
-    final data = await api.getReservations(context, widget.authToken);
-
-    if (data == null) {
-      print('Nem sikerült a lekérdezés');
-    } else {
-      setState(() {
-        reservations = data;
-      });
-      fetchServiceTemplates();
-    }
-  }
-
   /// Lekérdezett szolgáltatások
   List<dynamic>? serviceTemplates;
 
-  /// Szolgáltatások lekérdezése
-  Future<void> fetchServiceTemplates() async {
-    final api = ApiService();
-    final data = await api.getServiceTemplates(context, widget.authToken);
+  /// Parkoló zóna árak
+  List<dynamic>? parkingPrices;
 
-    if (data == null) {
-      print('Nem sikerült a lekérdezés');
-    } else {
+  /// Foglalások és szolgáltatások lekérdezése
+  Future<void> fetchData() async {
+    final api = ApiService();
+    // Foglalások lekérdezése
+    final reservationData =
+        await api.getReservations(context, widget.authToken);
+    // Szolgáltatások lekérdezése
+    final serviceTemplateData =
+        await api.getServiceTemplates(context, widget.authToken);
+
+    if (reservationData != null && serviceTemplateData != null) {
       setState(() {
-        serviceTemplates = data;
+        reservations = reservationData;
+        serviceTemplates = serviceTemplateData;
         fullyBookedDateTimes =
             mapBookedDateTimesByZones(reservations!, serviceTemplates!);
+      });
+    }
+  }
+
+  Future<void> fetchParkingPrices() async {
+    if (selectedArriveDate == null ||
+        selectedLeaveDate == null ||
+        selectedArriveTime == null) {
+      return;
+    }
+    final DateTime beginInterval = selectedArriveDate!.add(
+      Duration(
+        hours: selectedArriveTime!.hour,
+        minutes: selectedArriveTime!.minute,
+        seconds: 0,
+      ),
+    );
+    final DateTime endInterval = selectedLeaveDate!.add(
+      Duration(
+        hours: selectedArriveTime!.hour,
+        minutes: selectedArriveTime!.minute,
+        seconds: 0,
+      ),
+    );
+    final api = ApiService();
+    // Parkoló zóna árak lekérdezése
+    final parkingPriceData = await api.getParkingPrices(
+        context, widget.authToken, beginInterval, endInterval);
+    if (parkingPriceData != null) {
+      setState(() {
+        parkingPrices = parkingPriceData;
       });
     }
   }
@@ -352,6 +375,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
             selectedArriveTime = arriveTime;
             CheckZonesForAvailability();
             UpdateParkingDays();
+            fetchParkingPrices();
           });
         },
       ),
@@ -445,7 +469,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
       FocusScope.of(context).requestFocus(nameFocus);
     });
 
-    fetchReservations();
+    fetchData();
   }
 
   @override

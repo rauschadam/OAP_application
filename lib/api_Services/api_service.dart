@@ -5,6 +5,7 @@ import 'package:airport_test/constants/globals.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:intl/intl.dart';
 
 class ApiService {
   final String baseUrl = '81.183.212.64:9006';
@@ -74,7 +75,8 @@ class ApiService {
   /// Ügyfél bejelentkeztetése
   Future<String?> loginUser(
       BuildContext context, String loginName, String password) async {
-    final uri = Uri.http(baseUrl, '/service/v1/auth/login');
+    final uri = Uri.http(baseUrl, '/service/v2/auth/login');
+
     try {
       final response = await client.post(
         uri,
@@ -87,7 +89,7 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
-        return json['responseContent']['authorizationToken'];
+        return json['responseContent']['AuthorizationToken'];
       } else {
         final errorMessage =
             jsonDecode(response.body)['responseMessage'] ?? 'Ismeretlen hiba';
@@ -164,7 +166,7 @@ class ApiService {
         },
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
+      if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
 
         final List reservations = data['responseContent'];
@@ -326,5 +328,64 @@ class ApiService {
         desc: "Hálózati hiba",
       ).show();
     }
+  }
+
+  /// Parkoló zóna árak lekérdezése
+  Future<List<dynamic>?> getParkingPrices(BuildContext context, String? token,
+      DateTime beginInterval, DateTime endInterval) async {
+    final uri = Uri.http(
+      baseUrl,
+      '/service/v1/airport/getparkingprices',
+      {
+        'BeginIntervall': formatDateTime(beginInterval),
+        'EndIntervall': formatDateTime(endInterval),
+      },
+    );
+
+    try {
+      final response = await client.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '$token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final List parkingPrices = data['responseContent'];
+        return parkingPrices;
+      } else {
+        print('HTTP hibakód: ${response.statusCode}');
+        print('Response body: ${response.body}');
+
+        final responseBody = json.decode(response.body);
+        final errorMessage =
+            responseBody['responseMessage'] ?? 'Ismeretlen hiba';
+        AwesomeDialog(
+          context: context,
+          width: 300,
+          dialogType: DialogType.error,
+          title: 'Árak lekérdezése sikertelen',
+          desc: errorMessage,
+        ).show();
+        return null;
+      }
+    } catch (e) {
+      print('Hálózati hiba: $e');
+      AwesomeDialog(
+        context: context,
+        width: 300,
+        dialogType: DialogType.error,
+        title: 'Árak lekérdezése sikertelen',
+        desc: "Hálózati hiba: $e",
+      ).show();
+    }
+    return null;
+  }
+
+  String formatDateTime(DateTime dateTime) {
+    final formatter = DateFormat("yyyy-MM-ddTHH:mm:ss");
+    return formatter.format(dateTime);
   }
 }

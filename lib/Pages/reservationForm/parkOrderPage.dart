@@ -1,6 +1,8 @@
 import 'package:airport_test/Pages/reservationForm/invoiceOptionPage.dart';
 import 'package:airport_test/Pages/reservationForm/washOrderPage.dart';
 import 'package:airport_test/api_services/api_service.dart';
+import 'package:airport_test/constants/functions/pay_type_id_mapper.dart';
+import 'package:airport_test/api_services/api_classes/parking_zone.dart';
 import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/my_checkbox.dart';
@@ -19,7 +21,8 @@ class ParkOrderPage extends StatefulWidget with PageWithTitle {
   @override
   String get pageTitle => 'Parkolás foglalás';
 
-  final String? authToken;
+  final String authToken;
+  final String partnerId;
   final BookingOption bookingOption;
   final bool alreadyRegistered;
   final bool withoutRegistration;
@@ -30,6 +33,7 @@ class ParkOrderPage extends StatefulWidget with PageWithTitle {
   const ParkOrderPage(
       {super.key,
       required this.authToken,
+      required this.partnerId,
       required this.bookingOption,
       required this.emailController,
       this.nameController,
@@ -66,6 +70,8 @@ class ParkOrderPageState extends State<ParkOrderPage> {
 
   // Az enumok / kiválasztható lehetőségek default értékei
   PaymentOption selectedPaymentOption = PaymentOption.card;
+
+  late String selectedPayTypeId;
 
   /// Parkolási zóna cikkszáma
   String? selectedParkingArticleId;
@@ -108,6 +114,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
 
   /// Parkoló zóna árak
   List<dynamic>? parkingPrices;
+  List<ParkingZone> parkingZones = [];
 
   /// Foglalások és szolgáltatások lekérdezése
   Future<void> fetchData() async {
@@ -129,6 +136,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
     }
   }
 
+  /// Parkoló zóna árak lekérdezése
   Future<void> fetchParkingPrices() async {
     if (selectedArriveDate == null ||
         selectedLeaveDate == null ||
@@ -152,29 +160,41 @@ class ParkOrderPageState extends State<ParkOrderPage> {
     final api = ApiService();
     // Parkoló zóna árak lekérdezése
     final parkingPriceData = await api.getParkingPrices(
-        context, widget.authToken, beginInterval, endInterval);
-    if (parkingPriceData != null) {
+        context,
+        widget.authToken,
+        beginInterval,
+        endInterval,
+        widget.partnerId,
+        selectedPayTypeId);
+    if (parkingPriceData != null && serviceTemplates != null) {
       setState(() {
         parkingPrices = parkingPriceData;
+        parkingZones = mapParkingZones(parkingPriceData, serviceTemplates!);
+        CalculateTotalCost();
       });
     }
+  }
+
+  /// Fizetési mód változásakor
+  void onPaymentOptionChanged(PaymentOption? value) {
+    setState(() {
+      selectedPaymentOption = value!;
+      selectedPayTypeId = getPayTypeId(selectedPaymentOption);
+      fetchParkingPrices();
+    });
   }
 
   /// A teljes fizetendő összeg
   int totalCost = 0;
 
-  /// Kiválasztott parkolózóna napijegy ára
-  /// EZT AUTOMATIKUSAN KÉNE
+  /// Meghatározza a kiválasztott id alapján a parkolás árát egy napra
   int getCostForZone(String articleId) {
-    switch (articleId) {
-      case "1-95426": // Premium
-        return 10000;
-      case "1-95427": // Normal
-        return 5000;
-      case "1-95428": // Eco
-        return 2000;
-      default:
-        return 0;
+    try {
+      final parkingZone =
+          parkingZones.firstWhere((z) => z.articleId == articleId);
+      return parkingZone.totalPrice.toInt();
+    } catch (_) {
+      return 0;
     }
   }
 
@@ -309,15 +329,11 @@ class ParkOrderPageState extends State<ParkOrderPage> {
 
   /// Parkoló zónák generálása ServiceTemplates-ek alapján.
   Widget buildParkingZoneSelector({
-    required List<dynamic> serviceTemplates,
     required String? selectedParkingArticleId,
     required int parkingDays,
     required Function(String) onZoneSelected,
     required Map<String, bool> zoneAvailability,
   }) {
-    final parkingZones =
-        serviceTemplates.where((s) => s['ParkingServiceType'] == 1).toList();
-
     return GestureDetector(
       onHorizontalDragUpdate: (details) {
         ParkOptionsScrollController.jumpTo(
@@ -330,23 +346,20 @@ class ParkOrderPageState extends State<ParkOrderPage> {
         padding: EdgeInsets.all(AppPadding.small),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: parkingZones.map((zone) {
-            final String articleId = zone['ArticleId'];
-            final isAvailable = zoneAvailability[articleId] ??
-                true; // ha nincs benne, akkor true
-            final nameParts = (zone['ParkingServiceName'] as String).split(' ');
-            final title = nameParts.isNotEmpty
-                ? nameParts.last
-                : ''; // A név utolsó szava (Pl.:"Prémium")
+          children: parkingZones.map((parkingZone) {
+            final String articleId = parkingZone.articleId;
+            final isAvailable = zoneAvailability[articleId] ?? true;
+            final nameParts = (parkingZone.zone).split(' ');
+            final title = nameParts.isNotEmpty ? nameParts.last : '';
             final subtitle = nameParts.length > 1
                 ? nameParts.sublist(0, nameParts.length - 1).join(' ')
-                : ''; // Minden ami előtte van (Pl.:"Fedett napi parkolójegy")
+                : '';
             return Padding(
               padding: const EdgeInsets.all(AppPadding.extraSmall),
               child: ParkingZoneSelectionCard(
                 title: title,
                 subtitle: subtitle,
-                costPerDay: getCostForZone(articleId),
+                costPerDay: parkingZone.totalPrice.toInt(),
                 parkingDays: parkingDays,
                 selected: selectedParkingArticleId == articleId,
                 onTap: () => onZoneSelected(articleId),
@@ -396,6 +409,8 @@ class ParkOrderPageState extends State<ParkOrderPage> {
         if (widget.bookingOption == BookingOption.parking) {
           nextPage = InvoiceOptionPage(
             authToken: widget.authToken,
+            payTypeId: selectedPayTypeId,
+            partnerId: widget.partnerId,
             nameController: nameController,
             emailController: widget.emailController,
             phoneController: phoneController,
@@ -414,6 +429,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
         } else if (widget.bookingOption == BookingOption.both) {
           nextPage = WashOrderPage(
             authToken: widget.authToken,
+            partnerId: widget.partnerId,
             bookingOption: widget.bookingOption,
             emailController: widget.emailController,
             licensePlateController: licensePlateController,
@@ -457,6 +473,8 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   @override
   void initState() {
     super.initState();
+
+    selectedPayTypeId = getPayTypeId(selectedPaymentOption);
 
     nameController = widget.nameController ?? TextEditingController();
     phoneController = widget.phoneController ?? TextEditingController();
@@ -643,7 +661,6 @@ class ParkOrderPageState extends State<ParkOrderPage> {
         serviceTemplates == null
             ? const Center(child: CircularProgressIndicator())
             : buildParkingZoneSelector(
-                serviceTemplates: serviceTemplates!,
                 selectedParkingArticleId: selectedParkingArticleId,
                 parkingDays: parkingDays,
                 onZoneSelected: (articleId) {
@@ -856,33 +873,28 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                     title: 'Bankkártya',
                     value: PaymentOption.card,
                     groupValue: selectedPaymentOption,
-                    onChanged: (PaymentOption? value) {
-                      setState(() {
-                        selectedPaymentOption = value!;
-                      });
-                    },
+                    onChanged: onPaymentOptionChanged,
                     dense: true,
                   ),
                   MyRadioListTile<PaymentOption>(
                     title: 'Átutalás',
                     value: PaymentOption.transfer,
                     groupValue: selectedPaymentOption,
-                    onChanged: (PaymentOption? value) {
-                      setState(() {
-                        selectedPaymentOption = value!;
-                      });
-                    },
+                    onChanged: onPaymentOptionChanged,
                     dense: true,
                   ),
                   MyRadioListTile<PaymentOption>(
-                    title: 'Qvik',
-                    value: PaymentOption.qvik,
+                    title: 'Készpénz',
+                    value: PaymentOption.cash,
                     groupValue: selectedPaymentOption,
-                    onChanged: (PaymentOption? value) {
-                      setState(() {
-                        selectedPaymentOption = value!;
-                      });
-                    },
+                    onChanged: onPaymentOptionChanged,
+                    dense: true,
+                  ),
+                  MyRadioListTile<PaymentOption>(
+                    title: 'Bérlet',
+                    value: PaymentOption.pass,
+                    groupValue: selectedPaymentOption,
+                    onChanged: onPaymentOptionChanged,
                     dense: true,
                   ),
                 ],

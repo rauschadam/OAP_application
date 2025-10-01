@@ -10,7 +10,9 @@ class InvoiceOptionPage extends StatefulWidget with PageWithTitle {
   @override
   String get pageTitle => 'Számlázás';
 
-  final String? authToken;
+  final String authToken;
+  final String partnerId;
+  final String payTypeId;
   final BookingOption bookingOption;
   // final int parkingService;
   final bool alreadyRegistered;
@@ -32,6 +34,8 @@ class InvoiceOptionPage extends StatefulWidget with PageWithTitle {
   const InvoiceOptionPage(
       {super.key,
       required this.authToken,
+      required this.partnerId,
+      required this.payTypeId,
       required this.nameController,
       required this.emailController,
       required this.phoneController,
@@ -59,6 +63,7 @@ class _InvoiceOptionPageState extends State<InvoiceOptionPage> {
   void submitReservation() async {
     final reservation = Reservation(
       parkingService: 1,
+      partnerId: widget.partnerId,
       alreadyRegistered: widget.alreadyRegistered,
       withoutRegistration: widget.withoutRegistration,
       name: widget.nameController.text,
@@ -73,7 +78,8 @@ class _InvoiceOptionPageState extends State<InvoiceOptionPage> {
       vip: widget.vip!,
       suitcaseWrappingCount: widget.suitcaseWrappingCount,
       washDateTime: widget.washDateTime,
-      payType: 1,
+      payType: 0,
+      payTypeId: widget.payTypeId,
       description: widget.descriptionController.text,
       carWashArticleId: widget.carWashArticleId,
     );

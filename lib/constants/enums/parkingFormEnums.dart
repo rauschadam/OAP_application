@@ -11,9 +11,10 @@ enum RegistrationOption {
 }
 
 enum PaymentOption {
-  card, // Bankkártyával fizetek
-  transfer, // Átutalással fizetek még a parkolás megkezdése előtt 1 nappal
-  qvik // Qvik
+  card, // Bankkártya
+  transfer, // Átutalás
+  cash, // Készpénz
+  pass, // Bérlet
 }
 
 enum InvoiceOption {

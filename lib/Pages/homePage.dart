@@ -745,7 +745,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           );
-          dispose(); // Megszüntetjük a frissítést, mert különben a timer tovább fut
+          // dispose(); // Megszüntetjük a frissítést, mert különben a timer tovább fut
         },
       ),
     );
@@ -896,34 +896,6 @@ class _HomePageState extends State<HomePage> {
                   child: buildFullyBookedTimeList(
                       fullyBookedDateTimes: fullyBookedDateTimes),
                 ),
-
-                /// Az árak lekéréséhez próba
-                ElevatedButton(
-                    onPressed: () async {
-                      final DateTime beginInterval =
-                          DateTime(2025, 10, 5, 10, 30);
-                      final DateTime endInterval =
-                          DateTime(2025, 10, 10, 10, 30);
-
-                      String formatDateTime(DateTime dateTime) {
-                        final formatter = DateFormat("yyyy-MM-ddTHH:mm:ss");
-                        return formatter.format(dateTime);
-                      }
-
-                      final JsonBody = {
-                        'BeginIntervall': formatDateTime(beginInterval),
-                        'EndIntervall': formatDateTime(endInterval),
-                      };
-
-                      final api = ApiService();
-                      // Parkoló zóna árak lekérdezése
-                      final parkingPriceData = await api.getParkingPrices(
-                          context,
-                          receptionistToken,
-                          beginInterval,
-                          endInterval);
-                    },
-                    child: Text("Árak"))
               ],
             ),
           ),

@@ -1,5 +1,6 @@
 import 'package:airport_test/Pages/reservationForm/parkOrderPage.dart';
 import 'package:airport_test/Pages/reservationForm/washOrderPage.dart';
+import 'package:airport_test/api_services/api_classes/login_data.dart';
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/my_text_form_field.dart';
@@ -38,29 +39,29 @@ class _LoginPageState extends State<LoginPage> {
   /// Login-nél kapott token, mellyel a lekérdezéseket intézhetjük
   String? authToken;
 
+  String? partnerId;
+
   /// Jelszó elrejtése
   bool obscurePassword = true;
 
-  Future<String?> loginUser() async {
+  Future<LoginData?> loginUser() async {
     final api = ApiService();
-    final token = await api.loginUser(
+    final LoginData? loginData = await api.loginUser(
         context, emailController.text, passwordController.text);
 
-    if (token == null) {
-      print('Nem sikerült bejelentkezni');
-    } else {
-      print('token: $token');
+    if (loginData != null) {
       setState(() {
-        authToken = token;
+        authToken = loginData.authorizationToken;
+        partnerId = loginData.partnerId;
       });
     }
-    return token;
+    return loginData;
   }
 
   void OnNextPageButtonPressed() async {
     if (formKey.currentState!.validate()) {
-      final token = await loginUser();
-      if (token == null) {
+      final loginData = await loginUser();
+      if (loginData == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Sikertelen Bejelentkezés!')),
         );
@@ -71,6 +72,7 @@ class _LoginPageState extends State<LoginPage> {
           case BookingOption.both:
             nextPage = ParkOrderPage(
               authToken: authToken!,
+              partnerId: partnerId!,
               bookingOption: widget.bookingOption,
               emailController: emailController,
               alreadyRegistered: widget.alreadyRegistered,
@@ -80,6 +82,7 @@ class _LoginPageState extends State<LoginPage> {
           case BookingOption.washing:
             nextPage = WashOrderPage(
               authToken: authToken!,
+              partnerId: partnerId!,
               bookingOption: widget.bookingOption,
               emailController: emailController,
               alreadyRegistered: widget.alreadyRegistered,

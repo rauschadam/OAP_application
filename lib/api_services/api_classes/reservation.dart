@@ -1,6 +1,6 @@
 class Reservation {
   final int parkingService;
-  final int? partnerId;
+  final String partnerId;
   final bool alreadyRegistered;
   final bool withoutRegistration;
   final String name;
@@ -17,11 +17,12 @@ class Reservation {
   final String? carWashArticleId;
   final DateTime? washDateTime;
   final int payType;
+  final String payTypeId;
   final String description;
 
   Reservation({
     required this.parkingService,
-    this.partnerId,
+    required this.partnerId,
     required this.alreadyRegistered,
     required this.withoutRegistration,
     required this.name,
@@ -38,6 +39,7 @@ class Reservation {
     this.carWashArticleId,
     this.washDateTime,
     required this.payType,
+    required this.payTypeId,
     required this.description,
   });
 
@@ -61,6 +63,7 @@ class Reservation {
       "CarWashArticleId": carWashArticleId,
       "WashDateTime": washDateTime?.toIso8601String(),
       "PayType": payType,
+      "PayTypeId": payTypeId,
       "Description": description,
     };
   }
@@ -85,6 +88,7 @@ class Reservation {
       carWashArticleId: json['CarWashArticleId'],
       washDateTime: DateTime.parse(json['WashDateTime']),
       payType: json['PayType'],
+      payTypeId: json['PayTypeId'],
       description: json['Description'],
     );
   }

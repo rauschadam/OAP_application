@@ -1,5 +1,6 @@
 import 'package:airport_test/Pages/reservationForm/invoiceOptionPage.dart';
 import 'package:airport_test/api_services/api_service.dart';
+import 'package:airport_test/constants/functions/pay_type_id_mapper.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/car_wash_selection_card.dart';
 import 'package:airport_test/constants/widgets/my_date_picker_dialog.dart';
@@ -16,7 +17,8 @@ class WashOrderPage extends StatefulWidget with PageWithTitle {
   @override
   String get pageTitle => 'Mosás foglalás';
 
-  final String? authToken;
+  final String authToken;
+  final String partnerId;
   final BookingOption bookingOption;
   final bool alreadyRegistered;
   final bool withoutRegistration;
@@ -35,6 +37,7 @@ class WashOrderPage extends StatefulWidget with PageWithTitle {
   const WashOrderPage(
       {super.key,
       required this.authToken,
+      required this.partnerId,
       required this.bookingOption,
       required this.emailController,
       this.nameController,
@@ -90,6 +93,8 @@ class WashOrderPageState extends State<WashOrderPage> {
 
   // Default értékek
   PaymentOption selectedPaymentOption = PaymentOption.card;
+
+  late String selectedPayTypeId;
 
   /// Lekérdezett foglalások
   List<dynamic>? reservations;
@@ -259,6 +264,8 @@ class WashOrderPageState extends State<WashOrderPage> {
             builder: (_) => BasePage(
               child: InvoiceOptionPage(
                 authToken: widget.authToken,
+                payTypeId: selectedPayTypeId,
+                partnerId: widget.partnerId,
                 nameController: nameController,
                 emailController: widget.emailController,
                 phoneController: phoneController,
@@ -299,6 +306,8 @@ class WashOrderPageState extends State<WashOrderPage> {
   @override
   void initState() {
     super.initState();
+
+    selectedPayTypeId = getPayTypeId(selectedPaymentOption);
 
     totalCost = widget.parkingCost ?? 0;
 
@@ -532,8 +541,19 @@ class WashOrderPageState extends State<WashOrderPage> {
           dense: true,
         ),
         MyRadioListTile<PaymentOption>(
-          title: 'Qvik',
-          value: PaymentOption.qvik,
+          title: 'Készpénz',
+          value: PaymentOption.cash,
+          groupValue: selectedPaymentOption,
+          onChanged: (PaymentOption? value) {
+            setState(() {
+              selectedPaymentOption = value!;
+            });
+          },
+          dense: true,
+        ),
+        MyRadioListTile<PaymentOption>(
+          title: 'Bérlet',
+          value: PaymentOption.pass,
           groupValue: selectedPaymentOption,
           onChanged: (PaymentOption? value) {
             setState(() {

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:airport_test/api_services/api_classes/login_data.dart';
 import 'package:airport_test/api_services/api_classes/reservation.dart';
 import 'package:airport_test/api_services/api_classes/registration.dart';
 import 'package:airport_test/constants/globals.dart';
@@ -73,7 +74,7 @@ class ApiService {
   }
 
   /// Ügyfél bejelentkeztetése
-  Future<String?> loginUser(
+  Future<LoginData?> loginUser(
       BuildContext context, String loginName, String password) async {
     final uri = Uri.http(baseUrl, '/service/v2/auth/login');
 
@@ -89,7 +90,8 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
-        return json['responseContent']['AuthorizationToken'];
+        final LoginData loginData = LoginData.fromJson(json['responseContent']);
+        return loginData;
       } else {
         final errorMessage =
             jsonDecode(response.body)['responseMessage'] ?? 'Ismeretlen hiba';
@@ -107,7 +109,7 @@ class ApiService {
         context: context,
         width: 300,
         dialogType: DialogType.error,
-        title: 'Hálózati hiba',
+        title: 'Sikertelen bejelentkezés',
         desc: e.toString(),
       ).show();
       return null;
@@ -146,7 +148,7 @@ class ApiService {
         context: context,
         width: 300,
         dialogType: DialogType.error,
-        title: 'Hálózati hiba',
+        title: 'Foglalás rögzítése sikertelen',
         desc: e.toString(),
       ).show();
     }
@@ -187,7 +189,7 @@ class ApiService {
         context: context,
         width: 300,
         dialogType: DialogType.error,
-        title: 'Hálózati hiba',
+        title: 'Foglalások lekérése sikertelen',
         desc: e.toString(),
       ).show();
     }
@@ -331,25 +333,27 @@ class ApiService {
   }
 
   /// Parkoló zóna árak lekérdezése
-  Future<List<dynamic>?> getParkingPrices(BuildContext context, String? token,
-      DateTime beginInterval, DateTime endInterval) async {
-    final uri = Uri.http(
-      baseUrl,
-      '/service/v1/airport/getparkingprices',
-      {
-        'BeginIntervall': formatDateTime(beginInterval),
-        'EndIntervall': formatDateTime(endInterval),
-      },
-    );
+  Future<List<dynamic>?> getParkingPrices(
+      BuildContext context,
+      String? token,
+      DateTime beginInterval,
+      DateTime endInterval,
+      String partnerId,
+      String payTypeId) async {
+    final uri = Uri.http(baseUrl, '/service/v1/airport/getparkingprices');
 
     try {
-      final response = await client.get(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': '$token',
-        },
-      );
+      final response = await client.post(uri,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': '$token',
+          },
+          body: jsonEncode({
+            "BeginIntervall": formatDateTime(beginInterval),
+            "EndIntervall": formatDateTime(endInterval),
+            "PartnerId": partnerId,
+            "PayTypeId": payTypeId,
+          }));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -372,7 +376,6 @@ class ApiService {
         return null;
       }
     } catch (e) {
-      print('Hálózati hiba: $e');
       AwesomeDialog(
         context: context,
         width: 300,

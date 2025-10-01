@@ -1,4 +1,5 @@
 import 'package:airport_test/Pages/homePage.dart';
+import 'package:airport_test/api_services/api_classes/login_data.dart';
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/my_text_form_field.dart';
@@ -32,19 +33,16 @@ class _ReceptionLoginPageState extends State<ReceptionLoginPage> {
 
   /// Recepciós bejelentkeztetése
   /// TODO: Ezt most úgy tesszük meg mintha usert loginelnénk, pedig nem
-  Future<String?> loginReceptionist() async {
+  Future<LoginData?> loginReceptionist() async {
     final api = ApiService();
-    final token =
+    final LoginData? loginData =
         //await api.loginUser(emailController.text, passwordController.text);
         await api.loginUser(
             context, 'receptionAdmin@gmail.com', 'AdminPassword1');
 
-    if (token == null) {
-      print('Nem sikerült bejelentkezni');
-    } else {
-      print('token: $token');
+    if (loginData != null) {
       setState(() {
-        receptionistToken = token;
+        receptionistToken = loginData.authorizationToken;
       });
       Navigator.pushReplacement(
         context,
@@ -55,7 +53,7 @@ class _ReceptionLoginPageState extends State<ReceptionLoginPage> {
         ),
       );
     }
-    return token;
+    return loginData;
   }
 
   @override
@@ -72,12 +70,8 @@ class _ReceptionLoginPageState extends State<ReceptionLoginPage> {
 
   void OnNextPageButtonPressed() async {
     if (formKey.currentState!.validate()) {
-      final token = await loginReceptionist();
-      if (token == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sikertelen Bejelentkezés!')),
-        );
-      } else {
+      final LoginData? loginData = await loginReceptionist();
+      if (loginData != null) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(

@@ -1,3 +1,4 @@
+import 'package:airport_test/api_services/api_classes/login_data.dart';
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/api_services/api_classes/registration.dart';
 import 'package:airport_test/Pages/reservationForm/parkOrderPage.dart';
@@ -48,11 +49,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
   /// Login-nél kapott token, mellyel a lekérdezéseket intézhetjük
   String? authToken;
 
+  String? partnerId;
+
   /// Jelszó elrejtése
   bool obscurePassword = true;
 
   /// Felhasznló regisztrálása
-  Future<String?> RegisterUser() async {
+  Future<LoginData?> RegisterUser() async {
     final registration = Registration(
       name: nameController.text,
       password: passwordController.text,
@@ -65,18 +68,17 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
     /// Egyben be is jelentkezteti a felhasználót
     final api = ApiService();
-    final token = await api.loginUser(
+    final LoginData? loginData = await api.loginUser(
         context, emailController.text, passwordController.text);
 
-    if (token == null) {
-      print('Nem sikerült bejelentkezni');
-    } else {
+    if (loginData != null) {
       setState(() {
-        authToken = token;
+        authToken = loginData.authorizationToken;
+        partnerId = loginData.partnerId;
         print(authToken);
       });
     }
-    return token;
+    return loginData;
   }
 
   void OnNextPageButtonPressed() async {
@@ -89,6 +91,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           case BookingOption.both:
             nextPage = ParkOrderPage(
               authToken: authToken!,
+              partnerId: partnerId!,
               bookingOption: widget.bookingOption,
               emailController: emailController,
               licensePlateController: favoriteLicensePlateNumberController,
@@ -101,6 +104,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           case BookingOption.washing:
             nextPage = WashOrderPage(
               authToken: authToken!,
+              partnerId: partnerId!,
               bookingOption: widget.bookingOption,
               emailController: emailController,
               licensePlateController: favoriteLicensePlateNumberController,

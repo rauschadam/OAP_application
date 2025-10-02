@@ -131,6 +131,8 @@ class ApiService {
         body: jsonEncode(reservation.toJson()),
       );
 
+      //final body = jsonDecode(response.body)['responseContent'];
+
       if (response.statusCode == 200 || response.statusCode == 201) {
       } else {
         final errorMessage =

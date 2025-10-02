@@ -60,6 +60,70 @@ class InvoiceOptionPage extends StatefulWidget with PageWithTitle {
 class _InvoiceOptionPageState extends State<InvoiceOptionPage> {
   InvoiceOption? selectedInvoiceOption = InvoiceOption.no;
 
+  /// Megnzézzük, hogy lehet-e egyből érkeztetni
+  bool checkCustomerArrivalIsSoon() {
+    if (widget.arriveDate == null) return false;
+    final now = DateTime.now();
+    final diff = widget.arriveDate!.difference(now);
+    return diff.inHours < 24;
+  }
+
+  /// Felveti az érkeztetés lehetőségét
+  void showArrivalDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Szeretné érkeztetni az ügyfelet?'),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                goToHomePage();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: Text('Nem'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                attemptRegisterArrival(widget.licensePlateController.text);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+              ),
+              child: Text("Érkeztetés"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Ügyfél érkeztetése
+  Future<void> attemptRegisterArrival(String licensePlate) async {
+    final api = ApiService();
+    await api.logCustomerArrival(context, licensePlate);
+    goToHomePage();
+  }
+
+  /// HomePage-re navigálás
+  void goToHomePage() async {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BasePage(
+          child: HomePage(),
+        ),
+      ),
+    );
+  }
+
+  /// Foglalás rögzítése
   void submitReservation() async {
     final reservation = Reservation(
       parkingService: 1,
@@ -78,7 +142,7 @@ class _InvoiceOptionPageState extends State<InvoiceOptionPage> {
       vip: widget.vip!,
       suitcaseWrappingCount: widget.suitcaseWrappingCount,
       washDateTime: widget.washDateTime,
-      payType: 0,
+      payTypeEnum: 0,
       payTypeId: widget.payTypeId,
       description: widget.descriptionController.text,
       carWashArticleId: widget.carWashArticleId,
@@ -117,8 +181,12 @@ class _InvoiceOptionPageState extends State<InvoiceOptionPage> {
           text: "Foglalás küldése",
           onPressed: () {
             submitReservation();
+            if (checkCustomerArrivalIsSoon()) {
+              showArrivalDialog();
+            } else {
+              goToHomePage();
+            }
           },
-          nextPage: HomePage(),
         ),
       ],
     );

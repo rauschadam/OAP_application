@@ -96,7 +96,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
 
   /// A DatePicker még le nem okézott, ott kiválasztott dátumai.
   /// Ezeken nézi meg hogy megfelelnek-e a feltételeknek,
-  /// majd beállítja selectedArriveDate/selectedLeaveDate/selectedArriveDate-nek
+  /// majd beállítja selectedArriveDate/selectedLeaveDate/selectedArriveTime-nak
   DateTime? tempArriveDate, tempLeaveDate;
   TimeOfDay? tempArriveTime;
 
@@ -114,7 +114,12 @@ class ParkOrderPageState extends State<ParkOrderPage> {
 
   /// Parkoló zóna árak
   List<dynamic>? parkingPrices;
+
+  /// Parkoló zónák
   List<ParkingZone> parkingZones = [];
+
+  /// A teljes fizetendő összeg
+  int totalCost = 0;
 
   /// Foglalások és szolgáltatások lekérdezése
   Future<void> fetchData() async {
@@ -183,9 +188,6 @@ class ParkOrderPageState extends State<ParkOrderPage> {
       fetchParkingPrices();
     });
   }
-
-  /// A teljes fizetendő összeg
-  int totalCost = 0;
 
   /// Meghatározza a kiválasztott id alapján a parkolás árát egy napra
   int getCostForZone(String articleId) {

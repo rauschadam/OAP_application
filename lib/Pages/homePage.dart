@@ -745,7 +745,6 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           );
-          // dispose(); // Megszüntetjük a frissítést, mert különben a timer tovább fut
         },
       ),
     );

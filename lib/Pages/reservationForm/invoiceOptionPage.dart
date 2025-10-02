@@ -142,7 +142,6 @@ class _InvoiceOptionPageState extends State<InvoiceOptionPage> {
       vip: widget.vip!,
       suitcaseWrappingCount: widget.suitcaseWrappingCount,
       washDateTime: widget.washDateTime,
-      payTypeEnum: 0,
       payTypeId: widget.payTypeId,
       description: widget.descriptionController.text,
       carWashArticleId: widget.carWashArticleId,

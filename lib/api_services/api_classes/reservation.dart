@@ -16,7 +16,6 @@ class Reservation {
   final int? suitcaseWrappingCount;
   final String? carWashArticleId;
   final DateTime? washDateTime;
-  final int payTypeEnum;
   final String payTypeId;
   final String description;
 
@@ -38,7 +37,6 @@ class Reservation {
     this.suitcaseWrappingCount,
     this.carWashArticleId,
     this.washDateTime,
-    required this.payTypeEnum,
     required this.payTypeId,
     required this.description,
   });
@@ -62,7 +60,6 @@ class Reservation {
       "SuitcaseWrappingCount": suitcaseWrappingCount,
       "CarWashArticleId": carWashArticleId,
       "WashDateTime": washDateTime?.toIso8601String(),
-      "PayTypeEnum": payTypeEnum,
       "PayTypeId": payTypeId,
       "Description": description,
     };
@@ -87,7 +84,6 @@ class Reservation {
       suitcaseWrappingCount: json['SuitcaseWrappingCount'],
       carWashArticleId: json['CarWashArticleId'],
       washDateTime: DateTime.parse(json['WashDateTime']),
-      payTypeEnum: json['PayTypeEnum'],
       payTypeId: json['PayTypeId'],
       description: json['Description'],
     );

@@ -1,6 +1,6 @@
 import 'package:airport_test/Pages/reservationForm/invoiceOptionPage.dart';
 import 'package:airport_test/api_services/api_service.dart';
-import 'package:airport_test/constants/functions/pay_type_id_mapper.dart';
+import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/car_wash_selection_card.dart';
 import 'package:airport_test/constants/widgets/my_date_picker_dialog.dart';
@@ -91,9 +91,6 @@ class WashOrderPageState extends State<WashOrderPage> {
   /// Parkolási zóna cikkszáma
   String? selectedCarWashArticleId;
 
-  // Default értékek
-  PaymentOption selectedPaymentOption = PaymentOption.card;
-
   late String selectedPayTypeId;
 
   /// Lekérdezett foglalások
@@ -137,23 +134,21 @@ class WashOrderPageState extends State<WashOrderPage> {
     } else {
       setState(() {
         serviceTemplates = data;
-        fullyBookedDateTimes =
-            listFullyBookedDateTimes(reservations!, serviceTemplates!);
+        fullyBookedDateTimes = listFullyBookedDateTimes(reservations!);
       });
     }
   }
 
   /// telített időpontok
-  List<DateTime> listFullyBookedDateTimes(
-      List<dynamic> reservations, List<dynamic> serviceTemplates) {
+  List<DateTime> listFullyBookedDateTimes(List<dynamic> reservations) {
     // Kiveszi a zónák kapacitását a Templates-ekből
     final Map<String, int> zoneCapacities = {}; // parkoló zóna -> kapacitás
-    for (var template in serviceTemplates) {
-      if (template['ParkingServiceType'] != 2) {
+    for (var template in ServiceTemplates) {
+      if (template.parkingServiceType != 2) {
         continue; // Csak a mosásokat nézze
       }
-      final String articleId = template['ArticleId'];
-      final int capacity = template['ZoneCapacity'] ?? 1;
+      final String articleId = template.articleId;
+      final int capacity = template.zoneCapacity ?? 1;
       zoneCapacities[articleId] = capacity;
     }
 
@@ -307,7 +302,7 @@ class WashOrderPageState extends State<WashOrderPage> {
   void initState() {
     super.initState();
 
-    selectedPayTypeId = getPayTypeId(selectedPaymentOption);
+    selectedPayTypeId = PayTypes.first.payTypeId;
 
     totalCost = widget.parkingCost ?? 0;
 
@@ -442,7 +437,6 @@ class WashOrderPageState extends State<WashOrderPage> {
         serviceTemplates == null
             ? const Center(child: CircularProgressIndicator())
             : buildCarWashZoneSelector(
-                serviceTemplates: serviceTemplates!,
                 selectedCarWashArticleId: selectedCarWashArticleId,
                 onZoneSelected: (articleId) {
                   setState(() {
@@ -458,13 +452,12 @@ class WashOrderPageState extends State<WashOrderPage> {
 
   /// Parkoló zónák generálása ServiceTemplates-ek alapján.
   Widget buildCarWashZoneSelector({
-    required List<dynamic> serviceTemplates,
     required String? selectedCarWashArticleId,
     required Function(String) onZoneSelected,
   }) {
-    final washingZones = serviceTemplates
-        .where((s) => s['ParkingServiceType'] == 2)
-        .toList(); // Csak a mosás zónák
+    final washingZones =
+        ServiceTemplates.where((s) => s.parkingServiceType == 2)
+            .toList(); // Csak a mosás zónák
 
     return GestureDetector(
       onHorizontalDragUpdate: (details) {
@@ -479,8 +472,8 @@ class WashOrderPageState extends State<WashOrderPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: washingZones.map((zone) {
-            final String articleId = zone['ArticleId'];
-            final String title = zone['ParkingServiceName'];
+            final String articleId = zone.articleId;
+            final String title = zone.parkingServiceName;
 
             return Padding(
               padding: const EdgeInsets.all(4.0),
@@ -518,49 +511,20 @@ class WashOrderPageState extends State<WashOrderPage> {
             ),
           ),
         ),
-        MyRadioListTile<PaymentOption>(
-          title: 'Bankkártya',
-          value: PaymentOption.card,
-          groupValue: selectedPaymentOption,
-          onChanged: (PaymentOption? value) {
-            setState(() {
-              selectedPaymentOption = value!;
-            });
-          },
-          dense: true,
-        ),
-        MyRadioListTile<PaymentOption>(
-          title: 'Átutalás',
-          value: PaymentOption.transfer,
-          groupValue: selectedPaymentOption,
-          onChanged: (PaymentOption? value) {
-            setState(() {
-              selectedPaymentOption = value!;
-            });
-          },
-          dense: true,
-        ),
-        MyRadioListTile<PaymentOption>(
-          title: 'Készpénz',
-          value: PaymentOption.cash,
-          groupValue: selectedPaymentOption,
-          onChanged: (PaymentOption? value) {
-            setState(() {
-              selectedPaymentOption = value!;
-            });
-          },
-          dense: true,
-        ),
-        MyRadioListTile<PaymentOption>(
-          title: 'Bérlet',
-          value: PaymentOption.pass,
-          groupValue: selectedPaymentOption,
-          onChanged: (PaymentOption? value) {
-            setState(() {
-              selectedPaymentOption = value!;
-            });
-          },
-          dense: true,
+        Column(
+          children: PayTypes.map((payType) {
+            return MyRadioListTile<String>(
+              title: payType.payTypeName,
+              value: payType.payTypeId,
+              groupValue: selectedPayTypeId,
+              onChanged: (value) {
+                setState(() {
+                  selectedPayTypeId = value!;
+                });
+              },
+              dense: true,
+            );
+          }).toList(),
         ),
         SizedBox(height: 10),
       ],

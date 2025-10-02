@@ -10,12 +10,12 @@ enum RegistrationOption {
   withoutRegistration, // Regisztráció nélkül vásárolok
 }
 
-enum PaymentOption {
-  card, // Bankkártya
-  transfer, // Átutalás
-  cash, // Készpénz
-  pass, // Bérlet
-}
+// enum PaymentOption {
+//   card, // Bankkártya
+//   transfer, // Átutalás
+//   cash, // Készpénz
+//   pass, // Bérlet
+// }
 
 enum InvoiceOption {
   no, // Nem kérek számlát

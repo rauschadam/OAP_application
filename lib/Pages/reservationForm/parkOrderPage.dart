@@ -1,7 +1,6 @@
 import 'package:airport_test/Pages/reservationForm/invoiceOptionPage.dart';
 import 'package:airport_test/Pages/reservationForm/washOrderPage.dart';
 import 'package:airport_test/api_services/api_service.dart';
-import 'package:airport_test/constants/functions/pay_type_id_mapper.dart';
 import 'package:airport_test/api_services/api_classes/parking_zone.dart';
 import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
@@ -68,9 +67,6 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   /// Aktuális idő
   DateTime now = DateTime.now();
 
-  // Az enumok / kiválasztható lehetőségek default értékei
-  PaymentOption selectedPaymentOption = PaymentOption.card;
-
   late String selectedPayTypeId;
 
   /// Parkolási zóna cikkszáma
@@ -109,9 +105,6 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   /// Lekérdezett foglalások
   List<dynamic>? reservations;
 
-  /// Lekérdezett szolgáltatások
-  List<dynamic>? serviceTemplates;
-
   /// Parkoló zóna árak
   List<dynamic>? parkingPrices;
 
@@ -127,16 +120,11 @@ class ParkOrderPageState extends State<ParkOrderPage> {
     // Foglalások lekérdezése
     final reservationData =
         await api.getReservations(context, widget.authToken);
-    // Szolgáltatások lekérdezése
-    final serviceTemplateData =
-        await api.getServiceTemplates(context, widget.authToken);
 
-    if (reservationData != null && serviceTemplateData != null) {
+    if (reservationData != null) {
       setState(() {
         reservations = reservationData;
-        serviceTemplates = serviceTemplateData;
-        fullyBookedDateTimes =
-            mapBookedDateTimesByZones(reservations!, serviceTemplates!);
+        fullyBookedDateTimes = mapBookedDateTimesByZones(reservations!);
       });
     }
   }
@@ -171,22 +159,13 @@ class ParkOrderPageState extends State<ParkOrderPage> {
         endInterval,
         widget.partnerId,
         selectedPayTypeId);
-    if (parkingPriceData != null && serviceTemplates != null) {
+    if (parkingPriceData != null && ServiceTemplates.isNotEmpty) {
       setState(() {
         parkingPrices = parkingPriceData;
-        parkingZones = mapParkingZones(parkingPriceData, serviceTemplates!);
+        parkingZones = mapParkingZones(parkingPriceData);
         CalculateTotalCost();
       });
     }
-  }
-
-  /// Fizetési mód változásakor
-  void onPaymentOptionChanged(PaymentOption? value) {
-    setState(() {
-      selectedPaymentOption = value!;
-      selectedPayTypeId = getPayTypeId(selectedPaymentOption);
-      fetchParkingPrices();
-    });
   }
 
   /// Meghatározza a kiválasztott id alapján a parkolás árát egy napra
@@ -228,15 +207,15 @@ class ParkOrderPageState extends State<ParkOrderPage> {
 
   // parkoló zóna -> telített időpontok
   Map<String, List<DateTime>> mapBookedDateTimesByZones(
-      List<dynamic> reservations, List<dynamic> serviceTemplates) {
+      List<dynamic> reservations) {
     // Kiveszi a zónák kapacitását a Templates-ekből
     final Map<String, int> zoneCapacities = {}; // parkoló zóna -> kapacitás
-    for (var template in serviceTemplates) {
-      if (template['ParkingServiceType'] != 1) {
+    for (var template in ServiceTemplates) {
+      if (template.parkingServiceType != 1) {
         continue; // Csak a parkolásokat nézze
       }
-      final String articleId = template['ArticleId'];
-      final int capacity = template['ZoneCapacity'] ?? 1;
+      final String articleId = template.articleId;
+      final int capacity = template.zoneCapacity ?? 1;
       zoneCapacities[articleId] = capacity;
     }
 
@@ -476,7 +455,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   void initState() {
     super.initState();
 
-    selectedPayTypeId = getPayTypeId(selectedPaymentOption);
+    selectedPayTypeId = PayTypes.first.payTypeId;
 
     nameController = widget.nameController ?? TextEditingController();
     phoneController = widget.phoneController ?? TextEditingController();
@@ -660,7 +639,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
           child: Text('Válassz parkoló zónát - $parkingDays napra',
               style: TextStyle(fontWeight: FontWeight.bold)),
         ),
-        serviceTemplates == null
+        ServiceTemplates.isEmpty
             ? const Center(child: CircularProgressIndicator())
             : buildParkingZoneSelector(
                 selectedParkingArticleId: selectedParkingArticleId,
@@ -684,7 +663,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
         Row(
           children: [
             Text('Transzferre váró személyek száma'),
-            SizedBox(width: isMobileScreen! ? 0 : 16),
+            SizedBox(width: IsMobile! ? 0 : 16),
             IconButton.filled(
               onPressed: () {
                 setState(() {
@@ -710,10 +689,10 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                 padding: EdgeInsets.zero,
               ),
             ),
-            SizedBox(width: isMobileScreen! ? 0 : 8),
+            SizedBox(width: IsMobile! ? 0 : 8),
             Text('$transferCount',
                 style: TextStyle(fontWeight: FontWeight.bold)),
-            SizedBox(width: isMobileScreen! ? 0 : 8),
+            SizedBox(width: IsMobile! ? 0 : 8),
             IconButton.filled(
               onPressed: () {
                 setState(() {
@@ -778,7 +757,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
             suitcaseWrappingRequested
                 ? Row(
                     children: [
-                      SizedBox(width: isMobileScreen! ? 0 : 16),
+                      SizedBox(width: IsMobile! ? 0 : 16),
                       IconButton.filled(
                         onPressed: () {
                           setState(() {
@@ -809,10 +788,10 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                           padding: EdgeInsets.zero,
                         ),
                       ),
-                      SizedBox(width: isMobileScreen! ? 0 : 8),
+                      SizedBox(width: IsMobile! ? 0 : 8),
                       Text('$suitcaseWrappingCount',
                           style: TextStyle(fontWeight: FontWeight.bold)),
-                      SizedBox(width: isMobileScreen! ? 0 : 8),
+                      SizedBox(width: IsMobile! ? 0 : 8),
                       IconButton.filled(
                         onPressed: () {
                           setState(() {
@@ -870,36 +849,20 @@ class ParkOrderPageState extends State<ParkOrderPage> {
         ),
         widget.bookingOption == BookingOption.parking
             ? Column(
-                children: [
-                  MyRadioListTile<PaymentOption>(
-                    title: 'Bankkártya',
-                    value: PaymentOption.card,
-                    groupValue: selectedPaymentOption,
-                    onChanged: onPaymentOptionChanged,
+                children: PayTypes.map((payType) {
+                  return MyRadioListTile<String>(
+                    title: payType.payTypeName,
+                    value: payType.payTypeId,
+                    groupValue: selectedPayTypeId,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedPayTypeId = value!;
+                        fetchParkingPrices();
+                      });
+                    },
                     dense: true,
-                  ),
-                  MyRadioListTile<PaymentOption>(
-                    title: 'Átutalás',
-                    value: PaymentOption.transfer,
-                    groupValue: selectedPaymentOption,
-                    onChanged: onPaymentOptionChanged,
-                    dense: true,
-                  ),
-                  MyRadioListTile<PaymentOption>(
-                    title: 'Készpénz',
-                    value: PaymentOption.cash,
-                    groupValue: selectedPaymentOption,
-                    onChanged: onPaymentOptionChanged,
-                    dense: true,
-                  ),
-                  MyRadioListTile<PaymentOption>(
-                    title: 'Bérlet',
-                    value: PaymentOption.pass,
-                    groupValue: selectedPaymentOption,
-                    onChanged: onPaymentOptionChanged,
-                    dense: true,
-                  ),
-                ],
+                  );
+                }).toList(),
               )
             : Container(),
         SizedBox(height: 10),

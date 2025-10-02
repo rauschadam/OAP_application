@@ -42,7 +42,7 @@ class _ReceptionLoginPageState extends State<ReceptionLoginPage> {
 
     if (loginData != null) {
       setState(() {
-        receptionistToken = loginData.authorizationToken;
+        ReceptionistToken = loginData.authorizationToken;
       });
       Navigator.pushReplacement(
         context,

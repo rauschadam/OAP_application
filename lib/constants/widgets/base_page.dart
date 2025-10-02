@@ -10,7 +10,7 @@ class BasePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    isMobileScreen = Responsive.isMobile(context);
+    IsMobile = Responsive.isMobile(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -27,7 +27,7 @@ class BasePage extends StatelessWidget {
       ),
       backgroundColor: AppColors.background,
       body: Center(
-        child: !isMobileScreen!
+        child: !IsMobile!
             ? Row(
                 children: [
                   (child as PageWithTitle).haveMargins

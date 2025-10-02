@@ -60,10 +60,10 @@ class _ReservationListPageState extends State<ReservationListPage> {
     final api = ApiService();
     // Foglalások lekérdezése
     final reservationsData =
-        await api.getReservations(context, receptionistToken);
+        await api.getReservations(context, ReceptionistToken);
     // Szolgáltatások lekérdezése
     final servicesData =
-        await api.getServiceTemplates(context, receptionistToken);
+        await api.getServiceTemplates(context, ReceptionistToken!);
 
     if (reservationsData != null && servicesData != null) {
       setState(() {

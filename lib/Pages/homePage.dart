@@ -47,7 +47,7 @@ class _HomePageState extends State<HomePage> {
   Map<String, int>? searchResults;
 
   /// Lekérdezett szolgáltatások
-  List<dynamic>? serviceTemplates;
+  //List<dynamic>? serviceTemplates;
 
   /// parkoló zóna article id-> foglalt helyek száma
   Map<String, int> zoneCounters = {};
@@ -60,19 +60,21 @@ class _HomePageState extends State<HomePage> {
     final api = ApiService();
     // Foglalások lekérdezése
     final reservationsData =
-        await api.getReservations(context, receptionistToken);
+        await api.getReservations(context, ReceptionistToken);
     // Szolgáltatások lekérdezése
     final servicesData =
-        await api.getServiceTemplates(context, receptionistToken);
+        await api.getServiceTemplates(context, ReceptionistToken!);
+    final payTypeData = await api.getPayTypes(context, ReceptionistToken!);
 
-    if (reservationsData != null && servicesData != null) {
+    if (reservationsData != null &&
+        servicesData != null &&
+        payTypeData != null) {
       setState(() {
         reservations = reservationsData;
-        serviceTemplates = servicesData;
-        zoneCounters =
-            mapCurrentOccupancyByZones(reservations!, serviceTemplates!);
-        fullyBookedDateTimes =
-            mapBookedDateTimesByZones(reservations!, serviceTemplates!);
+        ServiceTemplates = servicesData;
+        PayTypes = payTypeData;
+        zoneCounters = mapCurrentOccupancyByZones(reservations!);
+        fullyBookedDateTimes = mapBookedDateTimesByZones(reservations!);
         loading = false;
       });
     }
@@ -98,15 +100,15 @@ class _HomePageState extends State<HomePage> {
 
   /// Parkoló zóna -> telített időpontok
   Map<String, List<DateTime>> mapBookedDateTimesByZones(
-      List<dynamic> reservations, List<dynamic> serviceTemplates) {
+      List<dynamic> reservations) {
     final Map<String, int> zoneCapacities = {}; // parkoló zóna -> kapacitás
     // Kiveszi a zónák kapacitását a Templates-ekből
-    for (var template in serviceTemplates) {
-      if (template['ParkingServiceType'] != 1) {
+    for (var template in ServiceTemplates) {
+      if (template.parkingServiceType != 1) {
         continue; // Csak a parkolásokat nézze (parkoló zónáknál a ParkingServiceType = 1)
       }
-      final String articleId = template['ArticleId'];
-      final int capacity = template['ZoneCapacity'] ?? 1;
+      final String articleId = template.articleId;
+      final int capacity = template.zoneCapacity ?? 1;
       zoneCapacities[articleId] = capacity;
     }
 
@@ -155,8 +157,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// parkoló zóna -> jelenlegi foglalások száma
-  Map<String, int> mapCurrentOccupancyByZones(
-      List<dynamic> reservations, List<dynamic> serviceTemplates) {
+  Map<String, int> mapCurrentOccupancyByZones(List<dynamic> reservations) {
     zoneCounters = {}; // kinullázzuk, hogy frissítéskor ne duplikálódjon
 
     /// mostani idő lekerekítve félórára
@@ -187,7 +188,6 @@ class _HomePageState extends State<HomePage> {
 
   /// A jelenlegi zóna foglaltságokat jeleníti meg
   Widget buildZoneOccupancyIndicators({
-    required List<dynamic>? serviceTemplates,
     required Map<String, int> zoneCounters,
     required int parkingServiceType,
   }) {
@@ -210,13 +210,12 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    if (serviceTemplates == null) {
+    if (ServiceTemplates.isEmpty) {
       return Center(child: Text('Nem találhatóak parkoló zónák'));
     }
 
-    final parkingTemplates = serviceTemplates
-        .where((t) => t['ParkingServiceType'] == parkingServiceType)
-        .toList();
+    final parkingTemplates = ServiceTemplates.where(
+        (t) => t.parkingServiceType == parkingServiceType).toList();
 
     return Container(
       decoration: BoxDecoration(
@@ -245,9 +244,9 @@ class _HomePageState extends State<HomePage> {
               children: [
                 for (var template in parkingTemplates)
                   ZoneOccupancyIndicator(
-                    zoneName: template['ParkingServiceName'].split(' ').last,
-                    occupied: zoneCounters[template['ArticleId']] ?? 0,
-                    capacity: template['ZoneCapacity'],
+                    zoneName: template.parkingServiceName.split(' ').last,
+                    occupied: zoneCounters[template.articleId] ?? 0,
+                    capacity: template.zoneCapacity!,
                   ),
               ],
             ),
@@ -296,13 +295,10 @@ class _HomePageState extends State<HomePage> {
 
     /// Segédfüggvény, a templates-ből meghatározza a zóna nevét ArticleId alapján
     String getZoneNameById(String articleId) {
-      final template = serviceTemplates?.firstWhere(
-        (t) => t['ArticleId'] == articleId,
-        orElse: () => null,
+      final template = ServiceTemplates.firstWhere(
+        (t) => t.articleId == articleId,
       );
-      return template != null
-          ? template['ParkingServiceName'].split(' ').last
-          : 'Egyéb';
+      return template.parkingServiceName.split(' ').last;
     }
 
     return Container(
@@ -411,7 +407,6 @@ class _HomePageState extends State<HomePage> {
     return groups;
   }
 
-  // TODO: Mosás időpontot, VIP sofőrt, transfer számot is megjeleníteni
   /// Egy adott intervallumra szóló foglalás lista, a recepciós feladatait célozza.
   /// Pl.: Autó érkeztetése, autó távoztatása
   Widget buildTodoList({
@@ -584,12 +579,9 @@ class _HomePageState extends State<HomePage> {
                   stateText = "Beérkezett";
                   break;
                 case 2:
-                  stateText = "Beérkezett - visszajött";
+                  stateText = "Idő túllépés";
                   break;
                 case 3:
-                  stateText = "Túlfizetés";
-                  break;
-                case 4:
                   stateText = "Elment";
                   break;
                 case 5:
@@ -777,7 +769,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    if (isMobileScreen!) {
+    if (IsMobile!) {
       return mobileBuild();
     } else {
       return desktopBuild();
@@ -886,7 +878,6 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               children: [
                 buildZoneOccupancyIndicators(
-                  serviceTemplates: serviceTemplates,
                   zoneCounters: zoneCounters,
                   parkingServiceType: 1,
                 ),
@@ -912,9 +903,7 @@ class _HomePageState extends State<HomePage> {
             children: [
               Flexible(
                 child: buildZoneOccupancyIndicators(
-                    serviceTemplates: serviceTemplates,
-                    zoneCounters: zoneCounters,
-                    parkingServiceType: 1),
+                    zoneCounters: zoneCounters, parkingServiceType: 1),
               ),
             ],
           ),

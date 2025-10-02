@@ -129,10 +129,10 @@ class _MyDatePickerDialogState extends State<MyDatePickerDialog> {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: isMobileScreen! ? 3 : 4,
+                      crossAxisCount: IsMobile! ? 3 : 4,
                       mainAxisSpacing: 8,
-                      crossAxisSpacing: isMobileScreen! ? 2 : 8,
-                      childAspectRatio: isMobileScreen! ? 2.2 : 3,
+                      crossAxisSpacing: IsMobile! ? 2 : 8,
+                      childAspectRatio: IsMobile! ? 2.2 : 3,
                     ),
                     itemCount: entry.value.length,
                     itemBuilder: (context, index) {

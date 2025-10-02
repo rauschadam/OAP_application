@@ -10,7 +10,6 @@ class MyDateRangePickerDialog extends StatefulWidget {
   final DateTime? initialArriveDate;
   final DateTime? initialLeaveDate;
   final TimeOfDay? initialArriveTime;
-  final Map<String, List<DateTime>> fullyBookedDateTimes;
   final Function(DateTime arriveDate, DateTime leaveDate, TimeOfDay arriveTime)
       onDateSelected;
 
@@ -19,7 +18,6 @@ class MyDateRangePickerDialog extends StatefulWidget {
     this.initialArriveDate,
     this.initialLeaveDate,
     this.initialArriveTime,
-    required this.fullyBookedDateTimes,
     required this.onDateSelected,
   });
 
@@ -73,35 +71,7 @@ class _MyDateRangePickerDialogState extends State<MyDateRangePickerDialog> {
           }
         }
 
-        // Szűrjük ki az üres listákat
-        final nonEmptyZoneTimes = widget.fullyBookedDateTimes.values
-            .where((zoneTimes) => zoneTimes.isNotEmpty)
-            .toList();
-
-        // Ha nincs egyáltalán foglalt időpont, minden elérhető
-        if (nonEmptyZoneTimes.isEmpty) {
-          return true;
-        }
-
-        // Ellenőrizzük, hogy az adott időpont foglalt-e (érkezés napján)
-        bool isArriveFullyBookedEverywhere = nonEmptyZoneTimes.every(
-            (zoneTimes) => zoneTimes.every((d) =>
-                d.year == (tempArriveDate?.year ?? 0) &&
-                d.month == (tempArriveDate?.month ?? 0) &&
-                d.day == (tempArriveDate?.day ?? 0) &&
-                d.hour == time.hour &&
-                d.minute == time.minute));
-
-        // Ellenőrizzük, hogy az adott időpont foglalt-e (távozás napján)
-        bool isLeaveFullyBookedEverywhere = nonEmptyZoneTimes.every(
-            (zoneTimes) => zoneTimes.every((d) =>
-                d.year == (tempLeaveDate?.year ?? 0) &&
-                d.month == (tempLeaveDate?.month ?? 0) &&
-                d.day == (tempLeaveDate?.day ?? 0) &&
-                d.hour == time.hour &&
-                d.minute == time.minute));
-
-        return !isArriveFullyBookedEverywhere && !isLeaveFullyBookedEverywhere;
+        return true;
       }).toList();
     });
   }

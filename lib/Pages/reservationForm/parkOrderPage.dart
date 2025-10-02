@@ -1,5 +1,6 @@
 import 'package:airport_test/Pages/reservationForm/invoiceOptionPage.dart';
 import 'package:airport_test/Pages/reservationForm/washOrderPage.dart';
+import 'package:airport_test/constants/functions/occupancy_colors.dart';
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/api_services/api_classes/parking_zone.dart';
 import 'package:airport_test/constants/globals.dart';
@@ -124,7 +125,6 @@ class ParkOrderPageState extends State<ParkOrderPage> {
     if (reservationData != null) {
       setState(() {
         reservations = reservationData;
-        fullyBookedDateTimes = mapBookedDateTimesByZones(reservations!);
       });
     }
   }
@@ -163,8 +163,23 @@ class ParkOrderPageState extends State<ParkOrderPage> {
       setState(() {
         parkingPrices = parkingPriceData;
         parkingZones = mapParkingZones(parkingPriceData);
+        checkIfZoneIsStillAvailable();
         CalculateTotalCost();
       });
+    }
+  }
+
+  /// Ha a korábban kiválasztott parkolózóna már nincs benne a friss listában, akkor töröljük a kiválasztást
+  void checkIfZoneIsStillAvailable() {
+    // Ha a kiválasztott zóna betelt, töröljük a választást
+    if (selectedParkingArticleId != null) {
+      final selectedZone = parkingZones.firstWhere(
+        (z) => z.articleId == selectedParkingArticleId,
+      );
+
+      if (selectedZone.occupancy == "Nincs szabad hely") {
+        selectedParkingArticleId = null;
+      }
     }
   }
 
@@ -201,111 +216,10 @@ class ParkOrderPageState extends State<ParkOrderPage> {
     });
   }
 
-  //Teljes időpontos foglalt időpontok
-  Map<String, List<DateTime>> fullyBookedDateTimes =
-      {}; // parkoló zóna ArticleId -> telített időpont
-
-  // parkoló zóna -> telített időpontok
-  Map<String, List<DateTime>> mapBookedDateTimesByZones(
-      List<dynamic> reservations) {
-    // Kiveszi a zónák kapacitását a Templates-ekből
-    final Map<String, int> zoneCapacities = {}; // parkoló zóna -> kapacitás
-    for (var template in ServiceTemplates) {
-      if (template.parkingServiceType != 1) {
-        continue; // Csak a parkolásokat nézze
-      }
-      final String articleId = template.articleId;
-      final int capacity = template.zoneCapacity ?? 1;
-      zoneCapacities[articleId] = capacity;
-    }
-
-    // időpont számláló zónánként
-    Map<String, Map<DateTime, int>> counters =
-        {}; // parkoló zóna -> (egy időpont hányszor szerepel)
-
-    for (var reservation in reservations) {
-      final parkingArticleId = reservation['ParkingArticleId'];
-
-      final arrive = DateTime.parse(reservation['ArriveDate']);
-      final leave = DateTime.parse(reservation['LeaveDate']);
-
-      counters.putIfAbsent(parkingArticleId, () => {});
-
-      DateTime current = DateTime(
-        arrive.year,
-        arrive.month,
-        arrive.day,
-        arrive.hour,
-        arrive.minute - (arrive.minute % 30),
-      );
-
-      // végig iterál az érkezéstől a távozás időpontjáig, az időpont számlálót növeli 1-el
-      while (current.isBefore(leave)) {
-        counters[parkingArticleId]![current] =
-            (counters[parkingArticleId]![current] ?? 0) + 1;
-        current = current.add(const Duration(minutes: 30));
-      }
-    }
-
-    /// Parkoló zóna -> telített időpontok
-    Map<String, List<DateTime>> fullyBookedDateTimesByZone = {};
-
-    counters.forEach((parkingArticleId, counter) {
-      if (parkingArticleId != "") {
-        final capacity = zoneCapacities[parkingArticleId];
-        fullyBookedDateTimesByZone[parkingArticleId] = counter.entries
-            .where((entry) => entry.value >= capacity!)
-            .map((entry) => entry.key)
-            .toList();
-      }
-    });
-
-    return fullyBookedDateTimesByZone;
-  }
-
   /// A parkolási napok számát frissíti.
   void UpdateParkingDays() {
     parkingDays = selectedLeaveDate!.difference(selectedArriveDate!).inDays;
     selectedParkingArticleId != null ? CalculateTotalCost() : null;
-  }
-
-  Map<String, bool> zoneAvailability = {};
-
-  /// Zónánként ellenőrzi, hogy van-e tiltott időpont az intervallumban
-  Map<String, bool> CheckZonesForAvailability() {
-    /// Az érkezési és távozási időpont
-    DateTime startDateTime = DateTime(
-      selectedArriveDate!.year,
-      selectedArriveDate!.month,
-      selectedArriveDate!.day,
-      selectedArriveTime!.hour,
-      selectedArriveTime!.minute,
-    );
-
-    DateTime endDateTime = DateTime(
-      selectedLeaveDate!.year,
-      selectedLeaveDate!.month,
-      selectedLeaveDate!.day,
-      selectedArriveTime!.hour,
-      selectedArriveTime!.minute,
-    );
-
-    fullyBookedDateTimes.forEach((parkingArticleId, zoneTimes) {
-      final hasForbidden = zoneTimes.any((d) {
-        return !d.isBefore(startDateTime) && !d.isAfter(endDateTime);
-      });
-
-      // Ha van tiltott időpont -> false, különben true
-      zoneAvailability[parkingArticleId] = !hasForbidden;
-
-      // Ha a kijelölt zóna foglalt lett, kinullázzuk
-      if (parkingArticleId == selectedParkingArticleId &&
-          !zoneAvailability[parkingArticleId]!) {
-        selectedParkingArticleId = null;
-      }
-    });
-
-    return zoneAvailability;
   }
 
   /// Parkoló zónák generálása ServiceTemplates-ek alapján.
@@ -313,7 +227,6 @@ class ParkOrderPageState extends State<ParkOrderPage> {
     required String? selectedParkingArticleId,
     required int parkingDays,
     required Function(String) onZoneSelected,
-    required Map<String, bool> zoneAvailability,
   }) {
     return GestureDetector(
       onHorizontalDragUpdate: (details) {
@@ -329,12 +242,13 @@ class ParkOrderPageState extends State<ParkOrderPage> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: parkingZones.map((parkingZone) {
             final String articleId = parkingZone.articleId;
-            final isAvailable = zoneAvailability[articleId] ?? true;
             final nameParts = (parkingZone.zone).split(' ');
             final title = nameParts.isNotEmpty ? nameParts.last : '';
             final subtitle = nameParts.length > 1
                 ? nameParts.sublist(0, nameParts.length - 1).join(' ')
                 : '';
+            final String occupancy = parkingZone.occupancy;
+
             return Padding(
               padding: const EdgeInsets.all(AppPadding.extraSmall),
               child: ParkingZoneSelectionCard(
@@ -344,7 +258,8 @@ class ParkOrderPageState extends State<ParkOrderPage> {
                 parkingDays: parkingDays,
                 selected: selectedParkingArticleId == articleId,
                 onTap: () => onZoneSelected(articleId),
-                available: isAvailable,
+                available: occupancy != "Nincs szabad hely",
+                occupancyColor: getOccupancyColor(parkingZone),
               ),
             );
           }).toList(),
@@ -361,13 +276,11 @@ class ParkOrderPageState extends State<ParkOrderPage> {
         initialArriveDate: selectedArriveDate,
         initialLeaveDate: selectedLeaveDate,
         initialArriveTime: selectedArriveTime,
-        fullyBookedDateTimes: fullyBookedDateTimes,
         onDateSelected: (arriveDate, leaveDate, arriveTime) {
           setState(() {
             selectedArriveDate = arriveDate;
             selectedLeaveDate = leaveDate;
             selectedArriveTime = arriveTime;
-            CheckZonesForAvailability();
             UpdateParkingDays();
             fetchParkingPrices();
           });
@@ -631,6 +544,19 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   }
 
   Widget buildParkZoneSelector() {
+    if (selectedArriveDate == null ||
+        selectedLeaveDate == null ||
+        selectedArriveTime == null) {
+      return SizedBox(
+        height: 200,
+        child: Center(
+          child: Text(
+            "Válassz intervallumot a parkoló zónák megtekintéséhez.",
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+        ),
+      );
+    }
     return Column(
       children: [
         const SizedBox(height: AppPadding.small),
@@ -639,18 +565,16 @@ class ParkOrderPageState extends State<ParkOrderPage> {
           child: Text('Válassz parkoló zónát - $parkingDays napra',
               style: TextStyle(fontWeight: FontWeight.bold)),
         ),
-        ServiceTemplates.isEmpty
-            ? const Center(child: CircularProgressIndicator())
-            : buildParkingZoneSelector(
-                selectedParkingArticleId: selectedParkingArticleId,
-                parkingDays: parkingDays,
-                onZoneSelected: (articleId) {
-                  setState(() {
-                    selectedParkingArticleId = articleId;
-                  });
-                  CalculateTotalCost();
-                },
-                zoneAvailability: zoneAvailability),
+        buildParkingZoneSelector(
+          selectedParkingArticleId: selectedParkingArticleId,
+          parkingDays: parkingDays,
+          onZoneSelected: (articleId) {
+            setState(() {
+              selectedParkingArticleId = articleId;
+            });
+            CalculateTotalCost();
+          },
+        ),
         const SizedBox(height: AppPadding.medium),
       ],
     );

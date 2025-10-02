@@ -16,6 +16,7 @@ class ZoneOccupancyIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double percent = occupied / capacity;
     return Column(
       children: [
         Text(
@@ -26,7 +27,7 @@ class ZoneOccupancyIndicator extends StatelessWidget {
         CircularPercentIndicator(
           radius: 45,
           lineWidth: 18,
-          percent: (occupied / capacity) > 1.0 ? 1.0 : (occupied / capacity),
+          percent: percent > 1.0 ? 1.0 : percent,
           progressColor: AppColors.primary,
           backgroundColor: Colors.blue.shade400,
           circularStrokeCap: CircularStrokeCap.round,

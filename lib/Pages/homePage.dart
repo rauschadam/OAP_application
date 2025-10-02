@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:airport_test/Pages/reservationListPage.dart';
 import 'package:airport_test/Pages/reservationForm/reservationOptionPage.dart';
 import 'package:airport_test/api_services/api_service.dart';
+import 'package:airport_test/constants/functions/reservation_state.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/my_icon_button.dart';
 import 'package:airport_test/constants/widgets/reservation_list.dart';
@@ -45,9 +46,6 @@ class _HomePageState extends State<HomePage> {
   /// Keresésnek megfelelő rendszámok listája
   //List<String>? searchResults;
   Map<String, int>? searchResults;
-
-  /// Lekérdezett szolgáltatások
-  //List<dynamic>? serviceTemplates;
 
   /// parkoló zóna article id-> foglalt helyek száma
   Map<String, int> zoneCounters = {};
@@ -570,26 +568,7 @@ class _HomePageState extends State<HomePage> {
               final state = entry.value.value;
 
               /// Foglalás státuszai
-              String stateText;
-              switch (state) {
-                case 0:
-                  stateText = "Nem érkezett még meg";
-                  break;
-                case 1:
-                  stateText = "Beérkezett";
-                  break;
-                case 2:
-                  stateText = "Idő túllépés";
-                  break;
-                case 3:
-                  stateText = "Elment";
-                  break;
-                case 5:
-                  stateText = "Foglalás lemondva";
-                  break;
-                default:
-                  stateText = "Ismeretlen";
-              }
+              String stateName = getStateName(state);
 
               return Padding(
                 padding: const EdgeInsets.only(left: AppPadding.small),
@@ -616,7 +595,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                             SizedBox(width: 8),
                             Text(
-                              stateText,
+                              stateName,
                               style: TextStyle(
                                 color: Colors.grey[600],
                                 fontSize: 12,

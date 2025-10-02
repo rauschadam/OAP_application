@@ -5,12 +5,14 @@ class ParkingZone {
   final String zone;
   final double totalPrice;
   final int zoneCapacity;
+  final String occupancy;
 
   ParkingZone({
     required this.articleId,
     required this.zone,
     required this.totalPrice,
     required this.zoneCapacity,
+    required this.occupancy,
   });
 }
 
@@ -28,6 +30,7 @@ List<ParkingZone> mapParkingZones(List<dynamic> parkingPrices) {
           ? (zone['totalPrice'] as int).toDouble()
           : (zone['totalPrice']),
       zoneCapacity: zoneCapacity,
+      occupancy: zone['occupancyCategoryName'],
     );
   }).toList();
 }

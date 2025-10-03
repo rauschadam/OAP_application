@@ -4,6 +4,7 @@ import 'package:airport_test/api_services/api_classes/pay_type.dart';
 import 'package:airport_test/api_services/api_classes/reservation.dart';
 import 'package:airport_test/api_services/api_classes/registration.dart';
 import 'package:airport_test/api_services/api_classes/service_templates.dart';
+import 'package:airport_test/api_services/api_classes/valid_reservation.dart';
 import 'package:airport_test/constants/globals.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -132,9 +133,6 @@ class ApiService {
         },
         body: jsonEncode(reservation.toJson()),
       );
-
-      // final body = jsonEncode(reservation.toJson());
-      // final responseBody = jsonDecode(response.body)['responseContent'];
 
       if (response.statusCode == 200 || response.statusCode == 201) {
       } else {
@@ -276,6 +274,21 @@ class ApiService {
     );
     if (data == null) return [];
     return data.map<PayType>((json) => PayType.fromJson(json)).toList();
+  }
+
+  /// Érvényes foglalások lekérése
+  Future<List<ValidReservation>?> getValidReservations(
+      BuildContext context) async {
+    final data = await fetchListPanelData(
+      context: context,
+      token: ReceptionistToken,
+      listPanelId: 107,
+      errorDialogTitle: 'Érvényes foglalások lekérdezése sikertelen',
+    );
+    if (data == null) return [];
+    return data
+        .map<ValidReservation>((json) => ValidReservation.fromJson(json))
+        .toList();
   }
 
   /// Ügyfél érkeztetése

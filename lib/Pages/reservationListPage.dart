@@ -36,7 +36,6 @@ class _ReservationListPageState extends State<ReservationListPage> {
   List<dynamic>? reservations;
   List<dynamic>? filteredReservations;
   dynamic selectedReservation;
-  List<dynamic>? serviceTemplates;
 
   bool showFilters = false;
 
@@ -59,16 +58,12 @@ class _ReservationListPageState extends State<ReservationListPage> {
   Future<void> fetchData() async {
     final api = ApiService();
     // Foglalások lekérdezése
-    final reservationsData =
-        await api.getReservations(context, ReceptionistToken);
-    // Szolgáltatások lekérdezése
-    final servicesData =
-        await api.getServiceTemplates(context, ReceptionistToken!);
+    final reservationsData = await api.getValidReservations(context);
+    //await api.getReservations(context, ReceptionistToken);
 
-    if (reservationsData != null && servicesData != null) {
+    if (reservationsData != null) {
       setState(() {
         reservations = reservationsData;
-        serviceTemplates = servicesData;
         loading = false;
       });
     }
@@ -407,13 +402,10 @@ class _ReservationListPageState extends State<ReservationListPage> {
   /// Megmondja a zóna nevét id alapján
   // TODO: egyenlőre a template hosszú nevéből az utolsó szó
   String getZoneNameById(String articleId) {
-    final template = serviceTemplates?.firstWhere(
-      (t) => t['ArticleId'] == articleId,
-      orElse: () => null,
+    final template = ServiceTemplates.firstWhere(
+      (t) => t.articleId == articleId,
     );
-    return template != null
-        ? template['ParkingServiceName'].split(' ').last
-        : 'Egyéb';
+    return template.parkingServiceName.split(' ').last;
   }
 
   /// Részletes foglalási információk
@@ -494,6 +486,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
 
   /// Kereső, mellyel a foglalások között tudunk keresni
   Widget buildSearchBar() {
+    /// Valamiért az általánosított nem jól setState-l
     // return MySearchBar(
     //   searchController: searchController,
     //   trailingWidgets: Row(

@@ -44,7 +44,7 @@ class Reservation {
   Map<String, dynamic> toJson() {
     return {
       "ParkingService": parkingService,
-      "ParterId": partnerId,
+      "PartnerId": partnerId,
       "AlreadyRegistered": alreadyRegistered,
       "WithoutRegistration": withoutRegistration,
       "Name": name,

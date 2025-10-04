@@ -4,6 +4,7 @@ import 'package:airport_test/api_services/api_classes/pay_type.dart';
 import 'package:airport_test/api_services/api_classes/reservation.dart';
 import 'package:airport_test/api_services/api_classes/registration.dart';
 import 'package:airport_test/api_services/api_classes/service_templates.dart';
+import 'package:airport_test/api_services/api_classes/user_data.dart';
 import 'package:airport_test/api_services/api_classes/valid_reservation.dart';
 import 'package:airport_test/constants/globals.dart';
 import 'package:http/http.dart' as http;
@@ -158,8 +159,7 @@ class ApiService {
   }
 
   /// Foglalások lekérdezése
-  Future<List<dynamic>?> getReservations(
-      BuildContext context, String? token) async {
+  Future<List<dynamic>?> getReservations(BuildContext context) async {
     final uri = Uri.http(baseUrl, '/service/v1/airport/webparkings');
 
     try {
@@ -167,7 +167,7 @@ class ApiService {
         uri,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': '$token',
+          'Authorization': '$ReceptionistToken',
         },
       );
 
@@ -289,6 +289,25 @@ class ApiService {
     return data
         .map<ValidReservation>((json) => ValidReservation.fromJson(json))
         .toList();
+  }
+
+  /// Vissza adja a helyes fiókot personId alapján
+  Future<UserData?> getUserData(BuildContext context, String personId) async {
+    final allUserDataJson = await fetchListPanelData(
+      context: context,
+      token: ReceptionistToken,
+      listPanelId: 103,
+      errorDialogTitle: 'Felhasználói fiókok lekérdezése sikertelen',
+    );
+    if (allUserDataJson == null || allUserDataJson.isEmpty) return null;
+    final allUserData = allUserDataJson
+        .map<UserData>((json) => UserData.fromJson(json))
+        .toList();
+    try {
+      return allUserData.firstWhere((data) => data.personId == personId);
+    } catch (e) {
+      return null; // ha nincs ilyen personId
+    }
   }
 
   /// Ügyfél érkeztetése

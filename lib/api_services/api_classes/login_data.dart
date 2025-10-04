@@ -1,6 +1,7 @@
 class LoginData {
   final int? sysUserId;
   final int? webUserId;
+  final String personId;
   final String partnerId;
   final String authorizationToken;
   final String? expiration;
@@ -8,6 +9,7 @@ class LoginData {
   LoginData({
     required this.authorizationToken,
     required this.partnerId,
+    required this.personId,
     this.expiration,
     this.sysUserId,
     this.webUserId,
@@ -17,6 +19,7 @@ class LoginData {
     return {
       "SysUserId": sysUserId,
       "WebUserId": webUserId,
+      "PersonId": personId,
       "PartnerId": partnerId,
       "AuthorizationToken": authorizationToken,
       "Expiration": expiration,
@@ -27,6 +30,7 @@ class LoginData {
     return LoginData(
       sysUserId: json['SysUserId'],
       webUserId: json['WebUserId'],
+      personId: json['PersonId'],
       partnerId: json['PartnerId'].toString(),
       authorizationToken: json['AuthorizationToken'],
       expiration: json['Expiration'],

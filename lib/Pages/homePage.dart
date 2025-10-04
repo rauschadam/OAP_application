@@ -57,8 +57,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> fetchData() async {
     final api = ApiService();
     // Foglalások lekérdezése
-    final reservationsData =
-        await api.getReservations(context, ReceptionistToken);
+    final reservationsData = await api.getReservations(context);
     // Szolgáltatások lekérdezése
     final servicesData =
         await api.getServiceTemplates(context, ReceptionistToken!);

@@ -58,7 +58,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
   Future<void> fetchData() async {
     final api = ApiService();
     // Foglalások lekérdezése
-    final reservationsData = await api.getValidReservations(context);
+    final reservationsData = await api.getReservations(context);
     //await api.getReservations(context, ReceptionistToken);
 
     if (reservationsData != null) {

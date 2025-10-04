@@ -1,5 +1,6 @@
 import 'package:airport_test/Pages/reservationForm/invoiceOptionPage.dart';
 import 'package:airport_test/Pages/reservationForm/washOrderPage.dart';
+import 'package:airport_test/api_services/api_classes/user_data.dart';
 import 'package:airport_test/constants/functions/occupancy_colors.dart';
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/api_services/api_classes/parking_zone.dart';
@@ -23,6 +24,7 @@ class ParkOrderPage extends StatefulWidget with PageWithTitle {
 
   final String authToken;
   final String partnerId;
+  final String personId;
   final BookingOption bookingOption;
   final bool alreadyRegistered;
   final bool withoutRegistration;
@@ -33,6 +35,7 @@ class ParkOrderPage extends StatefulWidget with PageWithTitle {
   const ParkOrderPage(
       {super.key,
       required this.authToken,
+      required this.personId,
       required this.partnerId,
       required this.bookingOption,
       required this.emailController,
@@ -49,10 +52,10 @@ class ParkOrderPage extends StatefulWidget with PageWithTitle {
 class ParkOrderPageState extends State<ParkOrderPage> {
   final formKey = GlobalKey<FormState>();
 
-  late final TextEditingController nameController;
-  late final TextEditingController phoneController;
-  late final TextEditingController licensePlateController;
-  late final TextEditingController descriptionController;
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController licensePlateController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
   final ScrollController ParkOptionsScrollController = ScrollController();
 
   FocusNode nameFocus = FocusNode();
@@ -68,9 +71,10 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   /// Aktuális idő
   DateTime now = DateTime.now();
 
-  late String selectedPayTypeId;
+  /// Kiválasztott fizetési mód Id-ja
+  String selectedPayTypeId = PayTypes.first.payTypeId;
 
-  /// Parkolási zóna cikkszáma
+  /// Kiválasztott parkolási zóna cikkszáma
   String? selectedParkingArticleId;
 
   /// Transzferrel szállított személyek száma
@@ -118,13 +122,15 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   /// Foglalások és szolgáltatások lekérdezése
   Future<void> fetchData() async {
     final api = ApiService();
-    // Foglalások lekérdezése
-    final reservationData =
-        await api.getReservations(context, widget.authToken);
 
-    if (reservationData != null) {
+    // Felhasználói fiók lekérése
+    final UserData? userData = await api.getUserData(context, widget.personId);
+
+    if (userData != null) {
       setState(() {
-        reservations = reservationData;
+        // A beviteli mezők kitöltése a felhasználói adatokkal
+        nameController.text = userData.person_Name;
+        phoneController.text = userData.phone ?? '';
       });
     }
   }
@@ -323,6 +329,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
         } else if (widget.bookingOption == BookingOption.both) {
           nextPage = WashOrderPage(
             authToken: widget.authToken,
+            personId: widget.personId,
             partnerId: widget.partnerId,
             bookingOption: widget.bookingOption,
             emailController: widget.emailController,
@@ -367,14 +374,6 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   @override
   void initState() {
     super.initState();
-
-    selectedPayTypeId = PayTypes.first.payTypeId;
-
-    nameController = widget.nameController ?? TextEditingController();
-    phoneController = widget.phoneController ?? TextEditingController();
-    licensePlateController =
-        widget.licensePlateController ?? TextEditingController();
-    descriptionController = TextEditingController();
 
     // Kis késleltetéssel adunk fókuszt, hogy a build lefusson
     WidgetsBinding.instance.addPostFrameCallback((_) {

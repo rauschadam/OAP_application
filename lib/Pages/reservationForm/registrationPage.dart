@@ -46,11 +46,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
   FocusNode favoriteLicensePlateNumberFocus = FocusNode();
   FocusNode nextPageButtonFocus = FocusNode();
 
-  /// Login-nél kapott token, mellyel a lekérdezéseket intézhetjük
-  String? authToken;
-
-  String? partnerId;
-
   /// Jelszó elrejtése
   bool obscurePassword = true;
 
@@ -70,28 +65,21 @@ class _RegistrationPageState extends State<RegistrationPage> {
     final api = ApiService();
     final LoginData? loginData = await api.loginUser(
         context, emailController.text, passwordController.text);
-
-    if (loginData != null) {
-      setState(() {
-        authToken = loginData.authorizationToken;
-        partnerId = loginData.partnerId;
-        print(authToken);
-      });
-    }
     return loginData;
   }
 
   void OnNextPageButtonPressed() async {
     if (formKey.currentState!.validate()) {
-      final token = await RegisterUser();
-      if (token != null) {
+      final loginData = await RegisterUser();
+      if (loginData != null) {
         Widget nextPage;
         switch (widget.bookingOption) {
           case BookingOption.parking:
           case BookingOption.both:
             nextPage = ParkOrderPage(
-              authToken: authToken!,
-              partnerId: partnerId!,
+              authToken: loginData.authorizationToken,
+              personId: loginData.personId,
+              partnerId: loginData.partnerId,
               bookingOption: widget.bookingOption,
               emailController: emailController,
               licensePlateController: favoriteLicensePlateNumberController,
@@ -103,8 +91,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
             break;
           case BookingOption.washing:
             nextPage = WashOrderPage(
-              authToken: authToken!,
-              partnerId: partnerId!,
+              authToken: loginData.authorizationToken,
+              personId: loginData.personId,
+              partnerId: loginData.partnerId,
               bookingOption: widget.bookingOption,
               emailController: emailController,
               licensePlateController: favoriteLicensePlateNumberController,

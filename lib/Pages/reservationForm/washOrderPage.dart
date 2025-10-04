@@ -1,4 +1,5 @@
 import 'package:airport_test/Pages/reservationForm/invoiceOptionPage.dart';
+import 'package:airport_test/api_services/api_classes/user_data.dart';
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
@@ -18,6 +19,7 @@ class WashOrderPage extends StatefulWidget with PageWithTitle {
   String get pageTitle => 'Mosás foglalás';
 
   final String authToken;
+  final String personId;
   final String partnerId;
   final BookingOption bookingOption;
   final bool alreadyRegistered;
@@ -37,6 +39,7 @@ class WashOrderPage extends StatefulWidget with PageWithTitle {
   const WashOrderPage(
       {super.key,
       required this.authToken,
+      required this.personId,
       required this.partnerId,
       required this.bookingOption,
       required this.emailController,
@@ -61,11 +64,10 @@ class WashOrderPage extends StatefulWidget with PageWithTitle {
 class WashOrderPageState extends State<WashOrderPage> {
   final formKey = GlobalKey<FormState>();
 
-  // initState-ben átadjuk nekik az előző page-en megadott adatokat
-  late final TextEditingController nameController;
-  late final TextEditingController phoneController;
-  late final TextEditingController licensePlateController;
-  late final TextEditingController descriptionController;
+  TextEditingController nameController = TextEditingController();
+  TextEditingController phoneController = TextEditingController();
+  TextEditingController licensePlateController = TextEditingController();
+  TextEditingController descriptionController = TextEditingController();
   final ScrollController WashOptionsScrollController = ScrollController();
 
   FocusNode nameFocus = FocusNode();
@@ -91,7 +93,7 @@ class WashOrderPageState extends State<WashOrderPage> {
   /// Parkolási zóna cikkszáma
   String? selectedCarWashArticleId;
 
-  late String selectedPayTypeId;
+  String selectedPayTypeId = PayTypes.first.payTypeId;
 
   /// Lekérdezett foglalások
   List<dynamic>? reservations;
@@ -110,9 +112,11 @@ class WashOrderPageState extends State<WashOrderPage> {
   List<TimeOfDay> availableSlots = [];
 
   /// Foglalások lekérdezése
-  Future<void> fetchReservations() async {
+  Future<void> fetchData() async {
     final api = ApiService();
-    final data = await api.getReservations(context, widget.authToken);
+
+    /// Foglalások lekérdezése
+    final data = await api.getReservations(context);
 
     if (data == null) {
       print('Nem sikerült a lekérdezés');
@@ -121,6 +125,20 @@ class WashOrderPageState extends State<WashOrderPage> {
         reservations = data;
       });
       fetchServiceTemplates();
+    }
+
+    if (widget.bookingOption == BookingOption.washing) {
+      // Felhasználói fiók lekérése
+      final UserData? userData =
+          await api.getUserData(context, widget.personId);
+      if (userData != null) {
+        setState(() {
+          // A beviteli mezők kitöltése a felhasználói adatokkal
+          nameController.text = userData.person_Name;
+          phoneController.text = userData.phone ?? '';
+          widget.emailController.text = userData.email;
+        });
+      }
     }
   }
 
@@ -302,24 +320,21 @@ class WashOrderPageState extends State<WashOrderPage> {
   void initState() {
     super.initState();
 
-    selectedPayTypeId = PayTypes.first.payTypeId;
+    if (widget.bookingOption == BookingOption.both) {
+      nameController = widget.nameController!;
+      phoneController = widget.phoneController!;
+      licensePlateController = widget.licensePlateController!;
+      descriptionController = widget.descriptionController!;
+    }
 
     totalCost = widget.parkingCost ?? 0;
-
-    // Beállítjuk az előző page-ről a TextFormField-ek controller-eit
-    nameController = widget.nameController ?? TextEditingController();
-    phoneController = widget.phoneController ?? TextEditingController();
-    licensePlateController =
-        widget.licensePlateController ?? TextEditingController();
-    descriptionController =
-        widget.descriptionController ?? TextEditingController();
 
     // Kis késleltetéssel adunk fókuszt, hogy a build lefusson
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(nameFocus);
     });
 
-    fetchReservations();
+    fetchData();
   }
 
   @override

@@ -36,11 +36,6 @@ class _LoginPageState extends State<LoginPage> {
   FocusNode passwordFocus = FocusNode();
   FocusNode nextPageButtonFocus = FocusNode();
 
-  /// Login-nél kapott token, mellyel a lekérdezéseket intézhetjük
-  String? authToken;
-
-  String? partnerId;
-
   /// Jelszó elrejtése
   bool obscurePassword = true;
 
@@ -48,13 +43,6 @@ class _LoginPageState extends State<LoginPage> {
     final api = ApiService();
     final LoginData? loginData = await api.loginUser(
         context, emailController.text, passwordController.text);
-
-    if (loginData != null) {
-      setState(() {
-        authToken = loginData.authorizationToken;
-        partnerId = loginData.partnerId;
-      });
-    }
     return loginData;
   }
 
@@ -71,8 +59,9 @@ class _LoginPageState extends State<LoginPage> {
           case BookingOption.parking:
           case BookingOption.both:
             nextPage = ParkOrderPage(
-              authToken: authToken!,
-              partnerId: partnerId!,
+              authToken: loginData.authorizationToken,
+              personId: loginData.personId,
+              partnerId: loginData.partnerId,
               bookingOption: widget.bookingOption,
               emailController: emailController,
               alreadyRegistered: widget.alreadyRegistered,
@@ -81,8 +70,9 @@ class _LoginPageState extends State<LoginPage> {
             break;
           case BookingOption.washing:
             nextPage = WashOrderPage(
-              authToken: authToken!,
-              partnerId: partnerId!,
+              authToken: loginData.authorizationToken,
+              personId: loginData.personId,
+              partnerId: loginData.partnerId,
               bookingOption: widget.bookingOption,
               emailController: emailController,
               alreadyRegistered: widget.alreadyRegistered,

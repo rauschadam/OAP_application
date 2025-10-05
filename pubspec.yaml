@@ -19,6 +19,7 @@ dependencies:
   intl: ^0.20.2
   percent_indicator: ^4.2.5
   shimmer_animation: ^2.2.2
+  syncfusion_flutter_datagrid: ^31.1.19
   syncfusion_flutter_datepicker: ^31.1.19
 
 dev_dependencies:

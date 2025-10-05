@@ -32,7 +32,6 @@ class _ReceptionLoginPageState extends State<ReceptionLoginPage> {
   bool obscurePassword = true;
 
   /// Recepciós bejelentkeztetése
-  /// TODO: Ezt most úgy tesszük meg mintha usert loginelnénk, pedig nem
   Future<LoginData?> loginReceptionist() async {
     final api = ApiService();
     final LoginData? loginData =

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:airport_test/Pages/reservationListPage.dart';
+import 'package:airport_test/Pages/newReservationListPage.dart';
 import 'package:airport_test/Pages/reservationForm/reservationOptionPage.dart';
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/constants/functions/reservation_state.dart';
@@ -683,7 +683,7 @@ class _HomePageState extends State<HomePage> {
       context,
       MaterialPageRoute(
         builder: (_) => BasePage(
-          child: ReservationListPage(),
+          child: NewReservationListPage(),
         ),
       ),
     );

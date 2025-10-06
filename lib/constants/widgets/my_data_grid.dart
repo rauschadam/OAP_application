@@ -74,13 +74,16 @@ class _MyDataGridState extends State<MyDataGrid> {
       onCellTap: (details) => handleLeftClick(details),
       onCellSecondaryTap: (details) => handleRightClick(details, context),
       columns: [
-        buildColumn('partner_Sortname', 'Név'),
-        buildColumn('licensePlate', 'Rendszám'),
-        buildColumn('articleNameHUN', 'Zóna'),
-        buildColumn('arriveDate', 'Érkezés dátuma'),
-        buildColumn('leaveDate', 'Távozás dátuma'),
+        buildColumn('Partner_Sortname', 'Név'),
+        buildColumn('LicensePlate', 'Rendszám'),
+        buildColumn('ArticleNameHUN', 'Zóna'),
+        buildColumn('ArriveDate', 'Érkezés dátuma'),
+        buildColumn('LeaveDate', 'Távozás dátuma'),
+        buildColumn('Email', 'Email'),
+        buildColumn('Phone', 'Telefonszám'),
         buildColumn('State', 'Státusz'),
         buildColumn('WebParkingId', 'Id'),
+        buildColumn('Description', 'Megjegyzés'),
       ],
     );
   }
@@ -179,19 +182,23 @@ class ReservationDataSource extends DataGridSource {
     _rows = reservations.map<DataGridRow>((r) {
       return DataGridRow(cells: [
         DataGridCell<String>(
-            columnName: 'partner_Sortname', value: r.partner_Sortname),
-        DataGridCell<String>(columnName: 'licensePlate', value: r.licensePlate),
+            columnName: 'Partner_Sortname', value: r.partner_Sortname),
+        DataGridCell<String>(columnName: 'LicensePlate', value: r.licensePlate),
         DataGridCell<String>(
-            columnName: 'articleNameHUN', value: r.articleNameHUN),
+            columnName: 'ArticleNameHUN', value: r.articleNameHUN),
         DataGridCell<String>(
-            columnName: 'arriveDate',
+            columnName: 'ArriveDate',
             value: DateFormat('yyyy.MM.dd HH:mm').format(r.arriveDate)),
         DataGridCell<String>(
-            columnName: 'leaveDate',
+            columnName: 'LeaveDate',
             value: DateFormat('yyyy.MM.dd HH:mm').format(r.leaveDate)),
+        DataGridCell<String>(columnName: 'Email', value: r.email.toString()),
+        DataGridCell<String>(columnName: 'Phone', value: r.phone.toString()),
         DataGridCell<String>(columnName: 'State', value: r.state.toString()),
         DataGridCell<String>(
             columnName: 'WebParkingId', value: r.webParkingId.toString()),
+        DataGridCell<String>(
+            columnName: 'Description', value: r.description.toString()),
       ]);
     }).toList();
   }

@@ -130,8 +130,17 @@ class ParkOrderPageState extends State<ParkOrderPage> {
       setState(() {
         // A beviteli mezők kitöltése a felhasználói adatokkal
         nameController.text = userData.person_Name;
-        phoneController.text = userData.phone ?? '';
+        phoneController.text = formatPhone(userData.phone);
       });
+    }
+  }
+
+  String formatPhone(String? phoneText) {
+    if (phoneText == null) return '';
+    if (phoneText.startsWith('+')) {
+      return phoneText.substring(1);
+    } else {
+      return phoneText;
     }
   }
 

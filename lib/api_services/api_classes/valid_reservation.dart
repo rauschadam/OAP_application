@@ -13,6 +13,9 @@ class ValidReservation {
   final String? webParkingAdvancePaperId;
   final String? webParkingAdvancePaperNumber;
   final String? webParkingAdvancePaperTypeName;
+  final String email;
+  final String phone;
+  final String? description;
 
   ValidReservation({
     required this.webParkingId,
@@ -29,6 +32,9 @@ class ValidReservation {
     this.webParkingAdvancePaperId,
     this.webParkingAdvancePaperNumber,
     this.webParkingAdvancePaperTypeName,
+    required this.email,
+    required this.phone,
+    this.description,
   });
 
   Map<String, dynamic> toJson() {
@@ -47,6 +53,9 @@ class ValidReservation {
       "WebParkingAdvancePaperId": webParkingAdvancePaperId,
       "WebParkingAdvancePaperNumber": webParkingAdvancePaperNumber,
       "WebParkingAdvancePaperTypeName": webParkingAdvancePaperTypeName,
+      "Email": email,
+      "Phone": phone,
+      "Description": description,
     };
   }
 
@@ -66,6 +75,9 @@ class ValidReservation {
       webParkingAdvancePaperId: json['WebParkingAdvancePaperId'],
       webParkingAdvancePaperNumber: json['WebParkingAdvancePaperNumber'],
       webParkingAdvancePaperTypeName: json['WebParkingAdvancePaperTypeName'],
+      email: json['Email'],
+      phone: json['Phone'],
+      description: json['Description'],
     );
   }
 }

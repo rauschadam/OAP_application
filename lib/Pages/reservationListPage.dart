@@ -334,92 +334,12 @@ class _ReservationListPageState extends State<ReservationListPage> {
                   ],
                 ),
               ),
-              // if (selectedReservation != null)
-              //   Expanded(
-              //     flex: 1,
-              //     child: Padding(
-              //       padding: const EdgeInsets.symmetric(
-              //           horizontal: AppPadding.medium),
-              //       child: ReservationInformation(
-              //           reservation: selectedReservation!),
-              //     ),
-              //   )
             ],
           ),
         ),
       ),
     );
   }
-
-  // Widget ReservationInformation({required ValidReservation reservation}) {
-  //   String formatDate(DateTime? date) {
-  //     if (date == null) return '-';
-  //     return DateFormat('yyyy.MM.dd HH:mm').format(date);
-  //   }
-
-  //   Widget buildInfoTile(String title, String value, {bool isLast = false}) {
-  //     return Column(
-  //       children: [
-  //         ListTile(
-  //           title: Text(
-  //             title,
-  //             style: TextStyle(
-  //               fontWeight: FontWeight.bold,
-  //               color: AppColors.text,
-  //             ),
-  //           ),
-  //           subtitle: Text(value, style: TextStyle(color: AppColors.text)),
-  //         ),
-  //         if (!isLast) Divider(height: 1),
-  //       ],
-  //     );
-  //   }
-
-  //   return Padding(
-  //     padding: const EdgeInsets.only(top: AppPadding.medium),
-  //     child: Align(
-  //       alignment: Alignment.topCenter,
-  //       child: Container(
-  //         decoration: BoxDecoration(
-  //           color: AppColors.secondary,
-  //           borderRadius: BorderRadius.circular(AppBorderRadius.medium),
-  //         ),
-  //         padding: EdgeInsets.all(AppPadding.large),
-  //         width: double.infinity,
-  //         child: Flexible(
-  //           child: ListView(
-  //             shrinkWrap: true,
-  //             children: [
-  //               buildInfoTile('Partner ID', reservation.partnerId),
-  //               buildInfoTile('Név', reservation.partner_Sortname),
-  //               buildInfoTile('Rendszám', reservation.licensePlate),
-  //               buildInfoTile('Parkoló zóna', reservation.articleNameHUN),
-  //               buildInfoTile(
-  //                   'Érkezés dátuma', formatDate(reservation.arriveDate)),
-  //               buildInfoTile(
-  //                   'Távozás dátuma', formatDate(reservation.leaveDate)),
-  //               buildInfoTile('Bizonylat ID', reservation.webParkingPaperId),
-  //               buildInfoTile(
-  //                   'Bizonylat szám', reservation.webParkingPaperNumber),
-  //               buildInfoTile(
-  //                   'Bizonylat típus', reservation.webParkingPaperTypeName,
-  //                   isLast: true),
-  //               if (reservation.webParkingAdvancePaperId != null)
-  //                 buildInfoTile('Előfoglalás ID',
-  //                     reservation.webParkingAdvancePaperId ?? '-'),
-  //               if (reservation.webParkingAdvancePaperNumber != null)
-  //                 buildInfoTile('Előfoglalás szám',
-  //                     reservation.webParkingAdvancePaperNumber ?? '-'),
-  //               if (reservation.webParkingAdvancePaperTypeName != null)
-  //                 buildInfoTile('Előfoglalás típus',
-  //                     reservation.webParkingAdvancePaperTypeName ?? '-'),
-  //             ],
-  //           ),
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
 
   /// Figyeli mikor nyomunk a searchBar-on kívülre
   Widget detectClicks(Widget child) {

@@ -1,3 +1,5 @@
+// ignore_for_file: curly_braces_in_flow_control_structures
+
 import 'package:airport_test/api_services/api_classes/valid_reservation.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:flutter/material.dart';
@@ -10,12 +12,33 @@ class MyDataGrid extends StatefulWidget {
   final ValidReservation? selectedReservation;
   final void Function()? onRightClick;
 
+  final bool showName;
+  final bool showLicense;
+  final bool showZone;
+  final bool showArriveDate;
+  final bool showLeaveDate;
+  final bool showPhone;
+  final bool showEmail;
+  final bool showState;
+  final bool showId;
+  final bool showDescription;
+
   const MyDataGrid({
     super.key,
     required this.reservations,
     this.onReservationSelected,
     this.selectedReservation,
     this.onRightClick,
+    this.showName = false,
+    this.showLicense = false,
+    this.showZone = false,
+    this.showArriveDate = false,
+    this.showLeaveDate = false,
+    this.showPhone = false,
+    this.showEmail = false,
+    this.showState = false,
+    this.showId = false,
+    this.showDescription = false,
   });
 
   @override
@@ -44,101 +67,74 @@ class _MyDataGridState extends State<MyDataGrid> {
   };
 
   @override
+  void didUpdateWidget(covariant MyDataGrid oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.reservations != widget.reservations) {
+      dataSource.updateData(reservations: widget.reservations);
+      dataSource.notifyListeners();
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
     gridColumns = buildInitialColumns();
     dataSource = createDataSource();
   }
 
-  @override
-  void didUpdateWidget(covariant MyDataGrid oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.reservations != widget.reservations ||
-        oldWidget.selectedReservation != widget.selectedReservation) {
-      // A rendezés elmentése
-      final oldSortedColumns = dataSource.sortedColumns.toList();
-
-      dataSource = createDataSource();
-
-      // Rendezés visszaállítása
-      dataSource.sortedColumns.addAll(oldSortedColumns);
-      dataSource.sort();
-
-      setState(() {});
-    }
-  }
-
   ReservationDataSource createDataSource() {
     return ReservationDataSource(
       reservations: widget.reservations,
       columnOrder: gridColumns.map((c) => c.columnName).toList(),
-      selectedReservation: widget.selectedReservation,
     );
   }
 
   List<GridColumn> buildInitialColumns() {
-    final columns = [
-      buildColumn('Partner_Sortname', 'Név'),
-      buildColumn('LicensePlate', 'Rendszám'),
-      buildColumn('ArticleNameHUN', 'Zóna'),
-      buildColumn('ArriveDate', 'Érkezés dátuma'),
-      buildColumn('LeaveDate', 'Távozás dátuma'),
-      buildColumn('Phone', 'Telefonszám'),
-      buildColumn('Email', 'Email'),
-      buildColumn('State', 'Státusz'),
-      buildColumn('WebParkingId', 'Id'),
-      buildColumn('Description', 'Megjegyzés'),
+    return [
+      buildColumn('Partner_Sortname', 'Név', widget.showName),
+      buildColumn('LicensePlate', 'Rendszám', widget.showLicense),
+      buildColumn('ArticleNameHUN', 'Zóna', widget.showZone),
+      buildColumn('ArriveDate', 'Érkezés dátuma', widget.showArriveDate),
+      buildColumn('LeaveDate', 'Távozás dátuma', widget.showLeaveDate),
+      buildColumn('Phone', 'Telefonszám', widget.showPhone),
+      buildColumn('Email', 'Email', widget.showEmail),
+      buildColumn('State', 'Státusz', widget.showState),
+      buildColumn('WebParkingId', 'Id', widget.showId),
+      buildColumn('Description', 'Megjegyzés', widget.showDescription),
     ];
-
-    // Feltölti az oszlopméreteket is
-    for (final col in columns) {
-      columnWidths[col.columnName] ??= double.nan;
-    }
-
-    return columns;
   }
 
   @override
   Widget build(BuildContext context) {
     return SfDataGrid(
       source: dataSource,
+      selectionMode: SelectionMode.single,
       allowSorting: true,
       allowColumnsDragging: true,
       allowColumnsResizing: true,
       columnWidthMode: ColumnWidthMode.fill,
       onColumnResizeUpdate: (details) => handleColumnResize(details),
       onColumnDragging: (details) => handleColumnDragging(details),
-      onCellTap: (details) => handleLeftClick(details),
-      onCellSecondaryTap: (details) => handleRightClick(details, context),
+      onSelectionChanged:
+          (List<DataGridRow> addedRows, List<DataGridRow> removedRows) {
+        handleSelectionChanged(addedRows);
+      },
+      onCellSecondaryTap: (details) => handleRightClick(details),
       columns: gridColumns,
     );
   }
 
-  void handleLeftClick(DataGridCellTapDetails details) {
-    if (details.rowColumnIndex.rowIndex > 0) {
-      try {
-        final row = dataSource.rows[details.rowColumnIndex.rowIndex - 1];
-        final webIdCell =
-            row.getCells().firstWhere((c) => c.columnName == 'WebParkingId');
-
-        final ValidReservation reservation = widget.reservations.firstWhere(
-          (r) => r.webParkingId.toString() == webIdCell.value,
-        );
-
-        dataSource.updateSelectedReservation(reservation);
-        widget.onReservationSelected?.call(reservation);
-      } catch (_) {
-        dataSource.updateSelectedReservation(null);
-        widget.onReservationSelected?.call(null);
-      }
+  void handleSelectionChanged(List<DataGridRow> selectedRows) {
+    if (selectedRows.isNotEmpty) {
+      final selectedRow = selectedRows.first;
+      final reservation = dataSource.getReservationForRow(selectedRow);
+      widget.onReservationSelected?.call(reservation);
+    } else {
+      widget.onReservationSelected?.call(null);
     }
   }
 
-  /// Adatra jobb klikkelés
-  void handleRightClick(DataGridCellTapDetails details, BuildContext context) {
-    handleLeftClick(details);
-    widget.onRightClick?.call();
-  }
+  void handleRightClick(DataGridCellTapDetails details) {}
 
   /// Oszlop áthelyezés
   bool handleColumnDragging(DataGridColumnDragDetails details) {
@@ -162,24 +158,29 @@ class _MyDataGridState extends State<MyDataGrid> {
     setState(() {
       columnWidths[details.column.columnName] = details.width;
 
-      // Oszlopok újraépítése az új szélességekkel
-      gridColumns = gridColumns.map((col) {
-        return buildColumn(
-            col.columnName,
-            (col.label as Container).child is Text
-                ? ((col.label as Container).child as Text).data ??
-                    col.columnName
-                : col.columnName);
-      }).toList();
+      // Újraépítjük az oszlopokat az aktuális láthatósági értékekkel
+      gridColumns = [
+        buildColumn('Partner_Sortname', 'Név', widget.showName),
+        buildColumn('LicensePlate', 'Rendszám', widget.showLicense),
+        buildColumn('ArticleNameHUN', 'Zóna', widget.showZone),
+        buildColumn('ArriveDate', 'Érkezés dátuma', widget.showArriveDate),
+        buildColumn('LeaveDate', 'Távozás dátuma', widget.showLeaveDate),
+        buildColumn('Phone', 'Telefonszám', widget.showPhone),
+        buildColumn('Email', 'Email', widget.showEmail),
+        buildColumn('State', 'Státusz', widget.showState),
+        buildColumn('WebParkingId', 'Id', widget.showId),
+        buildColumn('Description', 'Megjegyzés', widget.showDescription),
+      ];
     });
     return true;
   }
 
-  GridColumn buildColumn(String name, String labelText) {
+  GridColumn buildColumn(String name, String labelText, bool isVisible) {
     return GridColumn(
+      visible: isVisible,
       minimumWidth: 75,
       maximumWidth: 300,
-      width: columnWidths[name] ?? double.nan,
+      width: isVisible ? columnWidths[name]! : 0,
       columnName: name,
       label: Container(
         alignment: Alignment.center,
@@ -198,28 +199,34 @@ class _MyDataGridState extends State<MyDataGrid> {
 
 class ReservationDataSource extends DataGridSource {
   ReservationDataSource({
-    required this.reservations,
+    required List<ValidReservation> reservations,
     required this.columnOrder,
-    this.selectedReservation,
-  }) {
+  }) : _reservations = reservations {
     buildRows();
   }
 
-  final List<ValidReservation> reservations;
-
-  /// Oszlopok sorrendje
+  List<ValidReservation> _reservations;
   final List<String> columnOrder;
-  ValidReservation? selectedReservation;
 
   late List<DataGridRow> _rows;
+  final Map<DataGridRow, ValidReservation> _rowToReservationMap = {};
 
   @override
   List<DataGridRow> get rows => _rows;
 
+  /// Adatok frissítése új adatokkal
+  void updateData({
+    required List<ValidReservation> reservations,
+  }) {
+    _reservations = reservations;
+    buildRows();
+  }
+
   /// Adatsorok építése
   void buildRows() {
-    _rows = reservations.map<DataGridRow>((r) {
-      return DataGridRow(
+    _rowToReservationMap.clear();
+    _rows = _reservations.map<DataGridRow>((r) {
+      final dataGridRow = DataGridRow(
         cells: columnOrder.map((columnName) {
           return DataGridCell<String>(
             columnName: columnName,
@@ -227,6 +234,10 @@ class ReservationDataSource extends DataGridSource {
           );
         }).toList(),
       );
+
+      // Eltároljuk a leképezést
+      _rowToReservationMap[dataGridRow] = r;
+      return dataGridRow;
     }).toList();
   }
 
@@ -262,17 +273,10 @@ class ReservationDataSource extends DataGridSource {
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
-    final int index = _rows.indexOf(row);
-    final reservation = reservations[index];
+    final reservation = _rowToReservationMap[row]!;
+    final index = effectiveRows.indexOf(row);
 
-    final isSelected =
-        selectedReservation?.webParkingId == reservation.webParkingId;
-
-    final rowColor = isSelected
-        ? Colors.grey.shade400
-        : index.isEven
-            ? Colors.grey.shade100
-            : Colors.white;
+    final rowColor = index.isEven ? Colors.grey.shade100 : Colors.white;
 
     return DataGridRowAdapter(
       color: rowColor,
@@ -290,8 +294,8 @@ class ReservationDataSource extends DataGridSource {
     );
   }
 
-  void updateSelectedReservation(ValidReservation? reservation) {
-    selectedReservation = reservation;
-    notifyListeners();
+  /// Segédfüggvény: DataGridRow alapján visszaadja a hozzá tartozó foglalást
+  ValidReservation? getReservationForRow(DataGridRow row) {
+    return _rowToReservationMap[row];
   }
 }

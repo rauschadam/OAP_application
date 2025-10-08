@@ -59,7 +59,7 @@ class _ReceptionLoginPageState extends State<ReceptionLoginPage> {
   void initState() {
     super.initState();
 
-    loginReceptionist();
+    loginReceptionist(); // Automatikus login a teszteléshez.
 
     // Kis késleltetéssel adunk fókuszt, hogy a build lefusson
     WidgetsBinding.instance.addPostFrameCallback((_) {

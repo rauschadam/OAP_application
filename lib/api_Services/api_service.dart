@@ -159,45 +159,45 @@ class ApiService {
   }
 
   /// Foglalások lekérdezése
-  Future<List<dynamic>?> getReservations(BuildContext context) async {
-    final uri = Uri.http(baseUrl, '/service/v1/airport/webparkings');
+  // Future<List<dynamic>?> getReservations(BuildContext context) async {
+  //   final uri = Uri.http(baseUrl, '/service/v1/airport/webparkings');
 
-    try {
-      final response = await client.get(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': '$ReceptionistToken',
-        },
-      );
+  //   try {
+  //     final response = await client.get(
+  //       uri,
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Authorization': '$ReceptionistToken',
+  //       },
+  //     );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+  //     if (response.statusCode == 200) {
+  //       final data = jsonDecode(response.body);
 
-        final List reservations = data['responseContent'];
-        return reservations;
-      } else {
-        final errorMessage =
-            jsonDecode(response.body)['responseMessage'] ?? 'Ismeretlen hiba';
-        AwesomeDialog(
-          context: context,
-          width: 300,
-          dialogType: DialogType.error,
-          title: "Foglalások lekérése sikertelen",
-          desc: errorMessage,
-        ).show();
-      }
-    } catch (e) {
-      AwesomeDialog(
-        context: context,
-        width: 300,
-        dialogType: DialogType.error,
-        title: 'Foglalások lekérése sikertelen',
-        desc: e.toString(),
-      ).show();
-    }
-    return null;
-  }
+  //       final List reservations = data['responseContent'];
+  //       return reservations;
+  //     } else {
+  //       final errorMessage =
+  //           jsonDecode(response.body)['responseMessage'] ?? 'Ismeretlen hiba';
+  //       AwesomeDialog(
+  //         context: context,
+  //         width: 300,
+  //         dialogType: DialogType.error,
+  //         title: "Foglalások lekérése sikertelen",
+  //         desc: errorMessage,
+  //       ).show();
+  //     }
+  //   } catch (e) {
+  //     AwesomeDialog(
+  //       context: context,
+  //       width: 300,
+  //       dialogType: DialogType.error,
+  //       title: 'Foglalások lekérése sikertelen',
+  //       desc: e.toString(),
+  //     ).show();
+  //   }
+  //   return null;
+  // }
 
   /// Általános Lista Panel lekérdezés
   Future<List<dynamic>?> fetchListPanelData({

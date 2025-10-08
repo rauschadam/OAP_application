@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:airport_test/constants/theme.dart';
 import 'package:flutter/material.dart';
 

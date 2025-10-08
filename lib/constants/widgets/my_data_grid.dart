@@ -55,7 +55,15 @@ class _MyDataGridState extends State<MyDataGrid> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.reservations != widget.reservations ||
         oldWidget.selectedReservation != widget.selectedReservation) {
+      // A rendezés elmentése
+      final oldSortedColumns = dataSource.sortedColumns.toList();
+
       dataSource = createDataSource();
+
+      // Rendezés visszaállítása
+      dataSource.sortedColumns.addAll(oldSortedColumns);
+      dataSource.sort();
+
       setState(() {});
     }
   }

@@ -1,5 +1,6 @@
 import 'package:airport_test/Pages/reservationForm/invoiceOptionPage.dart';
 import 'package:airport_test/api_services/api_classes/user_data.dart';
+import 'package:airport_test/api_services/api_classes/valid_reservation.dart';
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
@@ -96,10 +97,7 @@ class WashOrderPageState extends State<WashOrderPage> {
   String selectedPayTypeId = PayTypes.first.payTypeId;
 
   /// Lekérdezett foglalások
-  List<dynamic>? reservations;
-
-  /// Lekérdezett szolgáltatások
-  List<dynamic>? serviceTemplates;
+  List<ValidReservation>? reservations;
 
   /// Teljes időpontos foglalt időpontok
   List<DateTime> fullyBookedDateTimes =
@@ -116,15 +114,15 @@ class WashOrderPageState extends State<WashOrderPage> {
     final api = ApiService();
 
     /// Foglalások lekérdezése
-    final data = await api.getReservations(context);
+    final reservationData = await api.getValidReservations(context);
 
-    if (data == null) {
+    if (reservationData == null) {
       print('Nem sikerült a lekérdezés');
     } else {
       setState(() {
-        reservations = data;
+        reservations = reservationData;
+        fullyBookedDateTimes = listFullyBookedDateTimes(reservations!);
       });
-      fetchServiceTemplates();
     }
 
     if (widget.bookingOption == BookingOption.washing) {
@@ -139,21 +137,6 @@ class WashOrderPageState extends State<WashOrderPage> {
           widget.emailController.text = userData.email;
         });
       }
-    }
-  }
-
-  /// Szolgáltatások lekérdezése
-  Future<void> fetchServiceTemplates() async {
-    final api = ApiService();
-    final data = await api.getServiceTemplates(context, widget.authToken);
-
-    if (data == null) {
-      print('Nem sikerült a lekérdezés');
-    } else {
-      setState(() {
-        serviceTemplates = data;
-        fullyBookedDateTimes = listFullyBookedDateTimes(reservations!);
-      });
     }
   }
 
@@ -450,7 +433,7 @@ class WashOrderPageState extends State<WashOrderPage> {
         Align(
             alignment: Alignment.centerLeft,
             child: const Text('Válassza ki a kívánt programot')),
-        serviceTemplates == null
+        ServiceTemplates.isEmpty
             ? const Center(child: CircularProgressIndicator())
             : buildCarWashZoneSelector(
                 selectedCarWashArticleId: selectedCarWashArticleId,

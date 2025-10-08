@@ -1,6 +1,7 @@
 import 'package:airport_test/api_Services/api_service.dart';
 import 'package:airport_test/api_services/api_classes/reservation.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
+import 'package:airport_test/constants/widgets/my_radio_list_tile.dart';
 import 'package:airport_test/constants/widgets/next_page_button.dart';
 import 'package:airport_test/constants/enums/parkingFormEnums.dart';
 import 'package:airport_test/Pages/homePage.dart';
@@ -58,7 +59,7 @@ class InvoiceOptionPage extends StatefulWidget with PageWithTitle {
 }
 
 class _InvoiceOptionPageState extends State<InvoiceOptionPage> {
-  InvoiceOption? selectedInvoiceOption = InvoiceOption.no;
+  InvoiceOption selectedInvoiceOption = InvoiceOption.no;
 
   /// Megnzézzük, hogy lehet-e egyből érkeztetni
   bool checkCustomerArrivalIsSoon() {
@@ -156,23 +157,23 @@ class _InvoiceOptionPageState extends State<InvoiceOptionPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        RadioListTile<InvoiceOption>(
-          title: const Text('Nem kérek számlát'),
+        MyRadioListTile<InvoiceOption>(
+          title: 'Nem kérek számlát',
           value: InvoiceOption.no,
           groupValue: selectedInvoiceOption,
           onChanged: (InvoiceOption? value) {
             setState(() {
-              selectedInvoiceOption = value;
+              selectedInvoiceOption = value!;
             });
           },
         ),
-        RadioListTile<InvoiceOption>(
-          title: const Text('Kérek számlát'),
+        MyRadioListTile<InvoiceOption>(
+          title: 'Kérek számlát',
           value: InvoiceOption.yes,
           groupValue: selectedInvoiceOption,
           onChanged: (InvoiceOption? value) {
             setState(() {
-              selectedInvoiceOption = value;
+              selectedInvoiceOption = value!;
             });
           },
         ),

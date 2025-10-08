@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:airport_test/Pages/reservationListPage.dart';
 import 'package:airport_test/Pages/reservationForm/reservationOptionPage.dart';
+import 'package:airport_test/api_services/api_classes/valid_reservation.dart';
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/constants/functions/reservation_state.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
@@ -41,7 +42,8 @@ class _HomePageState extends State<HomePage> {
   late DateTime now = DateTime.now();
 
   /// Lekérdezett foglalások
-  List<dynamic>? reservations;
+  List<ValidReservation>? reservations;
+  //List<dynamic>? reservations;
 
   /// Keresésnek megfelelő rendszámok listája
   //List<String>? searchResults;
@@ -57,7 +59,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> fetchData() async {
     final api = ApiService();
     // Foglalások lekérdezése
-    final reservationsData = await api.getReservations(context);
+    final reservationsData = await api.getValidReservations(context);
     // Szolgáltatások lekérdezése
     final servicesData =
         await api.getServiceTemplates(context, ReceptionistToken!);
@@ -113,13 +115,13 @@ class _HomePageState extends State<HomePage> {
     Map<String, Map<DateTime, int>> counters = {};
 
     /// Időpontok előfordulásának kiszámolása zónánként
-    for (var reservation in reservations) {
-      final parkingArticleId = reservation['ParkingArticleId'];
+    for (ValidReservation reservation in reservations) {
+      final parkingArticle = reservation.articleNameHUN;
 
-      final arrive = DateTime.parse(reservation['ArriveDate']);
-      final leave = DateTime.parse(reservation['LeaveDate']);
+      final arrive = reservation.arriveDate;
+      final leave = reservation.leaveDate;
 
-      counters.putIfAbsent(parkingArticleId, () => {});
+      counters.putIfAbsent(parkingArticle, () => {});
 
       DateTime current = DateTime(
         arrive.year,
@@ -131,8 +133,8 @@ class _HomePageState extends State<HomePage> {
 
       // végig iterál az érkezéstől a távozás időpontjáig, az adott időpont számlálótját növeli 1-el
       while (current.isBefore(leave)) {
-        counters[parkingArticleId]![current] =
-            (counters[parkingArticleId]![current] ?? 0) + 1;
+        counters[parkingArticle]![current] =
+            (counters[parkingArticle]![current] ?? 0) + 1;
         current = current.add(const Duration(minutes: 30));
       }
     }
@@ -140,11 +142,11 @@ class _HomePageState extends State<HomePage> {
     /// Parkoló zóna -> telített időpontok
     Map<String, List<DateTime>> fullyBookedDateTimesByZone = {};
 
-    counters.forEach((parkingArticleId, counter) {
-      if (parkingArticleId != "") {
-        final capacity = zoneCapacities[parkingArticleId];
-        fullyBookedDateTimesByZone[parkingArticleId] = counter.entries
-            .where((entry) => entry.value >= capacity!)
+    counters.forEach((parkingArticle, counter) {
+      if (parkingArticle != "") {
+        final capacity = zoneCapacities[parkingArticle];
+        fullyBookedDateTimesByZone[parkingArticle] = counter.entries
+            .where((entry) => entry.value >= (capacity ?? 0))
             .map((entry) => entry.key)
             .toList();
       }
@@ -167,16 +169,16 @@ class _HomePageState extends State<HomePage> {
     );
 
     // foglalásokból megkeressük, melyik vonatkozik a jelenre
-    for (var reservation in reservations) {
-      final parkingArticleId = reservation['ParkingArticleId'];
-      if (parkingArticleId == null || parkingArticleId == "") continue;
+    for (ValidReservation reservation in reservations) {
+      final parkingArticle = reservation.articleNameHUN;
 
-      final arrive = DateTime.parse(reservation['ArriveDate']);
-      final leave = DateTime.parse(reservation['LeaveDate']);
+      final DateTime arrive = reservation.arriveDate;
+      final DateTime leave = reservation.leaveDate;
 
-      if (!currentSlot.isBefore(arrive) && currentSlot.isBefore(leave)) {
-        zoneCounters[parkingArticleId] =
-            (zoneCounters[parkingArticleId] ?? 0) + 1;
+      if (!currentSlot.isBefore(arrive) &&
+          currentSlot.isBefore(leave) &&
+          reservation.state == 1) {
+        zoneCounters[parkingArticle] = (zoneCounters[parkingArticle] ?? 0) + 1;
       }
     }
 
@@ -291,9 +293,9 @@ class _HomePageState extends State<HomePage> {
     }
 
     /// Segédfüggvény, a templates-ből meghatározza a zóna nevét ArticleId alapján
-    String getZoneNameById(String articleId) {
+    String getZoneNameById(String articleName) {
       final template = ServiceTemplates.firstWhere(
-        (t) => t.articleId == articleId,
+        (t) => t.parkingServiceName.contains(articleName),
       );
       return template.parkingServiceName.split(' ').last;
     }
@@ -422,7 +424,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     /// Szűrés: csak az adott intervallumban érkező, távozó vagy mosást igénylő foglalások
-    final List<dynamic> actualReservations = [];
+    final List<ValidReservation> expectedReservations = [];
 
     // Segédfüggvény: Megvizsgálja hogy az ArriveDate elmúlt-e már
     // ArriveDate nem múlt el -> ArriveDate lesz legközelebb
@@ -438,9 +440,9 @@ class _HomePageState extends State<HomePage> {
       }
     }
 
-    for (var reservation in reservations!) {
-      final arriveDate = DateTime.parse(reservation['ArriveDate']);
-      final leaveDate = DateTime.parse(reservation['LeaveDate']);
+    for (ValidReservation reservation in reservations!) {
+      final arriveDate = reservation.arriveDate;
+      final leaveDate = reservation.leaveDate;
 
       // Csak azok a foglalások, amelyeknek arrive vagy leave date-je a jövőben, de még az intervallumon belül van
       final bool isArriveToday =
@@ -448,17 +450,23 @@ class _HomePageState extends State<HomePage> {
       final bool isLeaveToday =
           leaveDate.isAfter(startTime) && leaveDate.isBefore(endTime);
 
-      if (isArriveToday || isLeaveToday) {
-        actualReservations.add(reservation);
+      /// HA ma van a foglalás és még nem érkezett meg
+      if ((isArriveToday &&
+              (reservation.state == 0 || reservation.state == 3)) ||
+
+          // HA ma van a távozás, de még nem ment el
+          (isLeaveToday &&
+              (reservation.state == 1 || reservation.state == 2))) {
+        expectedReservations.add(reservation);
       }
     }
 
     // Rendezés: a korábbi dátum (arrive vagy leave) szerint
-    actualReservations.sort((a, b) {
-      final aArrive = DateTime.parse(a['ArriveDate']);
-      final aLeave = DateTime.parse(a['LeaveDate']);
-      final bArrive = DateTime.parse(b['ArriveDate']);
-      final bLeave = DateTime.parse(b['LeaveDate']);
+    expectedReservations.sort((a, b) {
+      final aArrive = a.arriveDate;
+      final aLeave = a.leaveDate;
+      final bArrive = b.arriveDate;
+      final bLeave = b.leaveDate;
 
       // Mindkét foglalásnál megnézzük a korábbi mai időpontot
       final aEarliest = getEarliestTime(aArrive, aLeave, startTime);
@@ -472,7 +480,7 @@ class _HomePageState extends State<HomePage> {
       maxHeight: maxHeight,
       listTitle: listTitle,
       emptyText: "Nem várható bejelentett ügyfél.",
-      reservations: actualReservations,
+      reservations: expectedReservations,
       columns: {
         'Név': 'Name',
         'Rendszám': 'LicensePlate',
@@ -481,36 +489,26 @@ class _HomePageState extends State<HomePage> {
       },
       formatters: {
         'Time': (reservation) {
-          final arriveDate = DateTime.parse(reservation['ArriveDate']);
-          final leaveDate = DateTime.parse(reservation['LeaveDate']);
-          final carWashDate = DateTime.parse(reservation['WashDateTime']);
-          final isCarWashToday =
-              carWashDate.isAfter(startTime) && carWashDate.isBefore(endTime);
+          final arriveDate = reservation.arriveDate;
+          final leaveDate = reservation.leaveDate;
           final isArriveToday =
               arriveDate.isAfter(startTime) && arriveDate.isBefore(endTime);
 
           if (isArriveToday) {
             return DateFormat('HH:mm').format(arriveDate);
-          } else if (!isCarWashToday) {
-            return DateFormat('HH:mm').format(leaveDate);
           } else {
-            return DateFormat('HH:mm').format(carWashDate);
+            return DateFormat('HH:mm').format(leaveDate);
           }
         },
         'Type': (reservation) {
-          final arriveDate = DateTime.parse(reservation['ArriveDate']);
-          final carWashDate = DateTime.parse(reservation['WashDateTime']);
-          final isCarWashToday =
-              carWashDate.isAfter(startTime) && carWashDate.isBefore(endTime);
+          final arriveDate = reservation.arriveDate;
           final isArriveToday =
               arriveDate.isAfter(startTime) && arriveDate.isBefore(endTime);
 
           if (isArriveToday) {
             return 'Érkezés';
-          } else if (!isCarWashToday) {
-            return 'Távozás';
           } else {
-            return 'Mosás';
+            return 'Távozás';
           }
         },
       },
@@ -533,11 +531,10 @@ class _HomePageState extends State<HomePage> {
     final Set<String> seenPlates = {};
     final Map<String, int> results = {};
     for (var reservation in reservations!) {
-      final licensePlate = reservation['LicensePlate'].toString();
+      final licensePlate = reservation.licensePlate.toString();
 
       /// A foglalás státusza
-      final int state =
-          int.tryParse(reservation['State']?.toString() ?? '') ?? -1;
+      final int state = reservation.state;
       final matches = licensePlate.contains(query);
       if (matches && !seenPlates.contains(licensePlate)) {
         seenPlates.add(licensePlate);

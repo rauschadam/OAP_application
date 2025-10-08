@@ -177,7 +177,7 @@ class _MyDataGridState extends State<MyDataGrid> {
 
   GridColumn buildColumn(String name, String labelText) {
     return GridColumn(
-      minimumWidth: 100,
+      minimumWidth: 75,
       maximumWidth: 300,
       width: columnWidths[name] ?? double.nan,
       columnName: name,
@@ -206,6 +206,8 @@ class ReservationDataSource extends DataGridSource {
   }
 
   final List<ValidReservation> reservations;
+
+  /// Oszlopok sorrendje
   final List<String> columnOrder;
   ValidReservation? selectedReservation;
 
@@ -235,6 +237,8 @@ class ReservationDataSource extends DataGridSource {
         return r.partner_Sortname;
       case 'LicensePlate':
         return r.licensePlate;
+      case 'ParkingArticleId':
+        return r.parkingArticleId;
       case 'ArticleNameHUN':
         return r.articleNameHUN;
       case 'ArriveDate':

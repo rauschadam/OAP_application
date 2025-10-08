@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:airport_test/Pages/reservationListPage.dart';
 import 'package:airport_test/Pages/reservationForm/reservationOptionPage.dart';
+import 'package:airport_test/api_services/api_classes/service_templates.dart';
 import 'package:airport_test/api_services/api_classes/valid_reservation.dart';
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/constants/functions/reservation_state.dart';
@@ -102,12 +103,12 @@ class _HomePageState extends State<HomePage> {
       List<dynamic> reservations) {
     final Map<String, int> zoneCapacities = {}; // parkoló zóna -> kapacitás
     // Kiveszi a zónák kapacitását a Templates-ekből
-    for (var template in ServiceTemplates) {
+    for (ServiceTemplate template in ServiceTemplates) {
       if (template.parkingServiceType != 1) {
         continue; // Csak a parkolásokat nézze (parkoló zónáknál a ParkingServiceType = 1)
       }
       final String articleId = template.articleId;
-      final int capacity = template.zoneCapacity ?? 1;
+      final int capacity = template.zoneCapacity!;
       zoneCapacities[articleId] = capacity;
     }
 
@@ -116,12 +117,12 @@ class _HomePageState extends State<HomePage> {
 
     /// Időpontok előfordulásának kiszámolása zónánként
     for (ValidReservation reservation in reservations) {
-      final parkingArticle = reservation.articleNameHUN;
+      final parkingArticleId = reservation.parkingArticleId;
 
       final arrive = reservation.arriveDate;
       final leave = reservation.leaveDate;
 
-      counters.putIfAbsent(parkingArticle, () => {});
+      counters.putIfAbsent(parkingArticleId, () => {});
 
       DateTime current = DateTime(
         arrive.year,
@@ -133,8 +134,8 @@ class _HomePageState extends State<HomePage> {
 
       // végig iterál az érkezéstől a távozás időpontjáig, az adott időpont számlálótját növeli 1-el
       while (current.isBefore(leave)) {
-        counters[parkingArticle]![current] =
-            (counters[parkingArticle]![current] ?? 0) + 1;
+        counters[parkingArticleId]![current] =
+            (counters[parkingArticleId]![current] ?? 0) + 1;
         current = current.add(const Duration(minutes: 30));
       }
     }
@@ -142,10 +143,10 @@ class _HomePageState extends State<HomePage> {
     /// Parkoló zóna -> telített időpontok
     Map<String, List<DateTime>> fullyBookedDateTimesByZone = {};
 
-    counters.forEach((parkingArticle, counter) {
-      if (parkingArticle != "") {
-        final capacity = zoneCapacities[parkingArticle];
-        fullyBookedDateTimesByZone[parkingArticle] = counter.entries
+    counters.forEach((parkingArticleId, counter) {
+      if (parkingArticleId != "") {
+        final capacity = zoneCapacities[parkingArticleId];
+        fullyBookedDateTimesByZone[parkingArticleId] = counter.entries
             .where((entry) => entry.value >= (capacity ?? 0))
             .map((entry) => entry.key)
             .toList();
@@ -159,26 +160,14 @@ class _HomePageState extends State<HomePage> {
   Map<String, int> mapCurrentOccupancyByZones(List<dynamic> reservations) {
     zoneCounters = {}; // kinullázzuk, hogy frissítéskor ne duplikálódjon
 
-    /// mostani idő lekerekítve félórára
-    final currentSlot = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      now.hour,
-      now.minute - (now.minute % 30),
-    );
-
     // foglalásokból megkeressük, melyik vonatkozik a jelenre
     for (ValidReservation reservation in reservations) {
-      final parkingArticle = reservation.articleNameHUN;
+      final parkingArticleId = reservation.parkingArticleId;
+      final bool isParking = (reservation.state == 1 || reservation.state == 2);
 
-      final DateTime arrive = reservation.arriveDate;
-      final DateTime leave = reservation.leaveDate;
-
-      if (!currentSlot.isBefore(arrive) &&
-          currentSlot.isBefore(leave) &&
-          reservation.state == 1) {
-        zoneCounters[parkingArticle] = (zoneCounters[parkingArticle] ?? 0) + 1;
+      if (isParking) {
+        zoneCounters[parkingArticleId] =
+            (zoneCounters[parkingArticleId] ?? 0) + 1;
       }
     }
 

@@ -3,6 +3,7 @@ class ValidReservation {
   final String partnerId;
   final String partner_Sortname;
   final String licensePlate;
+  final String parkingArticleId;
   final String articleNameHUN;
   final int state;
   final DateTime arriveDate;
@@ -22,6 +23,7 @@ class ValidReservation {
     required this.partnerId,
     required this.partner_Sortname,
     required this.licensePlate,
+    required this.parkingArticleId,
     required this.articleNameHUN,
     required this.state,
     required this.arriveDate,
@@ -43,6 +45,7 @@ class ValidReservation {
       "ParterId": partnerId,
       "Partner_Sortname": partner_Sortname,
       "LicensePlate": licensePlate,
+      "ParkingArticleId": parkingArticleId,
       "ArticleNameHUN": articleNameHUN,
       "State": state,
       "ArriveDate": arriveDate.toIso8601String(),
@@ -65,6 +68,7 @@ class ValidReservation {
       partnerId: json['PartnerId'],
       partner_Sortname: json['Partner_Sortname'],
       licensePlate: json['LicensePlate'],
+      parkingArticleId: json['ParkingArticleId'],
       articleNameHUN: json['ArticleNameHUN'],
       state: json['State'],
       arriveDate: DateTime.parse(json['ArriveDate']),

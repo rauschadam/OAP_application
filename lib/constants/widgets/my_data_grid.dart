@@ -113,7 +113,7 @@ class _MyDataGridState extends State<MyDataGrid> {
         final webIdCell =
             row.getCells().firstWhere((c) => c.columnName == 'WebParkingId');
 
-        final ValidReservation? reservation = widget.reservations.firstWhere(
+        final ValidReservation reservation = widget.reservations.firstWhere(
           (r) => r.webParkingId.toString() == webIdCell.value,
         );
 

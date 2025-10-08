@@ -309,11 +309,12 @@ class WashOrderPageState extends State<WashOrderPage> {
           const SnackBar(content: Text('Válassz ki időpontot!')),
         );
       }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sikertelen foglalás!')),
-      );
     }
+    //else {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     const SnackBar(content: Text('Sikertelen foglalás!')),
+    //   );
+    // }
   }
 
   @override

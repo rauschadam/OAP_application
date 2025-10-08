@@ -10,6 +10,12 @@ String? ReceptionistToken;
 /// True -> Mobil | False -> Desktop
 bool? IsMobile;
 
+/// Az applikáció elindításakor lekért fizetési módok.
+// A fizetési módokat CSAK az elindításkor kérjük le.
+// Így, ha változás van, újrakell indítani az appot.
 List<PayType> PayTypes = [];
 
+/// Az applikáció elindításakor lekért szolgáltatások.
+// A szolgáltatásokat CSAK az elindításkor kérjük le.
+// Így, ha változás van, újrakell indítani az appot.
 List<ServiceTemplate> ServiceTemplates = [];

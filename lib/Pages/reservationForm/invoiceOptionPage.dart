@@ -114,7 +114,7 @@ class _InvoiceOptionPageState extends State<InvoiceOptionPage> {
 
   /// HomePage-re navigálás
   void goToHomePage() async {
-    Navigator.push(
+    Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (_) => BasePage(

@@ -91,6 +91,58 @@ class _ReservationListPageState extends State<ReservationListPage> {
     fetchData();
   }
 
+  /// foglaláson jobb kattintás esetén
+  void rightClickDialog(ValidReservation selectedReservation) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Művelet kiválasztása'),
+          content: Text(selectedReservation.licensePlate),
+          actions: [
+            // Mégsem gomb
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Mégsem'),
+            ),
+
+            // Kiléptetés gomb
+            if (selectedReservation.state == 1 ||
+                selectedReservation.state == 2)
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  attemptRegisterLeave(selectedReservation.licensePlate);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white,
+                ),
+                child: Text('Kiléptetés'),
+              ),
+
+            // Érkeztetés gomb
+            if (selectedReservation.state == 0 ||
+                selectedReservation.state == 4)
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  attemptRegisterArrival(selectedReservation.licensePlate);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                ),
+                child: Text('Érkeztetés'),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
   /// Keresés alkalmazása
   void applySearchFilter() {
     if (reservations == null) return;
@@ -171,60 +223,6 @@ class _ReservationListPageState extends State<ReservationListPage> {
     });
   }
 
-  /// foglaláson jobb kattintás esetén
-  void rightClickDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Művelet kiválasztása'),
-          content: Text(selectedReservation!.licensePlate),
-          actions: [
-            // Mégsem gomb
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Mégsem'),
-            ),
-
-            // Kiléptetés gomb
-            if (selectedReservation!.state == 1 ||
-                selectedReservation!.state == 2)
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  searchController.clear();
-                  attemptRegisterLeave(selectedReservation!.licensePlate);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                  foregroundColor: Colors.white,
-                ),
-                child: Text('Kiléptetés'),
-              ),
-
-            // Érkeztetés gomb
-            if (selectedReservation!.state == 0 ||
-                selectedReservation!.state == 4)
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  searchController.clear();
-                  attemptRegisterArrival(selectedReservation!.licensePlate);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                ),
-                child: Text('Érkeztetés'),
-              ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   void initState() {
     super.initState();
@@ -283,8 +281,9 @@ class _ReservationListPageState extends State<ReservationListPage> {
                               selectedReservation = reservation;
                             });
                           },
+                          onRightClick: (selectedReservation) =>
+                              rightClickDialog(selectedReservation),
                           selectedReservation: selectedReservation,
-                          onRightClick: rightClickDialog,
                           showArriveDate: true,
                           showDescription: true,
                           showEmail: true,
@@ -294,7 +293,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
                           showPhone: true,
                           showState: true,
                           showZone: true,
-                          //showId: true,
+                          showId: true,
                         ),
                       ),
                     ),

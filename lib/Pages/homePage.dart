@@ -94,6 +94,58 @@ class _HomePageState extends State<HomePage> {
     fetchData();
   }
 
+  /// foglaláson jobb kattintás esetén
+  void rightClickDialog(ValidReservation selectedReservation) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Művelet kiválasztása'),
+          content: Text(selectedReservation.licensePlate),
+          actions: [
+            // Mégsem gomb
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Mégsem'),
+            ),
+
+            // Kiléptetés gomb
+            if (selectedReservation.state == 1 ||
+                selectedReservation.state == 2)
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  attemptRegisterLeave(selectedReservation.licensePlate);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white,
+                ),
+                child: Text('Kiléptetés'),
+              ),
+
+            // Érkeztetés gomb
+            if (selectedReservation.state == 0 ||
+                selectedReservation.state == 4)
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  attemptRegisterArrival(selectedReservation.licensePlate);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                ),
+                child: Text('Érkeztetés'),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
   /// Foglalt időpontok
   Map<String, List<DateTime>> fullyBookedDateTimes =
       {}; // parkoló zóna ArticleId -> telített időpont
@@ -463,6 +515,18 @@ class _HomePageState extends State<HomePage> {
 
       return aEarliest.compareTo(bEarliest);
     });
+
+    // return Center(
+    //   child: MyDataGrid(
+    //     reservations: expectedReservations,
+    //     onRightClick: (selectedReservation) =>
+    //         rightClickDialog(selectedReservation),
+    //     showName: true,
+    //     showLicense: true,
+    //     showArriveDate: true,
+    //     showLeaveDate: true,
+    //   ),
+    // );
 
     // Widget visszaadása
     return ReservationList(

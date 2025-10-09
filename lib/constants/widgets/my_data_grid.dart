@@ -10,7 +10,7 @@ class MyDataGrid extends StatefulWidget {
   final List<ValidReservation> reservations;
   final ValueChanged<ValidReservation?>? onReservationSelected;
   final ValidReservation? selectedReservation;
-  final void Function()? onRightClick;
+  final void Function(ValidReservation selectedReservation)? onRightClick;
 
   final bool showName;
   final bool showLicense;
@@ -51,6 +51,10 @@ class _MyDataGridState extends State<MyDataGrid> {
 
   /// A grid oszlopai
   late List<GridColumn> gridColumns;
+
+  final DataGridController dataGridController = DataGridController();
+
+  DataGridRow? selectedRow;
 
   /// Oszlop szélességek
   late Map<String, double> columnWidths = {
@@ -108,11 +112,12 @@ class _MyDataGridState extends State<MyDataGrid> {
   Widget build(BuildContext context) {
     return SfDataGrid(
       source: dataSource,
+      controller: dataGridController,
       selectionMode: SelectionMode.single,
       allowSorting: true,
       allowColumnsDragging: true,
       allowColumnsResizing: true,
-      columnWidthMode: ColumnWidthMode.fill,
+      columnWidthMode: ColumnWidthMode.auto,
       onColumnResizeUpdate: (details) => handleColumnResize(details),
       onColumnDragging: (details) => handleColumnDragging(details),
       onSelectionChanged:
@@ -124,6 +129,7 @@ class _MyDataGridState extends State<MyDataGrid> {
     );
   }
 
+  /// Kiválasztás kezelése (bal-klikk)
   void handleSelectionChanged(List<DataGridRow> selectedRows) {
     if (selectedRows.isNotEmpty) {
       final selectedRow = selectedRows.first;
@@ -134,7 +140,28 @@ class _MyDataGridState extends State<MyDataGrid> {
     }
   }
 
-  void handleRightClick(DataGridCellTapDetails details) {}
+  /// Jobb klikk
+  void handleRightClick(DataGridCellTapDetails details) {
+    final rowIndex = details.rowColumnIndex.rowIndex;
+
+    // Fejléc sor kihagyása
+    if (rowIndex <= 0) return;
+
+    // Az effectiveRows a sortolás utáni aktuális sorrendet tartalmazza
+    final clickedRow = dataSource.effectiveRows[rowIndex - 1];
+
+    // Kijelölés beállítása (ugyanazt váltja ki, mint a bal klikk)
+    dataGridController.selectedRows = [clickedRow];
+
+    // Lefuttatjuk ugyanazt az eseményt, mint bal klikk esetén
+    // Ehhez annyi hozzáfűzni való, hogy ha előtte bal klikkel kiválasztottunk egy sort,
+    // akkor a színezés azon a soron marad, de az már nincs kiválasztva
+    final ValidReservation reservation =
+        dataSource.getReservationForRow(clickedRow)!;
+
+    // Végül megcsináljuk a jobb klikk plussz eseményét is
+    widget.onRightClick!(reservation);
+  }
 
   /// Oszlop áthelyezés
   bool handleColumnDragging(DataGridColumnDragDetails details) {
@@ -154,6 +181,7 @@ class _MyDataGridState extends State<MyDataGrid> {
     return true;
   }
 
+  /// Oszlop újraméretezése
   bool handleColumnResize(ColumnResizeUpdateDetails details) {
     setState(() {
       columnWidths[details.column.columnName] = details.width;
@@ -273,7 +301,6 @@ class ReservationDataSource extends DataGridSource {
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
-    final reservation = _rowToReservationMap[row]!;
     final index = effectiveRows.indexOf(row);
 
     final rowColor = index.isEven ? Colors.grey.shade100 : Colors.white;

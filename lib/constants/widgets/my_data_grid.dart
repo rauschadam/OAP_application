@@ -22,6 +22,9 @@ class MyDataGrid extends StatefulWidget {
   final bool showState;
   final bool showId;
   final bool showDescription;
+  final bool showVIP;
+  final bool showSuitcaseWrapping;
+  final bool showTransfer;
 
   const MyDataGrid({
     super.key,
@@ -39,6 +42,9 @@ class MyDataGrid extends StatefulWidget {
     this.showState = false,
     this.showId = false,
     this.showDescription = false,
+    this.showVIP = false,
+    this.showSuitcaseWrapping = false,
+    this.showTransfer = false,
   });
 
   @override
@@ -68,6 +74,9 @@ class _MyDataGridState extends State<MyDataGrid> {
     'State': double.nan,
     'WebParkingId': double.nan,
     'Description': double.nan,
+    'VIP': double.nan,
+    'SuitcaseWrappingCount': double.nan,
+    'TransferCount': double.nan,
   };
 
   @override
@@ -105,6 +114,10 @@ class _MyDataGridState extends State<MyDataGrid> {
       buildColumn('State', 'Státusz', widget.showState),
       buildColumn('WebParkingId', 'Id', widget.showId),
       buildColumn('Description', 'Megjegyzés', widget.showDescription),
+      buildColumn('VIP', 'Sofőr', widget.showVIP),
+      buildColumn(
+          'SuitcaseWrappingCount', 'Bőrönd', widget.showSuitcaseWrapping),
+      buildColumn('TransferCount', 'Transzfer', widget.showTransfer),
     ];
   }
 
@@ -198,6 +211,10 @@ class _MyDataGridState extends State<MyDataGrid> {
         buildColumn('State', 'Státusz', widget.showState),
         buildColumn('WebParkingId', 'Id', widget.showId),
         buildColumn('Description', 'Megjegyzés', widget.showDescription),
+        buildColumn('VIP', 'Sofőr', widget.showVIP),
+        buildColumn(
+            'SuitcaseWrappingCount', 'Bőrönd', widget.showSuitcaseWrapping),
+        buildColumn('TransferCount', 'Transzfer', widget.showTransfer),
       ];
     });
     return true;
@@ -294,6 +311,12 @@ class ReservationDataSource extends DataGridSource {
         return r.webParkingId.toString();
       case 'Description':
         return r.description ?? "-";
+      case 'VIP':
+        return (r.VIP ?? false) ? 'Igen' : '-';
+      case 'SuitcaseWrappingCount':
+        return (r.suitcaseWrappingCount ?? 0).toString();
+      case 'TransferCount':
+        return (r.transferCount ?? 0).toString();
       default:
         return '-';
     }

@@ -17,6 +17,9 @@ class ValidReservation {
   final String email;
   final String phone;
   final String? description;
+  final bool? VIP;
+  final int? suitcaseWrappingCount;
+  final int? transferCount;
 
   ValidReservation({
     required this.webParkingId,
@@ -37,6 +40,9 @@ class ValidReservation {
     required this.email,
     required this.phone,
     this.description,
+    this.VIP,
+    this.suitcaseWrappingCount,
+    this.transferCount,
   });
 
   Map<String, dynamic> toJson() {
@@ -59,6 +65,9 @@ class ValidReservation {
       "Email": email,
       "Phone": phone,
       "Description": description,
+      "VIP": VIP,
+      "SuitcaseWrappingCount": suitcaseWrappingCount,
+      "TransferCount": transferCount,
     };
   }
 
@@ -82,6 +91,9 @@ class ValidReservation {
       email: json['Email'],
       phone: json['Phone'],
       description: json['Description'],
+      VIP: json['VIP'],
+      suitcaseWrappingCount: json['SuitcaseWrappingCount'],
+      transferCount: json['TransferCount'],
     );
   }
 }

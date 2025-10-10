@@ -5,9 +5,9 @@ String getStateName(int state) {
     case 1:
       return "Beérkezett";
     case 2:
-      return "Idő túllépés";
-    case 3:
       return "Elment";
+    case 3:
+      return "Idő túllépés";
     case 4:
       return "Foglalás lemondva";
     default:

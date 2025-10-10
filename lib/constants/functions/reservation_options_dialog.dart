@@ -1,3 +1,4 @@
+import 'package:airport_test/constants/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:airport_test/api_services/api_classes/valid_reservation.dart';
 
@@ -20,6 +21,7 @@ Future<void> showChangeLicensePlateDialog(
           decoration: const InputDecoration(
             labelText: 'Új rendszám',
             border: OutlineInputBorder(),
+            fillColor: AppColors.secondary,
           ),
         ),
         actions: [
@@ -98,7 +100,7 @@ Future<void> showReservationOptionsDialog(
               ),
               child: const Text('Kiléptetés'),
             ),
-          if (reservation.state == 0 || reservation.state == 4)
+          if (reservation.state == 0)
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();

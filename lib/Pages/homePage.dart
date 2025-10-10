@@ -52,8 +52,10 @@ class _HomePageState extends State<HomePage> {
   //List<dynamic>? reservations;
 
   /// Keresésnek megfelelő rendszámok listája
-  //Map<String, int>? searchResults;
   List<ValidReservation>? searchResults;
+
+  /// Kereséshez kiválasztott index a searchResults listában
+  int? selectedSearchIndex;
 
   /// parkoló zóna article id-> foglalt helyek száma
   Map<String, int> zoneCounters = {};
@@ -578,8 +580,10 @@ class _HomePageState extends State<HomePage> {
               final state = selectedReservation.state;
               final stateName = getStateName(state);
 
-              return Padding(
-                padding: const EdgeInsets.only(left: AppPadding.small),
+              return Container(
+                color: (selectedSearchIndex == index)
+                    ? AppColors.secondary
+                    : Colors.transparent,
                 child: InkWell(
                   onTap: () {
                     showReservationOptionsDialog(
@@ -598,8 +602,12 @@ class _HomePageState extends State<HomePage> {
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         child: Row(
                           children: [
-                            const Icon(Icons.directions_car,
-                                size: 16, color: Colors.grey),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: AppPadding.small),
+                              child: const Icon(Icons.directions_car,
+                                  size: 16, color: Colors.grey),
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -612,11 +620,15 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              stateName,
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 12,
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: AppPadding.small),
+                              child: Text(
+                                stateName,
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 12,
+                                ),
                               ),
                             ),
                           ],
@@ -733,38 +745,53 @@ class _HomePageState extends State<HomePage> {
             return;
           }
 
-          // // Csak akkor kezeljük a tab/enter billentyűket, ha a keresősáv fókuszban van
-          // if (searchFocus.hasFocus &&
-          //     searchResults != null &&
-          //     searchResults!.isNotEmpty) {
-          //   final firstReservation = searchResults!.first;
+          // Csak akkor, ha van találat
+          if (searchResults != null && searchResults!.isNotEmpty) {
+            // LE nyíl
+            if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+              setState(() {
+                if (selectedSearchIndex == null) {
+                  selectedSearchIndex = 0;
+                } else {
+                  selectedSearchIndex =
+                      (selectedSearchIndex! + 1) % searchResults!.length;
+                }
+              });
+              return;
+            }
 
-          //   // TAB -> beírja az első találat rendszámát a keresősávba
-          //   if (event.logicalKey == LogicalKeyboardKey.tab) {
-          //     // Megakadályozzuk, hogy a Tab átvigye a fókuszt
-          //     FocusScope.of(context).requestFocus(searchFocus);
+            // FEL nyíl
+            if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+              setState(() {
+                if (selectedSearchIndex == null) {
+                  selectedSearchIndex = searchResults!.length - 1;
+                } else {
+                  selectedSearchIndex =
+                      (selectedSearchIndex! - 1 + searchResults!.length) %
+                          searchResults!.length;
+                }
+              });
+              return;
+            }
 
-          //     setState(() {
-          //       searchController.text = firstReservation.licensePlate;
-          //     });
-
-          //     // Visszaadjuk, hogy az eseményt kezeltük
-          //     return;
-          //   }
-
-          //   // ENTER -> megnyitja a találat dialógusát
-          //   if (event.logicalKey == LogicalKeyboardKey.enter) {
-          //     searchFocus.unfocus();
-          //     searchController.clear();
-          //     await showReservationOptionsDialog(
-          //       context,
-          //       firstReservation,
-          //       onArrival: attemptRegisterArrival,
-          //       onLeave: attemptRegisterLeave,
-          //       onChangeLicense: attemptChangeLicensePlate,
-          //     );
-          //   }
-          // }
+            // ENTER -> kiválasztott megnyitása
+            if (event.logicalKey == LogicalKeyboardKey.enter &&
+                selectedSearchIndex != null) {
+              final selectedReservation = searchResults![selectedSearchIndex!];
+              await showReservationOptionsDialog(
+                context,
+                selectedReservation,
+                onArrival: attemptRegisterArrival,
+                onLeave: attemptRegisterLeave,
+                onChangeLicense: attemptChangeLicensePlate,
+              );
+              setState(() {
+                searchController.clear();
+                selectedSearchIndex = null;
+              });
+              return;
+            }
+          }
         },
         child: Row(
           children: [

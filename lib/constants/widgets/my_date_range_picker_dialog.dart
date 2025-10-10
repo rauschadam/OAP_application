@@ -173,7 +173,7 @@ class _MyDateRangePickerDialogState extends State<MyDateRangePickerDialog> {
                             color: cardColor,
                             child: Center(
                               child: Text(
-                                time.format(context),
+                                '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}',
                                 style: TextStyle(
                                   color:
                                       isSelected ? Colors.white : Colors.black,

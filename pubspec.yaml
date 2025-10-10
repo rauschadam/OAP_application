@@ -8,7 +8,7 @@ environment:
 
 dependencies:
   awesome: ^0.0.3
-  awesome_dialog: ^3.2.1
+  awesome_dialog: ^3.3.0
   country_phone_validator: ^1.0.1
   dialog: ^0.8.0
   email_validator: ^3.0.0

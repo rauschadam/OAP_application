@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'package:airport_test/Pages/reservationForm/reservationOptionPage.dart';
+import 'package:airport_test/api_Services/api_service.dart';
 import 'package:airport_test/api_services/api_classes/valid_reservation.dart';
-import 'package:airport_test/api_services/api_service.dart';
+import 'package:airport_test/constants/functions/reservation_options_dialog.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/my_data_grid.dart';
 import 'package:airport_test/constants/widgets/my_icon_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 class ReservationListPage extends StatefulWidget with PageWithTitle {
@@ -24,9 +26,12 @@ class ReservationListPage extends StatefulWidget with PageWithTitle {
 
 class _ReservationListPageState extends State<ReservationListPage> {
   final SearchController searchController = SearchController();
+  FocusNode keyboardFocus = FocusNode();
 
   /// A kereső és az azt körülvevő filterek kulcsa
   final GlobalKey searchContainerKey = GlobalKey();
+  final GlobalKey<RefreshIndicatorState> refreshIndicatorKey =
+      GlobalKey<RefreshIndicatorState>();
 
   FocusNode searchFocus = FocusNode();
 
@@ -91,56 +96,12 @@ class _ReservationListPageState extends State<ReservationListPage> {
     fetchData();
   }
 
-  /// foglaláson jobb kattintás esetén
-  void rightClickDialog(ValidReservation selectedReservation) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Művelet kiválasztása'),
-          content: Text(selectedReservation.licensePlate),
-          actions: [
-            // Mégsem gomb
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Mégsem'),
-            ),
-
-            // Kiléptetés gomb
-            if (selectedReservation.state == 1 ||
-                selectedReservation.state == 2)
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  attemptRegisterLeave(selectedReservation.licensePlate);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                  foregroundColor: Colors.white,
-                ),
-                child: Text('Kiléptetés'),
-              ),
-
-            // Érkeztetés gomb
-            if (selectedReservation.state == 0 ||
-                selectedReservation.state == 4)
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  attemptRegisterArrival(selectedReservation.licensePlate);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                ),
-                child: Text('Érkeztetés'),
-              ),
-          ],
-        );
-      },
-    );
+  /// Rendszám módosítása
+  Future<void> attemptChangeLicensePlate(
+      int webParkingId, String newLicensePlate) async {
+    final api = ApiService();
+    await api.changeLicensePlate(context, webParkingId, newLicensePlate);
+    fetchData();
   }
 
   /// Keresés alkalmazása
@@ -228,6 +189,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
     super.initState();
 
     searchController.addListener(applySearchFilter);
+    keyboardFocus.requestFocus();
 
     searchFocus.addListener(() {
       setState(() {
@@ -258,92 +220,117 @@ class _ReservationListPageState extends State<ReservationListPage> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return detectClicks(
-      Padding(
-        padding: EdgeInsets.symmetric(
-            horizontal: AppPadding.large, vertical: AppPadding.large),
-        child: Container(
-          color: AppColors.background,
-          child: Row(
-            children: [
-              Expanded(
-                flex: 3,
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      top: 50,
-                      child: Padding(
-                        padding: const EdgeInsets.all(AppPadding.large),
-                        child: MyDataGrid(
-                          reservations: filteredReservations ?? reservations!,
-                          onReservationSelected: (reservation) {
-                            setState(() {
-                              selectedReservation = reservation;
-                            });
-                          },
-                          onRightClick: (selectedReservation) =>
-                              rightClickDialog(selectedReservation),
-                          selectedReservation: selectedReservation,
-                          showArriveDate: true,
-                          showDescription: true,
-                          showEmail: true,
-                          showLeaveDate: true,
-                          showLicense: true,
-                          showName: true,
-                          showPhone: true,
-                          showState: true,
-                          showZone: true,
-                          showId: true,
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 3,
-                      left: AppPadding.medium,
-                      child: Container(
-                        key: searchContainerKey,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: showFilters
-                                ? AppColors.primary
-                                : Colors.transparent,
-                          ),
-                          borderRadius:
-                              BorderRadius.circular(AppBorderRadius.large),
-                          color:
-                              showFilters ? Colors.white : Colors.transparent,
-                        ),
-                        padding: EdgeInsets.all(AppPadding.small),
-                        child: Column(
-                          children: [
-                            buildSearchBar(),
-                            buildSearchFilters(),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: AppPadding.medium,
-                      right: AppPadding.large,
-                      child: MyIconButton(
-                        icon: Icons.add_rounded,
-                        labelText: "Foglalás rögzítése",
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const BasePage(
-                                child: ReservationOptionPage(),
+    return RefreshIndicator(
+      key: refreshIndicatorKey,
+      color: AppColors.primary,
+      onRefresh: () async => fetchData(),
+      child: KeyboardListener(
+        focusNode: keyboardFocus,
+        onKeyEvent: (event) async {
+          if (event is! KeyDownEvent) return;
+
+          // F5 -> frissítés
+          if (event.logicalKey == LogicalKeyboardKey.f5) {
+            refreshIndicatorKey.currentState?.show();
+            return;
+          }
+        },
+        child: detectClicks(
+          Padding(
+            padding: EdgeInsets.symmetric(
+                horizontal: AppPadding.large, vertical: AppPadding.large),
+            child: Container(
+              color: AppColors.background,
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          top: 50,
+                          child: Padding(
+                            padding: const EdgeInsets.all(AppPadding.large),
+                            child: MyDataGrid(
+                              reservations:
+                                  filteredReservations ?? reservations!,
+                              onReservationSelected: (reservation) {
+                                setState(() {
+                                  selectedReservation = reservation;
+                                });
+                              },
+                              onRightClick: (selectedReservation) =>
+                                  showReservationOptionsDialog(
+                                context,
+                                selectedReservation,
+                                onArrival: attemptRegisterArrival,
+                                onLeave: attemptRegisterLeave,
+                                onChangeLicense: attemptChangeLicensePlate,
                               ),
+                              selectedReservation: selectedReservation,
+                              showArriveDate: true,
+                              showDescription: true,
+                              showEmail: true,
+                              showLeaveDate: true,
+                              showLicense: true,
+                              showName: true,
+                              showPhone: true,
+                              showState: true,
+                              showZone: true,
+                              showId: true,
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 3,
+                          left: AppPadding.medium,
+                          child: Container(
+                            key: searchContainerKey,
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: showFilters
+                                    ? AppColors.primary
+                                    : Colors.transparent,
+                              ),
+                              borderRadius:
+                                  BorderRadius.circular(AppBorderRadius.large),
+                              color: showFilters
+                                  ? Colors.white
+                                  : Colors.transparent,
+                            ),
+                            padding: EdgeInsets.all(AppPadding.small),
+                            child: Column(
+                              children: [
+                                buildSearchBar(),
+                                buildSearchFilters(),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: AppPadding.medium,
+                          right: AppPadding.large,
+                          child: MyIconButton(
+                            icon: Icons.add_rounded,
+                            labelText: "Foglalás rögzítése",
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const BasePage(
+                                    child: ReservationOptionPage(),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

@@ -158,46 +158,53 @@ class ApiService {
     }
   }
 
-  /// Foglalások lekérdezése
-  // Future<List<dynamic>?> getReservations(BuildContext context) async {
-  //   final uri = Uri.http(baseUrl, '/service/v1/airport/webparkings');
+  /// Foglalás rögzítése
+  Future<void> changeLicensePlate(
+      BuildContext context, int webParkingId, String newLicensePlate) async {
+    final uri = Uri.http(baseUrl, '/service/v1/airport/changelicensenumber');
 
-  //   try {
-  //     final response = await client.get(
-  //       uri,
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'Authorization': '$ReceptionistToken',
-  //       },
-  //     );
+    try {
+      final response = await client.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '$ReceptionistToken',
+        },
+        body: jsonEncode({
+          "WebParkingId": webParkingId,
+          "LicenseNumber": newLicensePlate,
+        }),
+      );
 
-  //     if (response.statusCode == 200) {
-  //       final data = jsonDecode(response.body);
-
-  //       final List reservations = data['responseContent'];
-  //       return reservations;
-  //     } else {
-  //       final errorMessage =
-  //           jsonDecode(response.body)['responseMessage'] ?? 'Ismeretlen hiba';
-  //       AwesomeDialog(
-  //         context: context,
-  //         width: 300,
-  //         dialogType: DialogType.error,
-  //         title: "Foglalások lekérése sikertelen",
-  //         desc: errorMessage,
-  //       ).show();
-  //     }
-  //   } catch (e) {
-  //     AwesomeDialog(
-  //       context: context,
-  //       width: 300,
-  //       dialogType: DialogType.error,
-  //       title: 'Foglalások lekérése sikertelen',
-  //       desc: e.toString(),
-  //     ).show();
-  //   }
-  //   return null;
-  // }
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        AwesomeDialog(
+          context: context,
+          width: 300,
+          dialogType: DialogType.success,
+          title: "Rendszám módosítása sikeres!",
+          desc: "Új rendszám: $newLicensePlate",
+        ).show();
+      } else {
+        final errorMessage =
+            jsonDecode(response.body)['responseMessage'] ?? 'Ismeretlen hiba';
+        AwesomeDialog(
+          context: context,
+          width: 300,
+          dialogType: DialogType.error,
+          title: "Rendszám módosítása sikertelen",
+          desc: errorMessage,
+        ).show();
+      }
+    } catch (e) {
+      AwesomeDialog(
+        context: context,
+        width: 300,
+        dialogType: DialogType.error,
+        title: 'Rendszám módosítása sikertelen',
+        desc: e.toString(),
+      ).show();
+    }
+  }
 
   /// Általános Lista Panel lekérdezés
   Future<List<dynamic>?> fetchListPanelData({

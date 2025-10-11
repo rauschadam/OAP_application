@@ -4,13 +4,13 @@ class LoginData {
   final String personId;
   final String partnerId;
   final String authorizationToken;
-  final String? expiration;
+  final DateTime expiration;
 
   LoginData({
     required this.authorizationToken,
     required this.partnerId,
     required this.personId,
-    this.expiration,
+    required this.expiration,
     this.sysUserId,
     this.webUserId,
   });
@@ -22,18 +22,17 @@ class LoginData {
       "PersonId": personId,
       "PartnerId": partnerId,
       "AuthorizationToken": authorizationToken,
-      "Expiration": expiration,
+      "Expiration": expiration.toIso8601String(),
     };
   }
 
   factory LoginData.fromJson(Map<String, dynamic> json) {
     return LoginData(
-      sysUserId: json['SysUserId'],
-      webUserId: json['WebUserId'],
-      personId: json['PersonId'],
-      partnerId: json['PartnerId'].toString(),
-      authorizationToken: json['AuthorizationToken'],
-      expiration: json['Expiration'],
-    );
+        sysUserId: json['SysUserId'],
+        webUserId: json['WebUserId'],
+        personId: json['PersonId'],
+        partnerId: json['PartnerId'].toString(),
+        authorizationToken: json['AuthorizationToken'],
+        expiration: DateTime.parse(json['Expiration']));
   }
 }

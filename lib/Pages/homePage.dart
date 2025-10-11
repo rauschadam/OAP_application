@@ -875,8 +875,7 @@ class _HomePageState extends State<HomePage> {
                     left: AppPadding.medium,
                     child: SearchBarContainer(
                       searchContainerKey: searchContainerKey,
-                      transparency: searchFocus.hasFocus &&
-                          searchController.value.text.isNotEmpty,
+                      transparency: searchController.value.text.isNotEmpty,
                       children: [
                         MySearchBar(
                           searchController: searchController,

@@ -1,6 +1,7 @@
 import 'package:airport_test/Pages/homePage.dart';
 import 'package:airport_test/api_services/api_classes/login_data.dart';
 import 'package:airport_test/api_services/api_service.dart';
+import 'package:airport_test/api_services/auth_manager.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/my_text_form_field.dart';
 import 'package:airport_test/constants/widgets/next_page_button.dart';
@@ -40,9 +41,9 @@ class _ReceptionLoginPageState extends State<ReceptionLoginPage> {
             'AdminPassword1'); // Automatikus login a teszteléshez.
 
     if (loginData != null) {
-      setState(() {
-        ReceptionistToken = loginData.authorizationToken;
-      });
+      AuthManager.setLoginData(loginData);
+      ReceptionistEmail = 'receptionAdmin@gmail.com';
+      ReceptionistPassword = 'AdminPassword1';
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(

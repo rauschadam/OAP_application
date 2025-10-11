@@ -2,9 +2,24 @@
 
 import 'package:airport_test/api_services/api_classes/pay_type.dart';
 import 'package:airport_test/api_services/api_classes/service_templates.dart';
+import 'package:flutter/material.dart';
+
+final GlobalKey<NavigatorState> GlobalNavigatorKey =
+    GlobalKey<NavigatorState>();
+
+BuildContext? get GlobalContext => GlobalNavigatorKey.currentContext;
+
+/// Recepciós email-címe, amellyel bejelentkezett
+String? ReceptionistEmail;
+
+/// Recepciós jelszava, amellyel bejelentkezett
+String? ReceptionistPassword;
 
 /// Recepciós saját tokenje
 String? ReceptionistToken;
+
+/// A token lejárata
+DateTime? TokenExpiration;
 
 /// Elindításkor megnézi, hogy mobilról van-e megnyitva.
 /// True -> Mobil | False -> Desktop

@@ -5,7 +5,7 @@ import 'package:airport_test/Pages/reservationForm/reservationOptionPage.dart';
 import 'package:airport_test/api_Services/api_service.dart';
 import 'package:airport_test/api_services/api_classes/service_templates.dart';
 import 'package:airport_test/api_services/api_classes/valid_reservation.dart';
-import 'package:airport_test/constants/functions/reservation_options_dialog.dart';
+import 'package:airport_test/constants/dialogs/reservation_options_dialog.dart';
 import 'package:airport_test/constants/functions/reservation_state.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/my_icon_button.dart';

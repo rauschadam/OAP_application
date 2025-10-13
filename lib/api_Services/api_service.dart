@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:airport_test/api_Services/api_classes/list_panel_fields.dart';
+import 'package:airport_test/api_services/api_classes/list_panel_field.dart';
 import 'package:airport_test/api_services/api_classes/login_data.dart';
 import 'package:airport_test/api_services/api_classes/pay_type.dart';
 import 'package:airport_test/api_services/api_classes/reservation.dart';
@@ -423,7 +423,7 @@ class ApiService {
   }
 
   /// Általános Lista Panel Field lekérdezés
-  Future<List<dynamic>?> fetchListPanelFields({
+  Future<List<ListPanelField>?> fetchListPanelFields({
     required BuildContext context,
     required String? token,
     required int listPanelId,
@@ -443,15 +443,30 @@ class ApiService {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
+
+        // Ellenőrzés, hogy a válasz szerkezete megfelelő-e
         final responseContent = data['responseContent'];
-        final fieldsData = responseContent
-            .map<ListPanelFields>((json) => ListPanelFields.fromJson(json))
-            .toList();
-        return fieldsData;
+        if (responseContent != null && responseContent['Fields'] != null) {
+          final fieldsJson = responseContent['Fields'] as List<dynamic>;
+          final fieldsData =
+              fieldsJson.map((json) => ListPanelField.fromJson(json)).toList();
+          return fieldsData;
+        } else {
+          // Ha nincs "Fields" kulcs, hiba dobása
+          AwesomeDialog(
+            context: context,
+            width: 300,
+            dialogType: DialogType.error,
+            title: errorDialogTitle,
+            desc: "A válasz nem tartalmaz 'Fields' kulcsot.",
+          ).show();
+          return null;
+        }
       } else {
+        // Ha nem 200/201 a státuszkód
         final responseBody = json.decode(response.body);
         final errorMessage =
-            responseBody['responseMessage'] ?? 'Ismeretlen hiba';
+            responseBody['responseMessage'] ?? 'Ismeretlen hiba történt.';
         AwesomeDialog(
           context: context,
           width: 300,
@@ -462,6 +477,7 @@ class ApiService {
         return null;
       }
     } catch (e) {
+      // Hálózati vagy feldolgozási hiba
       AwesomeDialog(
         context: context,
         width: 300,
@@ -469,8 +485,8 @@ class ApiService {
         title: errorDialogTitle,
         desc: "Hálózati hiba: $e",
       ).show();
+      return null;
     }
-    return null;
   }
 
   /// Általános Lista Panel lekérdezés

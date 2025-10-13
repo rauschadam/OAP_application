@@ -1,7 +1,7 @@
 import 'package:airport_test/constants/functions/timeslot_generator.dart';
 import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/theme.dart';
-import 'package:airport_test/constants/widgets/dialogs.dart';
+import 'package:airport_test/constants/dialogs/error_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 

@@ -5,7 +5,7 @@ import 'package:flutter_multi_formatter/formatters/masked_input_formatter.dart';
 
 class MyTextFormField extends StatelessWidget {
   final TextEditingController controller;
-  final FocusNode focusNode;
+  final FocusNode? focusNode;
   final FocusNode? nextFocus;
   final String hintText;
   final TextInputAction textInputAction;
@@ -18,7 +18,7 @@ class MyTextFormField extends StatelessWidget {
   const MyTextFormField(
       {super.key,
       required this.controller,
-      required this.focusNode,
+      this.focusNode,
       this.nextFocus,
       required this.hintText,
       this.textInputAction = TextInputAction.next,

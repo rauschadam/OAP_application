@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 class ValidReservation {
   final int webParkingId;
   final String partnerId;
@@ -95,5 +97,54 @@ class ValidReservation {
       suitcaseWrappingCount: json['SuitcaseWrappingCount'],
       transferCount: json['TransferCount'],
     );
+  }
+
+  String getValue(ValidReservation r, String columnName) {
+    switch (columnName) {
+      case 'WebParkingId':
+        return r.webParkingId.toString();
+      case 'PartnerId':
+        return r.partnerId;
+      case 'Partner_Sortname':
+        return r.partner_Sortname;
+      case 'LicensePlate':
+        return r.licensePlate;
+      case 'ParkingArticleId':
+        return r.parkingArticleId;
+      case 'ArticleNameHUN':
+        return r.articleNameHUN;
+      case 'State':
+        return r.state.toString();
+      case 'ArriveDate':
+        return DateFormat('yyyy.MM.dd HH:mm').format(r.arriveDate);
+      case 'LeaveDate':
+        return DateFormat('yyyy.MM.dd HH:mm').format(r.leaveDate);
+      case 'WebParkingPaperId':
+        return r.webParkingPaperId;
+      case 'WebParkingPaperNumber':
+        return r.webParkingPaperNumber;
+      case 'WebParkingPaperTypeName':
+        return r.webParkingPaperTypeName;
+      case 'WebParkingAdvancePaperId':
+        return r.webParkingAdvancePaperId ?? '-';
+      case 'WebParkingAdvancePaperNumber':
+        return r.webParkingAdvancePaperNumber ?? '-';
+      case 'WebParkingAdvancePaperTypeName':
+        return r.webParkingAdvancePaperTypeName ?? '-';
+      case 'Email':
+        return r.email;
+      case 'Phone':
+        return r.phone;
+      case 'Description':
+        return r.description ?? '-';
+      case 'VIP':
+        return (r.VIP ?? false) ? 'Igen' : '-';
+      case 'SuitcaseWrappingCount':
+        return (r.suitcaseWrappingCount ?? 0).toString();
+      case 'TransferCount':
+        return (r.transferCount ?? 0).toString();
+      default:
+        return '-';
+    }
   }
 }

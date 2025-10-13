@@ -1,12 +1,15 @@
 import 'dart:async';
 import 'package:airport_test/Pages/reservationForm/reservationOptionPage.dart';
-import 'package:airport_test/api_Services/api_service.dart';
+import 'package:airport_test/api_services/api_classes/list_panel_field.dart';
+import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/api_services/api_classes/valid_reservation.dart';
-import 'package:airport_test/constants/functions/reservation_options_dialog.dart';
+import 'package:airport_test/constants/dialogs/reservation_options_dialog.dart';
+import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/my_data_grid.dart';
 import 'package:airport_test/constants/widgets/my_icon_button.dart';
+import 'package:airport_test/constants/widgets/shimmer_placeholder_template.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -37,6 +40,9 @@ class _ReservationListPageState extends State<ReservationListPage> {
 
   /// Frissítés timer
   Timer? refreshTimer;
+
+  /// Lista Panel mezőinek adatai
+  List<ListPanelField>? listPanelFields;
 
   /// Érvényes foglalások
   List<ValidReservation>? reservations;
@@ -71,10 +77,16 @@ class _ReservationListPageState extends State<ReservationListPage> {
     final api = ApiService();
     final List<ValidReservation>? reservationsData =
         await api.getValidReservations(context);
+    final List<ListPanelField>? fieldsData = await api.fetchListPanelFields(
+        context: context,
+        token: ReceptionistToken,
+        listPanelId: 107,
+        errorDialogTitle: "Lista Panel Mezők lekérdezése sikertelen!");
 
     if (reservationsData != null) {
       setState(() {
         reservations = reservationsData;
+        listPanelFields = fieldsData;
         loading = false;
       });
     } else {
@@ -251,36 +263,30 @@ class _ReservationListPageState extends State<ReservationListPage> {
                           top: 50,
                           child: Padding(
                             padding: const EdgeInsets.all(AppPadding.large),
-                            child: MyDataGrid(
-                              reservations:
-                                  filteredReservations ?? reservations!,
-                              onReservationSelected: (reservation) {
-                                setState(() {
-                                  selectedReservation = reservation;
-                                });
-                              },
-                              onRightClick: (selectedReservation) =>
-                                  showReservationOptionsDialog(
-                                context,
-                                selectedReservation,
-                                onArrival: attemptRegisterArrival,
-                                onLeave: attemptRegisterLeave,
-                                onChangeLicense: attemptChangeLicensePlate,
-                              ),
-                              selectedReservation: selectedReservation,
-                              showArriveDate: true,
-                              showDescription: true,
-                              showEmail: true,
-                              showLeaveDate: true,
-                              showLicense: true,
-                              showName: true,
-                              showPhone: true,
-                              showState: true,
-                              showZone: true,
-                              showVIP: true,
-                              showSuitcaseWrapping: true,
-                              showTransfer: true,
-                            ),
+                            child: loading
+                                ? ShimmerPlaceholderTemplate(
+                                    width: double.infinity,
+                                    height: double.infinity)
+                                : MyDataGrid(
+                                    reservations:
+                                        filteredReservations ?? reservations!,
+                                    listPanelFields: listPanelFields ?? [],
+                                    onReservationSelected: (reservation) {
+                                      setState(() {
+                                        selectedReservation = reservation;
+                                      });
+                                    },
+                                    onRightClick: (selectedReservation) =>
+                                        showReservationOptionsDialog(
+                                      context,
+                                      selectedReservation,
+                                      onArrival: attemptRegisterArrival,
+                                      onLeave: attemptRegisterLeave,
+                                      onChangeLicense:
+                                          attemptChangeLicensePlate,
+                                    ),
+                                    selectedReservation: selectedReservation,
+                                  ),
                           ),
                         ),
                         Positioned(

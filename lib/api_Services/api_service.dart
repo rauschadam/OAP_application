@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:airport_test/api_services/api_classes/car_wash_service.dart';
 import 'package:airport_test/api_services/api_classes/list_panel_field.dart';
 import 'package:airport_test/api_services/api_classes/login_data.dart';
 import 'package:airport_test/api_services/api_classes/pay_type.dart';
@@ -358,10 +359,10 @@ class ApiService {
 
   /// Szolgáltatások lekérdezése
   Future<List<ServiceTemplate>?> getServiceTemplates(
-      BuildContext context, String token) async {
+      BuildContext context) async {
     final data = await fetchListPanelData(
       context: context,
-      token: token,
+      token: ReceptionistToken,
       listPanelId: 100,
       errorDialogTitle: 'Szolgáltatások lekérdezése sikertelen',
     );
@@ -372,10 +373,10 @@ class ApiService {
   }
 
   /// Fizetési módok lekérése
-  Future<List<PayType>?> getPayTypes(BuildContext context, String token) async {
+  Future<List<PayType>?> getPayTypes(BuildContext context) async {
     final data = await fetchListPanelData(
       context: context,
-      token: token,
+      token: ReceptionistToken,
       listPanelId: 102,
       errorDialogTitle: 'Fizetési módok lekérdezése sikertelen',
     );
@@ -415,6 +416,20 @@ class ApiService {
     } catch (e) {
       return null; // ha nincs ilyen personId
     }
+  }
+
+  /// Vissza adja a helyes fiókot personId alapján
+  Future<List<CarWashService>?> getCarWashServices(BuildContext context) async {
+    final data = await fetchListPanelData(
+      context: context,
+      token: ReceptionistToken,
+      listPanelId: 108,
+      errorDialogTitle: 'Mosás szolgáltatások lekérdezése sikertelen',
+    );
+    if (data == null) return [];
+    return data
+        .map<CarWashService>((json) => CarWashService.fromJson(json))
+        .toList();
   }
 
   String formatDateTime(DateTime dateTime) {

@@ -1,7 +1,9 @@
 import 'package:airport_test/Pages/reservationForm/invoiceOptionPage.dart';
+import 'package:airport_test/api_services/api_classes/car_wash_service.dart';
 import 'package:airport_test/api_services/api_classes/user_data.dart';
 import 'package:airport_test/api_services/api_classes/valid_reservation.dart';
 import 'package:airport_test/api_services/api_service.dart';
+import 'package:airport_test/constants/formatters.dart';
 import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/car_wash_selection_card.dart';
@@ -92,7 +94,7 @@ class WashOrderPageState extends State<WashOrderPage> {
   TimeOfDay? tempWashTime;
 
   /// Parkolási zóna cikkszáma
-  String? selectedCarWashArticleId;
+  CarWashService? selectedCarWashService;
 
   String selectedPayTypeId = PayTypes.first.payTypeId;
 
@@ -133,7 +135,7 @@ class WashOrderPageState extends State<WashOrderPage> {
         setState(() {
           // A beviteli mezők kitöltése a felhasználói adatokkal
           nameController.text = userData.person_Name;
-          phoneController.text = userData.phone ?? '';
+          phoneController.text = formatPhone(userData.phone);
           widget.emailController.text = userData.email;
         });
       }
@@ -141,29 +143,19 @@ class WashOrderPageState extends State<WashOrderPage> {
   }
 
   /// telített időpontok
+  /// Telített időpontok kiszámítása – mivel csak egy zóna van, nem bontjuk szét.
   List<DateTime> listFullyBookedDateTimes(List<dynamic> reservations) {
-    // Kiveszi a zónák kapacitását a Templates-ekből
-    final Map<String, int> zoneCapacities = {}; // parkoló zóna -> kapacitás
-    for (var template in ServiceTemplates) {
-      if (template.parkingServiceType != 2) {
-        continue; // Csak a mosásokat nézze
-      }
-      final String articleId = template.articleId;
-      final int capacity = template.zoneCapacity ?? 1;
-      zoneCapacities[articleId] = capacity;
-    }
+    // Az egyetlen mosási zóna kapacitása (pl. 2 autó / időpont)
+    const int capacity = 2;
 
-    // időpont számláló zónánként
-    Map<String, Map<DateTime, int>> counters = {};
+    // Időpontok számlálója
+    Map<DateTime, int> counters = {};
 
-    for (var reservation in reservations) {
-      final carWashArticleId = reservation['CarWashArticleId'];
-      if (carWashArticleId == null) continue;
+    for (ValidReservation reservation in reservations) {
+      if (reservation.washDateTime == null) continue;
+      final DateTime washDateTime = reservation.washDateTime!;
 
-      final washDateTime = DateTime.parse(reservation['WashDateTime']);
-
-      counters.putIfAbsent(carWashArticleId, () => {});
-
+      // Félórás bontásban kezeljük az időpontokat
       DateTime current = DateTime(
         washDateTime.year,
         washDateTime.month,
@@ -172,46 +164,14 @@ class WashOrderPageState extends State<WashOrderPage> {
         washDateTime.minute - (washDateTime.minute % 30),
       );
 
-      // +1 foglalás az adott időpontra
-      counters[carWashArticleId]![current] =
-          (counters[carWashArticleId]![current] ?? 0) + 1;
+      counters[current] = (counters[current] ?? 0) + 1;
     }
 
-    // Összes foglalt időpont (ha bármelyik zóna tele van)
-    Set<DateTime> fullyBookedDateTimes = {};
-
-    counters.forEach((washingArticleId, counter) {
-      if (washingArticleId != "") {
-        final capacity = zoneCapacities[washingArticleId];
-        // Ha egy zóna tele van, az az időpont foglalt mindenkinek
-        counter.entries
-            .where((entry) => entry.value >= capacity!)
-            .forEach((entry) {
-          fullyBookedDateTimes.add(entry.key);
-        });
-      }
-    });
-
-    return fullyBookedDateTimes.toList();
-  }
-
-  /// Kiválasztott parkolózóna napijegy ára
-  /// TODO: jelenleg bevannak égetve az árak
-  int getCostForZone(String articleId) {
-    switch (articleId) {
-      case "1-95431":
-        return 2000;
-      case "1-95432":
-        return 4000;
-      case "1-95433":
-        return 6000;
-      case "1-95434":
-        return 8000;
-      case "1-95435":
-        return 10000;
-      default:
-        return 0;
-    }
+    // Azok az időpontok, ahol elértük a kapacitást
+    return counters.entries
+        .where((entry) => entry.value >= capacity)
+        .map((entry) => entry.key)
+        .toList();
   }
 
   /// Teljes összeg kalkulálása, az árakat később adatbázisból fogja előhívni.
@@ -220,8 +180,8 @@ class WashOrderPageState extends State<WashOrderPage> {
         widget.bookingOption == BookingOption.both ? widget.parkingCost! : 0;
 
     // Hozzáadjuk a parkolás árát
-    if (selectedCarWashArticleId != null) {
-      baseCost += getCostForZone(selectedCarWashArticleId!);
+    if (selectedCarWashService != null) {
+      baseCost += selectedCarWashService!.price.toInt();
     }
 
     setState(() {
@@ -278,7 +238,7 @@ class WashOrderPageState extends State<WashOrderPage> {
                 vip: widget.vip,
                 descriptionController: descriptionController,
                 bookingOption: widget.bookingOption,
-                carWashArticleId: selectedCarWashArticleId,
+                carWashArticleId: selectedCarWashService!.article_Id,
                 suitcaseWrappingCount: widget.suitcaseWrappingCount,
                 parkingArticleId: widget.parkingArticleId,
                 alreadyRegistered: widget.alreadyRegistered,
@@ -293,11 +253,6 @@ class WashOrderPageState extends State<WashOrderPage> {
         );
       }
     }
-    //else {
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //     const SnackBar(content: Text('Sikertelen foglalás!')),
-    //   );
-    // }
   }
 
   @override
@@ -355,6 +310,7 @@ class WashOrderPageState extends State<WashOrderPage> {
   }
 
   Widget buildTextFormFields() {
+    if (widget.bookingOption == BookingOption.both) return Container();
     return Column(
       children: [
         MyTextFormField(
@@ -407,19 +363,56 @@ class WashOrderPageState extends State<WashOrderPage> {
   }
 
   Widget buildDatePickerRow() {
-    return Row(
+    return Column(
       children: [
-        MyIconButton(
-            icon: Icons.calendar_month_rounded,
-            labelText: 'Válassz dátumot',
-            onPressed: showDatePickerDialog),
-        const SizedBox(width: 50),
-        Column(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Érkezés'),
-            Text(selectedWashDate != null
-                ? DateFormat('yyyy.MM.dd HH:mm').format(selectedWashDate!)
-                : "-")
+            if (selectedWashDate == null)
+              Expanded(
+                child: MyIconButton(
+                  icon: Icons.calendar_month_rounded,
+                  labelText: "Válassz dátumot",
+                  focusNode: datePickerFocus,
+                  onPressed: showDatePickerDialog,
+                ),
+              ),
+            if (selectedWashDate != null)
+              Expanded(
+                child: InkWell(
+                  onTap: showDatePickerDialog,
+                  borderRadius: BorderRadius.circular(AppBorderRadius.small),
+                  child: Container(
+                    padding: const EdgeInsets.all(AppPadding.small),
+                    decoration: BoxDecoration(
+                      color: AppColors.background,
+                      borderRadius:
+                          BorderRadius.circular(AppBorderRadius.small),
+                      border: Border.all(color: AppColors.primary, width: 1),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Icon(Icons.local_car_wash,
+                                color: AppColors.primary),
+                            SizedBox(width: 8),
+                            Text(
+                              "Mosás: ${selectedWashDate != null ? DateFormat('yyyy.MM.dd HH:mm').format(selectedWashDate!) : "-"}",
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ],
@@ -430,16 +423,17 @@ class WashOrderPageState extends State<WashOrderPage> {
     return Column(
       children: [
         const SizedBox(height: 12),
-        Align(
-            alignment: Alignment.centerLeft,
-            child: const Text('Válassza ki a kívánt programot')),
-        ServiceTemplates.isEmpty
+        const Align(
+          alignment: Alignment.centerLeft,
+          child: Text('Válassza ki a kívánt programot'),
+        ),
+        CarWashServices.isEmpty
             ? const Center(child: CircularProgressIndicator())
             : buildCarWashZoneSelector(
-                selectedCarWashArticleId: selectedCarWashArticleId,
-                onZoneSelected: (articleId) {
+                selectedCarWashService: selectedCarWashService,
+                onZoneSelected: (service) {
                   setState(() {
-                    selectedCarWashArticleId = articleId;
+                    selectedCarWashService = service;
                   });
                   CalculateTotalCost();
                 },
@@ -449,15 +443,11 @@ class WashOrderPageState extends State<WashOrderPage> {
     );
   }
 
-  /// Parkoló zónák generálása ServiceTemplates-ek alapján.
+  /// Mosási szolgáltatások megjelenítése CarWashService alapján
   Widget buildCarWashZoneSelector({
-    required String? selectedCarWashArticleId,
-    required Function(String) onZoneSelected,
+    required CarWashService? selectedCarWashService,
+    required Function(CarWashService) onZoneSelected,
   }) {
-    final washingZones =
-        ServiceTemplates.where((s) => s.parkingServiceType == 2)
-            .toList(); // Csak a mosás zónák
-
     return GestureDetector(
       onHorizontalDragUpdate: (details) {
         WashOptionsScrollController.jumpTo(
@@ -467,20 +457,17 @@ class WashOrderPageState extends State<WashOrderPage> {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         controller: WashOptionsScrollController,
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: washingZones.map((zone) {
-            final String articleId = zone.articleId;
-            final String title = zone.parkingServiceName;
-
+          children: CarWashServices.map((service) {
             return Padding(
               padding: const EdgeInsets.all(4.0),
               child: CarWashSelectionCard(
-                title: title,
-                washCost: getCostForZone(articleId),
-                selected: selectedCarWashArticleId == articleId,
-                onTap: () => onZoneSelected(articleId),
+                title: service.article_Name,
+                washCost: service.price.toInt(),
+                selected: selectedCarWashService == service,
+                onTap: () => onZoneSelected(service),
               ),
             );
           }).toList(),

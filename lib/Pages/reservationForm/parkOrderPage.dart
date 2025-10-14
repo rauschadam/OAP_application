@@ -1,6 +1,7 @@
 import 'package:airport_test/Pages/reservationForm/invoiceOptionPage.dart';
 import 'package:airport_test/Pages/reservationForm/washOrderPage.dart';
 import 'package:airport_test/api_services/api_classes/user_data.dart';
+import 'package:airport_test/constants/formatters.dart';
 import 'package:airport_test/constants/functions/occupancy_colors.dart';
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/api_services/api_classes/parking_zone.dart';
@@ -132,15 +133,6 @@ class ParkOrderPageState extends State<ParkOrderPage> {
         nameController.text = userData.person_Name;
         phoneController.text = formatPhone(userData.phone);
       });
-    }
-  }
-
-  String formatPhone(String? phoneText) {
-    if (phoneText == null) return '';
-    if (phoneText.startsWith('+')) {
-      return phoneText.substring(1);
-    } else {
-      return phoneText;
     }
   }
 
@@ -488,11 +480,13 @@ class ParkOrderPageState extends State<ParkOrderPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             if (selectedArriveDate == null && selectedLeaveDate == null)
-              MyIconButton(
-                icon: Icons.calendar_month_rounded,
-                labelText: "Válassz dátumot",
-                focusNode: datePickerFocus,
-                onPressed: showDatePickerDialog,
+              Expanded(
+                child: MyIconButton(
+                  icon: Icons.calendar_month_rounded,
+                  labelText: "Válassz dátumot",
+                  focusNode: datePickerFocus,
+                  onPressed: showDatePickerDialog,
+                ),
               ),
             if (selectedArriveDate != null && selectedLeaveDate != null)
               Expanded(

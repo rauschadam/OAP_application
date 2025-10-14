@@ -22,6 +22,8 @@ class ValidReservation {
   final bool? VIP;
   final int? suitcaseWrappingCount;
   final int? transferCount;
+  final DateTime? washDateTime;
+  final String? washingArticleName;
 
   ValidReservation({
     required this.webParkingId,
@@ -45,6 +47,8 @@ class ValidReservation {
     this.VIP,
     this.suitcaseWrappingCount,
     this.transferCount,
+    this.washDateTime,
+    this.washingArticleName,
   });
 
   Map<String, dynamic> toJson() {
@@ -70,6 +74,8 @@ class ValidReservation {
       "VIP": VIP,
       "SuitcaseWrappingCount": suitcaseWrappingCount,
       "TransferCount": transferCount,
+      "WashDateTime": washDateTime?.toIso8601String(),
+      "WashingArticleName": washingArticleName,
     };
   }
 
@@ -96,6 +102,10 @@ class ValidReservation {
       VIP: json['VIP'],
       suitcaseWrappingCount: json['SuitcaseWrappingCount'],
       transferCount: json['TransferCount'],
+      washDateTime: json['WashDateTime'] != null
+          ? DateTime.parse(json['WashDateTime'])
+          : null,
+      washingArticleName: json['WashingArticleName'],
     );
   }
 
@@ -143,6 +153,12 @@ class ValidReservation {
         return (r.suitcaseWrappingCount ?? 0).toString();
       case 'TransferCount':
         return (r.transferCount ?? 0).toString();
+      case 'WashDateTime':
+        return washDateTime != null
+            ? DateFormat('yyyy.MM.dd HH:mm').format(r.washDateTime!)
+            : '-';
+      case 'WashingArticleName':
+        return washingArticleName ?? '-';
       default:
         return '-';
     }

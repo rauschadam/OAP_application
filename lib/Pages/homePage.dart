@@ -69,17 +69,19 @@ class _HomePageState extends State<HomePage> {
     // Foglalások lekérdezése
     final reservationsData = await api.getValidReservations(context);
     // Szolgáltatások lekérdezése
-    final servicesData =
-        await api.getServiceTemplates(context, ReceptionistToken!);
-    final payTypeData = await api.getPayTypes(context, ReceptionistToken!);
+    final servicesData = await api.getServiceTemplates(context);
+    final payTypeData = await api.getPayTypes(context);
+    final carWashServicesData = await api.getCarWashServices(context);
 
     if (reservationsData != null &&
         servicesData != null &&
-        payTypeData != null) {
+        payTypeData != null &&
+        carWashServicesData != null) {
       setState(() {
         reservations = reservationsData;
         ServiceTemplates = servicesData;
         PayTypes = payTypeData;
+        CarWashServices = carWashServicesData;
         zoneCounters = mapCurrentOccupancyByZones(reservations!);
         fullyBookedDateTimes = mapBookedDateTimesByZones(reservations!);
         loading = false;
@@ -122,7 +124,7 @@ class _HomePageState extends State<HomePage> {
       if (template.parkingServiceType != 1) {
         continue; // Csak a parkolásokat nézze (parkoló zónáknál a ParkingServiceType = 1)
       }
-      final String articleId = template.articleId;
+      final String articleId = template.articleId!;
       final int capacity = template.zoneCapacity!;
       zoneCapacities[articleId] = capacity;
     }

@@ -3,7 +3,7 @@ class ServiceTemplate {
   final String parkingServiceName;
   final int parkingServiceType;
   final int? zoneCapacity;
-  final String articleId;
+  final String? articleId;
   final int advanceReserveLimit;
   final int? reserveIntervalLimit;
 

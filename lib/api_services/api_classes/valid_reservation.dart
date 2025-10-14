@@ -8,6 +8,7 @@ class ValidReservation {
   final String parkingArticleId;
   final String articleNameHUN;
   final int state;
+  final String stateName;
   final DateTime arriveDate;
   final DateTime leaveDate;
   final String webParkingPaperId;
@@ -33,6 +34,7 @@ class ValidReservation {
     required this.parkingArticleId,
     required this.articleNameHUN,
     required this.state,
+    required this.stateName,
     required this.arriveDate,
     required this.leaveDate,
     required this.webParkingPaperId,
@@ -88,6 +90,7 @@ class ValidReservation {
       parkingArticleId: json['ParkingArticleId'],
       articleNameHUN: json['ArticleNameHUN'],
       state: json['State'],
+      stateName: json['StateName'],
       arriveDate: DateTime.parse(json['ArriveDate']),
       leaveDate: DateTime.parse(json['LeaveDate']),
       webParkingPaperId: json['WebParkingPaperId'],
@@ -125,6 +128,8 @@ class ValidReservation {
         return r.articleNameHUN;
       case 'State':
         return r.state.toString();
+      case 'StateName':
+        return r.stateName;
       case 'ArriveDate':
         return DateFormat('yyyy.MM.dd HH:mm').format(r.arriveDate);
       case 'LeaveDate':

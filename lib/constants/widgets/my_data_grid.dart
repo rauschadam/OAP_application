@@ -203,8 +203,8 @@ class ReservationDataSource extends DataGridSource {
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
-    final index = effectiveRows.indexOf(row);
-    final rowColor = index.isEven ? Colors.grey.shade100 : Colors.white;
+    final reservation = _rowToReservationMap[row];
+    final rowColor = getRowColor(reservation!);
     return DataGridRowAdapter(
       color: rowColor,
       cells: row.getCells().map((cell) {
@@ -219,6 +219,17 @@ class ReservationDataSource extends DataGridSource {
         );
       }).toList(),
     );
+  }
+
+  Color getRowColor(ValidReservation reservation) {
+    switch (reservation.state) {
+      case 1:
+        return Colors.green;
+      case 3:
+        return Colors.red;
+      default:
+        return Colors.white;
+    }
   }
 
   ValidReservation? getReservationForRow(DataGridRow row) {

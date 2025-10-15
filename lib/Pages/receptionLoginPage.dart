@@ -37,8 +37,8 @@ class _ReceptionLoginPageState extends State<ReceptionLoginPage> {
     final api = ApiService();
     final LoginData? loginData =
         //await api.loginUser(emailController.text, passwordController.text);
-        await api.loginUser(context, 'receptionAdmin@gmail.com',
-            'AdminPassword1'); // Automatikus login a teszteléshez.
+        await api.loginUser(context, 'recepcio@oap.hu',
+            'asd'); // Automatikus login a teszteléshez.
 
     if (loginData != null) {
       AuthManager.setLoginData(loginData);

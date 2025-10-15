@@ -1,10 +1,11 @@
 class LoginData {
   final int? sysUserId;
   final int? webUserId;
-  final String personId;
   final String partnerId;
+  final String personId;
   final String authorizationToken;
   final DateTime expiration;
+  final List<Map<String, dynamic>>? availableListPanels;
 
   LoginData({
     required this.authorizationToken,
@@ -13,26 +14,32 @@ class LoginData {
     required this.expiration,
     this.sysUserId,
     this.webUserId,
+    this.availableListPanels,
   });
 
   Map<String, dynamic> toJson() {
     return {
-      "SysUserId": sysUserId,
-      "WebUserId": webUserId,
-      "PersonId": personId,
-      "PartnerId": partnerId,
-      "AuthorizationToken": authorizationToken,
-      "Expiration": expiration.toIso8601String(),
+      "sysUserId": sysUserId,
+      "webUserId": webUserId,
+      "personId": personId,
+      "partnerId": partnerId,
+      "authorizationToken": authorizationToken,
+      "expiration": expiration.toIso8601String(),
+      "availableListPanels": availableListPanels,
     };
   }
 
   factory LoginData.fromJson(Map<String, dynamic> json) {
     return LoginData(
-        sysUserId: json['SysUserId'],
-        webUserId: json['WebUserId'],
-        personId: json['PersonId'],
-        partnerId: json['PartnerId'].toString(),
-        authorizationToken: json['AuthorizationToken'],
-        expiration: DateTime.parse(json['Expiration']));
+      sysUserId: json['sysUserId'],
+      webUserId: json['webUserId'],
+      personId: json['personId'],
+      partnerId: json['partnerId'].toString(),
+      authorizationToken: json['authorizationToken'],
+      expiration: DateTime.parse(json['expiration']),
+      availableListPanels: (json['availableListPanels'] as List?)
+          ?.map((e) => Map<String, dynamic>.from(e))
+          .toList(),
+    );
   }
 }

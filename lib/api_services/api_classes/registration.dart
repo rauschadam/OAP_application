@@ -8,6 +8,10 @@ class Registration {
   final String? currencyId;
   final String? payTypeId;
   final String? countryId;
+  final int postalCode;
+  final String cityName;
+  final String streetName;
+  final String houseNumber;
 
   Registration({
     required this.name,
@@ -19,6 +23,10 @@ class Registration {
     this.currencyId,
     this.payTypeId,
     this.countryId,
+    required this.postalCode,
+    required this.cityName,
+    required this.streetName,
+    required this.houseNumber,
   });
 
   Map<String, dynamic> toJson() {
@@ -28,10 +36,14 @@ class Registration {
       "Email": email,
       "Phone": phone,
       "FavoriteLicensePlateNumber": favoriteLicensePlateNumber,
-      "TaxNumber": null,
+      "TaxNumber": taxNumber,
       "CurrencyId": null,
       "PayTypeId": null,
       "CountryId": null,
+      "PostalCode": postalCode,
+      "CityName": cityName,
+      "StreetName": streetName,
+      "HouseNumber": houseNumber,
     };
   }
 
@@ -46,6 +58,10 @@ class Registration {
       currencyId: json['CurrencyId'],
       payTypeId: json['PayTypeId'],
       countryId: json['CountryId'],
+      postalCode: json['PostalCode'],
+      cityName: json['CityName'],
+      streetName: json['StreetName'],
+      houseNumber: json['HouseNumber'],
     );
   }
 }

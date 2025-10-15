@@ -30,6 +30,7 @@ class MyTextFormField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final errorColor = Theme.of(context).colorScheme.error;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -44,6 +45,40 @@ class MyTextFormField extends StatelessWidget {
           validator: validator,
           cursorColor: AppColors.primary,
           cursorErrorColor: AppColors.primary,
+          style: const TextStyle(fontSize: 16),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: AppColors.secondary,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+            errorStyle: TextStyle(
+              color: errorColor,
+              fontSize: 12,
+              height: 1.2,
+            ),
+            prefixText: selectedTextFormFieldType == MyTextFormFieldType.phone
+                ? '+'
+                : null,
+            prefixStyle: const TextStyle(color: Colors.black),
+            suffixIcon: onObscureToggle != null
+                ? Padding(
+                    padding: const EdgeInsets.only(right: AppPadding.small),
+                    child: IconButton(
+                      icon: Icon(
+                        obscureText ? Icons.visibility_off : Icons.visibility,
+                        color: obscureText
+                            ? Colors.grey.shade800
+                            : Colors.grey.shade900,
+                      ),
+                      onPressed: () => onObscureToggle!(),
+                    ),
+                  )
+                : null,
+          ),
           onEditingComplete: () {
             if (nextFocus != null) {
               FocusScope.of(context).requestFocus(nextFocus);
@@ -66,37 +101,37 @@ class MyTextFormField extends StatelessWidget {
                   }
                 }
               : null,
-          decoration: InputDecoration(
-            // hintText: hintText,
-            // hintStyle: TextStyle(color: BasePage.defaultColors.primary),
-            prefixText: selectedTextFormFieldType == MyTextFormFieldType.phone
-                ? '+'
-                : null,
-            prefixStyle: selectedTextFormFieldType == MyTextFormFieldType.phone
-                ? TextStyle(color: Colors.black)
-                : null,
-            filled: true,
-            fillColor: AppColors.secondary,
-            border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none),
-            suffixIcon: onObscureToggle != null
-                ? Padding(
-                    padding: const EdgeInsets.only(right: AppPadding.small),
-                    child: IconButton(
-                      icon: Icon(
-                        obscureText ? Icons.visibility_off : Icons.visibility,
-                        color: obscureText
-                            ? Colors.grey.shade800
-                            : Colors.grey.shade900,
-                      ),
-                      onPressed: () {
-                        onObscureToggle!();
-                      },
-                    ),
-                  )
-                : null,
-          ),
+          // decoration: InputDecoration(
+          //   // hintText: hintText,
+          //   // hintStyle: TextStyle(color: BasePage.defaultColors.primary),
+          //   prefixText: selectedTextFormFieldType == MyTextFormFieldType.phone
+          //       ? '+'
+          //       : null,
+          //   prefixStyle: selectedTextFormFieldType == MyTextFormFieldType.phone
+          //       ? TextStyle(color: Colors.black)
+          //       : null,
+          //   filled: true,
+          //   fillColor: AppColors.secondary,
+          //   border: OutlineInputBorder(
+          //       borderRadius: BorderRadius.circular(12),
+          //       borderSide: BorderSide.none),
+          //   suffixIcon: onObscureToggle != null
+          //       ? Padding(
+          //           padding: const EdgeInsets.only(right: AppPadding.small),
+          //           child: IconButton(
+          //             icon: Icon(
+          //               obscureText ? Icons.visibility_off : Icons.visibility,
+          //               color: obscureText
+          //                   ? Colors.grey.shade800
+          //                   : Colors.grey.shade900,
+          //             ),
+          //             onPressed: () {
+          //               onObscureToggle!();
+          //             },
+          //           ),
+          //         )
+          //       : null,
+          // ),
           obscureText: obscureText,
           inputFormatters:
               selectedTextFormFieldType == MyTextFormFieldType.phone

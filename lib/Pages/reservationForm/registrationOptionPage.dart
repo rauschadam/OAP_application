@@ -39,7 +39,7 @@ class _RegistrationOptionPageState extends State<RegistrationOptionPage> {
       child: Column(
         children: [
           MyRadioListTile<RegistrationOption>(
-            title: 'Regisztrált partner vagyok',
+            title: 'Bejelentkezés',
             value: RegistrationOption.registered,
             groupValue: selectedRegistrationOption,
             onChanged: (RegistrationOption? value) {
@@ -55,7 +55,7 @@ class _RegistrationOptionPageState extends State<RegistrationOptionPage> {
             ),
           ),
           MyRadioListTile<RegistrationOption>(
-            title: 'Most szeretnék regisztrálni',
+            title: 'Regisztráció',
             value: RegistrationOption.registerNow,
             groupValue: selectedRegistrationOption,
             onChanged: (RegistrationOption? value) {
@@ -73,6 +73,7 @@ class _RegistrationOptionPageState extends State<RegistrationOptionPage> {
           ),
           MyRadioListTile<RegistrationOption>(
             title: 'Regisztráció nélkül vásárolok',
+            subtitle: 'Még nem működik',
             value: RegistrationOption.withoutRegistration,
             groupValue: selectedRegistrationOption,
             onChanged: (RegistrationOption? value) {

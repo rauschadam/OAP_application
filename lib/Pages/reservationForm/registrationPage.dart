@@ -69,21 +69,25 @@ class _RegistrationPageState extends State<RegistrationPage> {
       email: emailController.text,
       phone: phoneController.text,
       favoriteLicensePlateNumber: favoriteLicensePlateNumberController.text,
-      taxNumber: taxNumberController.text,
+      taxNumber:
+          taxNumberController.text == "" ? null : taxNumberController.text,
       postalCode: int.parse(postalCodeController.text),
       cityName: cityController.text,
       streetName: streetController.text,
       houseNumber: houseNumberController.text,
     );
 
-    await ApiService().registerUser(context, registration);
-    final api = ApiService();
-    final loginData = await api.loginUser(
-      context,
-      emailController.text,
-      passwordController.text,
-    );
-    return loginData;
+    final registerData = await ApiService().registerUser(context, registration);
+    if (registerData != null) {
+      final api = ApiService();
+      final loginData = await api.loginUser(
+        context,
+        emailController.text,
+        passwordController.text,
+      );
+      return loginData;
+    }
+    return null;
   }
 
   Widget validationErrorText(formFieldState, errorColor) {
@@ -132,20 +136,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
             );
             break;
         }
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sikeres regisztráció!')),
-        );
-
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (_) => BasePage(child: nextPage),
           ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sikertelen regisztráció!')),
         );
       }
     }
@@ -323,12 +318,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
         ),
         SizedBox(height: sizedBoxHeight),
         MyTextFormField(
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Adja meg adóazonosító számát';
-            }
-            return null;
-          },
           controller: taxNumberController,
           focusNode: taxNumberFocus,
           textInputAction: TextInputAction.next,

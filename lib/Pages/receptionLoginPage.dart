@@ -42,8 +42,8 @@ class _ReceptionLoginPageState extends State<ReceptionLoginPage> {
 
     if (loginData != null) {
       AuthManager.setLoginData(loginData);
-      ReceptionistEmail = 'receptionAdmin@gmail.com';
-      ReceptionistPassword = 'AdminPassword1';
+      ReceptionistEmail = 'recepcio@oap.hu';
+      ReceptionistPassword = 'asd';
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(

@@ -362,7 +362,6 @@ class ApiService {
       BuildContext context) async {
     final data = await fetchListPanelData(
       context: context,
-      token: ReceptionistToken,
       listPanelId: 100,
       errorDialogTitle: 'Szolgáltatások lekérdezése sikertelen',
     );
@@ -376,7 +375,6 @@ class ApiService {
   Future<List<PayType>?> getPayTypes(BuildContext context) async {
     final data = await fetchListPanelData(
       context: context,
-      token: ReceptionistToken,
       listPanelId: 102,
       errorDialogTitle: 'Fizetési módok lekérdezése sikertelen',
     );
@@ -389,7 +387,6 @@ class ApiService {
       BuildContext context) async {
     final data = await fetchListPanelData(
       context: context,
-      token: ReceptionistToken,
       listPanelId: 107,
       errorDialogTitle: 'Érvényes foglalások lekérdezése sikertelen',
     );
@@ -403,7 +400,6 @@ class ApiService {
   Future<UserData?> getUserData(BuildContext context, String personId) async {
     final allUserDataJson = await fetchListPanelData(
       context: context,
-      token: ReceptionistToken,
       listPanelId: 103,
       errorDialogTitle: 'Felhasználói fiókok lekérdezése sikertelen',
     );
@@ -422,7 +418,6 @@ class ApiService {
   Future<List<CarWashService>?> getCarWashServices(BuildContext context) async {
     final data = await fetchListPanelData(
       context: context,
-      token: ReceptionistToken,
       listPanelId: 108,
       errorDialogTitle: 'Mosás szolgáltatások lekérdezése sikertelen',
     );
@@ -440,7 +435,6 @@ class ApiService {
   /// Általános Lista Panel Field lekérdezés
   Future<List<ListPanelField>?> fetchListPanelFields({
     required BuildContext context,
-    required String? token,
     required int listPanelId,
     required String errorDialogTitle,
   }) async {
@@ -452,7 +446,7 @@ class ApiService {
         uri,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': '$token',
+          'Authorization': '$ReceptionistToken',
         },
       );
 
@@ -507,7 +501,6 @@ class ApiService {
   /// Általános Lista Panel lekérdezés
   Future<List<dynamic>?> fetchListPanelData({
     required BuildContext context,
-    required String? token,
     required int listPanelId,
     required String errorDialogTitle,
   }) async {
@@ -518,7 +511,7 @@ class ApiService {
       final request = http.Request("GET", uri)
         ..headers.addAll({
           'Content-Type': 'application/json',
-          'Authorization': '$token',
+          'Authorization': '$ReceptionistToken',
         })
         ..body = jsonEncode(listPanelQuery);
 

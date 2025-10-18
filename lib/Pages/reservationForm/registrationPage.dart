@@ -90,7 +90,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     return null;
   }
 
-  Widget validationErrorText(formFieldState, errorColor) {
+  Widget validationErrorText(dynamic formFieldState, Color errorColor) {
     return Padding(
       padding: const EdgeInsets.only(top: 6, left: AppPadding.medium),
       child: Text(

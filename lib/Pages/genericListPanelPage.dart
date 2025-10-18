@@ -1,32 +1,32 @@
 import 'dart:async';
-import 'package:airport_test/Pages/reservationForm/reservationOptionPage.dart';
+import 'package:airport_test/api_services/api_classes/available_list_panel.dart';
 import 'package:airport_test/api_services/api_classes/list_panel_field.dart';
 import 'package:airport_test/api_services/api_service.dart';
-import 'package:airport_test/api_services/api_classes/valid_reservation.dart';
-import 'package:airport_test/constants/dialogs/reservation_options_dialog.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
-import 'package:airport_test/constants/widgets/reservation_grid.dart';
-import 'package:airport_test/constants/widgets/my_icon_button.dart';
+import 'package:airport_test/constants/widgets/generic_data_grid.dart';
 import 'package:airport_test/constants/widgets/shimmer_placeholder_template.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 
-class ReservationListPage extends StatefulWidget with PageWithTitle {
+class GenericListPanelPage extends StatefulWidget with PageWithTitle {
+  final AvailableListPanel listPanel;
   @override
-  String get pageTitle => 'Foglalások';
+  String get pageTitle => listPanel.listPanelName;
 
   @override
   bool get haveMargins => false;
 
-  const ReservationListPage({super.key});
+  const GenericListPanelPage({
+    super.key,
+    required this.listPanel,
+  });
 
   @override
-  State<ReservationListPage> createState() => _ReservationListPageState();
+  State<GenericListPanelPage> createState() => _ReservationListPageState();
 }
 
-class _ReservationListPageState extends State<ReservationListPage> {
+class _ReservationListPageState extends State<GenericListPanelPage> {
   final SearchController searchController = SearchController();
   FocusNode keyboardFocus = FocusNode();
 
@@ -43,14 +43,17 @@ class _ReservationListPageState extends State<ReservationListPage> {
   /// Lista Panel mezőinek adatai
   List<ListPanelField>? listPanelFields;
 
-  /// Érvényes foglalások
-  List<ValidReservation>? reservations;
+  /// Lekérdezett lista panel adatok
+  List<dynamic>? listPanelData;
 
-  /// Kereséssel szűrt foglalások
-  List<ValidReservation>? filteredReservations;
+  /// Keresési opciók (mi alapján keresünk)
+  final Map<String, bool> searchOptions = {};
 
-  /// Kiválasztott foglalás
-  ValidReservation? selectedReservation;
+  /// Kereséssel szűrt sorok
+  List<dynamic>? filteredData;
+
+  /// Kiválasztott adatsor
+  dynamic selectedRow;
 
   /// Szűrők mutatása
   bool showFilters = false;
@@ -58,33 +61,34 @@ class _ReservationListPageState extends State<ReservationListPage> {
   /// True -> Lekérdezések még folyamatban vannak
   bool loading = true;
 
-  /// Kereséi szűrők, a bekapcsolhatjuk, hogy melyik oszlopokban keresünk.
-  final Map<String, bool> searchOptions = {
-    'Név': true,
-    'Rendszám': true,
-    'Telefonszám': false,
-    'Email-cím': false,
-    'Parkoló zóna': false,
-    'Érkezés dátuma': false,
-    'Távozás dátuma': false,
-    'Státusz': false,
-    'Id': false,
-  };
-
   /// Adatok lekérdezése
   Future<void> fetchData() async {
     final api = ApiService();
-    final List<ValidReservation>? reservationsData =
-        await api.getValidReservations(context);
     final List<ListPanelField>? fieldsData = await api.fetchListPanelFields(
-        context: context,
-        listPanelId: 107,
-        errorDialogTitle: "Lista Panel Mezők lekérdezése sikertelen!");
+      context: context,
+      listPanelId: widget.listPanel.disrtibutedId,
+      errorDialogTitle: "Lista Panel Mezők lekérdezése sikertelen!",
+    );
 
-    if (reservationsData != null) {
+    final List<dynamic>? panelData = await api.fetchListPanelData(
+      context: context,
+      listPanelId: widget.listPanel.disrtibutedId,
+      errorDialogTitle: "Lista panel adatok lekérése sikertelen!",
+    );
+
+    if (panelData != null && fieldsData != null) {
+      // SearchOptions automatikus feltöltése a látható mezőkből
+      final generatedSearchOptions = {
+        for (var f in fieldsData.where((f) => f.fieldVisible))
+          f.fieldCaption ?? f.listFieldName: false,
+      };
+
       setState(() {
-        reservations = reservationsData;
+        listPanelData = panelData;
         listPanelFields = fieldsData;
+        searchOptions
+          ..clear()
+          ..addAll(generatedSearchOptions);
         loading = false;
       });
     } else {
@@ -92,101 +96,35 @@ class _ReservationListPageState extends State<ReservationListPage> {
     }
   }
 
-  /// Ügyfél érkeztetése
-  Future<void> attemptRegisterArrival(String licensePlate) async {
-    final api = ApiService();
-    await api.logCustomerArrival(context, licensePlate);
-    fetchData();
-  }
-
-  /// Ügyfél távoztatása
-  Future<void> attemptRegisterLeave(String licensePlate) async {
-    final api = ApiService();
-    await api.logCustomerLeave(context, licensePlate);
-    fetchData();
-  }
-
-  /// Rendszám módosítása
-  Future<void> attemptChangeLicensePlate(
-      int webParkingId, String newLicensePlate) async {
-    final api = ApiService();
-    await api.changeLicensePlate(context, webParkingId, newLicensePlate);
-    fetchData();
-  }
-
-  /// Keresés alkalmazása
   void applySearchFilter() {
-    if (reservations == null) return;
+    if (listPanelData == null || listPanelFields == null) return;
 
-    final String query = searchController.text.toLowerCase();
+    final String query = searchController.text.toLowerCase().trim();
 
     if (query.isEmpty) {
       setState(() {
-        filteredReservations = null;
+        filteredData = null;
       });
       return;
     }
 
     setState(() {
-      filteredReservations = reservations!.where((reservation) {
+      filteredData = listPanelData!.where((row) {
         bool matches = false;
 
-        // Név alapján keresés
-        if (searchOptions['Név'] == true) {
-          final name = reservation.partner_Sortname.toLowerCase();
-          matches = matches || name.contains(query);
-        }
+        for (final field in listPanelFields!) {
+          // Csak azokban a mezőkben keresünk, ahol a user engedélyezte
+          if (searchOptions[field.listFieldName] == true) {
+            final value = row[field.listFieldName];
 
-        // Rendszám alapján keresés
-        if (searchOptions['Rendszám'] == true && !matches) {
-          final licensePlate = reservation.licensePlate.toLowerCase();
-          matches = matches || licensePlate.contains(query);
-        }
-
-        // Telefonszám alapján keresés
-        if (searchOptions['Telefonszám'] == true && !matches) {
-          final phone = reservation.phone;
-          matches = matches || phone.contains(query);
-        }
-
-        // Email alapján keresés
-        if (searchOptions['Email-cím'] == true && !matches) {
-          final email = reservation.email.toLowerCase();
-          matches = matches || email.contains(query);
-        }
-
-        // Parkoló zóna alapján keresés
-        if (searchOptions['Parkoló zóna'] == true && !matches) {
-          final parkingZone = reservation.articleNameHUN.toLowerCase();
-          matches = matches || parkingZone.contains(query);
-        }
-
-        // Státusz alapján keresés
-        if (searchOptions['Státusz'] == true && !matches) {
-          final parkingZone = reservation.state.toString().toLowerCase();
-          matches = matches || parkingZone.contains(query);
-        }
-
-        // Id alapján keresés
-        if (searchOptions['Id'] == true && !matches) {
-          final parkingZone = reservation.webParkingId.toString().toLowerCase();
-          matches = matches || parkingZone.contains(query);
-        }
-
-        // Érkezés dátuma alapján keresés
-        if (searchOptions['Érkezés dátuma'] == true && !matches) {
-          final arriveDate = reservation.arriveDate.toString();
-          final formattedDate =
-              DateFormat('yyyy.MM.dd HH:mm').format(DateTime.parse(arriveDate));
-          matches = matches || formattedDate.toLowerCase().contains(query);
-        }
-
-        // Távozás dátuma alapján keresés
-        if (searchOptions['Távozás dátuma'] == true && !matches) {
-          final leaveDate = reservation.leaveDate.toString();
-          final formattedDate =
-              DateFormat('yyyy.MM.dd HH:mm').format(DateTime.parse(leaveDate));
-          matches = matches || formattedDate.toLowerCase().contains(query);
+            if (value != null) {
+              final valueString = value.toString().toLowerCase();
+              if (valueString.contains(query)) {
+                matches = true;
+                break; // ha már talált egyezést, nem kell tovább keresni
+              }
+            }
+          }
         }
 
         return matches;
@@ -265,25 +203,14 @@ class _ReservationListPageState extends State<ReservationListPage> {
                                 ? ShimmerPlaceholderTemplate(
                                     width: double.infinity,
                                     height: double.infinity)
-                                : ReservationGrid(
-                                    reservations:
-                                        filteredReservations ?? reservations!,
+                                : GenericDataGrid(
+                                    rows: filteredData ?? listPanelData!,
                                     listPanelFields: listPanelFields ?? [],
-                                    onReservationSelected: (reservation) {
+                                    onRowSelected: (row) {
                                       setState(() {
-                                        selectedReservation = reservation;
+                                        selectedRow = row;
                                       });
                                     },
-                                    onRightClick: (selectedReservation) =>
-                                        showReservationOptionsDialog(
-                                      context,
-                                      selectedReservation,
-                                      onArrival: attemptRegisterArrival,
-                                      onLeave: attemptRegisterLeave,
-                                      onChangeLicense:
-                                          attemptChangeLicensePlate,
-                                    ),
-                                    selectedReservation: selectedReservation,
                                   ),
                           ),
                         ),
@@ -311,24 +238,6 @@ class _ReservationListPageState extends State<ReservationListPage> {
                                 buildSearchFilters(),
                               ],
                             ),
-                          ),
-                        ),
-                        Positioned(
-                          top: AppPadding.medium,
-                          right: AppPadding.large,
-                          child: MyIconButton(
-                            icon: Icons.add_rounded,
-                            labelText: "Foglalás rögzítése",
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const BasePage(
-                                    child: ReservationOptionPage(),
-                                  ),
-                                ),
-                              );
-                            },
                           ),
                         ),
                       ],

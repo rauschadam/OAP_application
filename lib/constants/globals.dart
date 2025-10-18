@@ -1,6 +1,7 @@
 // Ebben a fájlban tároljuk a globális változókat
 
 import 'package:airport_test/api_services/api_classes/car_wash_service.dart';
+import 'package:airport_test/api_services/api_classes/available_list_panel.dart';
 import 'package:airport_test/api_services/api_classes/pay_type.dart';
 import 'package:airport_test/api_services/api_classes/service_templates.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +22,9 @@ String? ReceptionistToken;
 
 /// A token lejárata
 DateTime? TokenExpiration;
+
+/// Elérhető lista panelek
+List<AvailableListPanel> AvailableListPanels = [];
 
 /// Elindításkor megnézi, hogy mobilról van-e megnyitva.
 /// True -> Mobil | False -> Desktop

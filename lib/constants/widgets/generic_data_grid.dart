@@ -1,31 +1,28 @@
-import 'package:airport_test/api_services/api_classes/valid_reservation.dart';
 import 'package:airport_test/api_services/api_classes/list_panel_field.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
-class MyDataGrid extends StatefulWidget {
-  final List<ValidReservation> reservations;
+class GenericDataGrid<T> extends StatefulWidget {
+  final List<T> rows;
   final List<ListPanelField> listPanelFields;
-  final ValueChanged<ValidReservation?>? onReservationSelected;
-  final ValidReservation? selectedReservation;
-  final void Function(ValidReservation selectedReservation)? onRightClick;
+  final ValueChanged<T?>? onRowSelected;
+  final void Function(T selectedItem)? onRightClick;
 
-  const MyDataGrid({
+  const GenericDataGrid({
     super.key,
-    required this.reservations,
+    required this.rows,
     required this.listPanelFields,
-    this.onReservationSelected,
-    this.selectedReservation,
+    this.onRowSelected,
     this.onRightClick,
   });
 
   @override
-  State<MyDataGrid> createState() => _MyDataGridState();
+  State<GenericDataGrid<T>> createState() => _GenericDataGridState<T>();
 }
 
-class _MyDataGridState extends State<MyDataGrid> {
-  late ReservationDataSource dataSource;
+class _GenericDataGridState<T> extends State<GenericDataGrid<T>> {
+  late GenericDataSource<T> dataSource;
   late List<GridColumn> gridColumns;
   final DataGridController dataGridController = DataGridController();
   late Map<String, double> columnWidths = {};
@@ -38,17 +35,17 @@ class _MyDataGridState extends State<MyDataGrid> {
   }
 
   @override
-  void didUpdateWidget(covariant MyDataGrid oldWidget) {
+  void didUpdateWidget(covariant GenericDataGrid<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.reservations != widget.reservations) {
-      dataSource.updateData(reservations: widget.reservations);
+    if (oldWidget.rows != widget.rows) {
+      dataSource.updateData(items: widget.rows);
       dataSource.notifyListeners();
     }
   }
 
-  ReservationDataSource createDataSource() {
-    return ReservationDataSource(
-      reservations: widget.reservations,
+  GenericDataSource<T> createDataSource() {
+    return GenericDataSource<T>(
+      items: widget.rows,
       columnOrder: gridColumns.map((c) => c.columnName).toList(),
     );
   }
@@ -57,7 +54,7 @@ class _MyDataGridState extends State<MyDataGrid> {
     final visibleFields =
         widget.listPanelFields.where((f) => f.fieldVisible).toList();
 
-    // Ha korábban már van szélesség beállítva, azt megtartjuk
+    // korábban beállított szélesség megtartása
     for (var f in visibleFields) {
       columnWidths.putIfAbsent(f.listFieldName, () => double.nan);
     }
@@ -103,16 +100,18 @@ class _MyDataGridState extends State<MyDataGrid> {
     );
   }
 
+  // --- KIVÁLASZTÁS ---
   void handleSelectionChanged(List<DataGridRow> selectedRows) {
     if (selectedRows.isNotEmpty) {
       final selectedRow = selectedRows.first;
-      final reservation = dataSource.getReservationForRow(selectedRow);
-      widget.onReservationSelected?.call(reservation);
+      final item = dataSource.getItemForRow(selectedRow);
+      widget.onRowSelected?.call(item);
     } else {
-      widget.onReservationSelected?.call(null);
+      widget.onRowSelected?.call(null);
     }
   }
 
+  // --- JOBB KATTINTÁS ---
   void handleRightClick(DataGridCellTapDetails details) {
     final rowIndex = details.rowColumnIndex.rowIndex;
     if (rowIndex <= 0) return;
@@ -120,10 +119,11 @@ class _MyDataGridState extends State<MyDataGrid> {
     final clickedRow = dataSource.effectiveRows[rowIndex - 1];
     dataGridController.selectedRows = [clickedRow];
 
-    final reservation = dataSource.getReservationForRow(clickedRow)!;
-    widget.onRightClick?.call(reservation);
+    final item = dataSource.getItemForRow(clickedRow)!;
+    widget.onRightClick?.call(item);
   }
 
+  // --- OSZLOP HÚZÁS ---
   bool handleColumnDragging(DataGridColumnDragDetails details) {
     if (details.action == DataGridColumnDragAction.dropped &&
         details.to != null) {
@@ -134,18 +134,18 @@ class _MyDataGridState extends State<MyDataGrid> {
         if (insertIndex > gridColumns.length) insertIndex = gridColumns.length;
         gridColumns.insert(insertIndex, dragged);
 
-        // DataSource új oszlopsorrenddel
+        // új oszlopsorrenddel
         dataSource = createDataSource();
       });
     }
     return true;
   }
 
+  // --- OSZLOP MÉRET MÓDOSÍTÁS ---
   bool handleColumnResize(ColumnResizeUpdateDetails details) {
     setState(() {
       columnWidths[details.column.columnName] = details.width;
 
-      // Új oszloplista a megtartott szélességekkel
       gridColumns = gridColumns.map((col) {
         if (col.columnName == details.column.columnName) {
           return GridColumn(
@@ -163,50 +163,65 @@ class _MyDataGridState extends State<MyDataGrid> {
   }
 }
 
-class ReservationDataSource extends DataGridSource {
-  ReservationDataSource({
-    required List<ValidReservation> reservations,
+class GenericDataSource<T> extends DataGridSource {
+  GenericDataSource({
+    required List<T> items,
     required this.columnOrder,
-  }) : _reservations = reservations {
+  }) : _items = items {
     buildRows();
   }
 
-  List<ValidReservation> _reservations;
+  List<T> _items;
   final List<String> columnOrder;
   late List<DataGridRow> _rows;
-  final Map<DataGridRow, ValidReservation> _rowToReservationMap = {};
+  final Map<DataGridRow, T> _rowToItemMap = {};
 
   @override
   List<DataGridRow> get rows => _rows;
 
-  void updateData({required List<ValidReservation> reservations}) {
-    _reservations = reservations;
+  void updateData({required List<T> items}) {
+    _items = items;
     buildRows();
     notifyListeners();
   }
 
   void buildRows() {
-    _rowToReservationMap.clear();
-    _rows = _reservations.map((r) {
+    _rowToItemMap.clear();
+    _rows = _items.map((item) {
       final row = DataGridRow(
-        cells: columnOrder.map((columnName) {
+        cells: columnOrder.map((col) {
+          final value = _extractValue(item, col);
           return DataGridCell<String>(
-            columnName: columnName,
-            value: r.getValue(r, columnName),
+            columnName: col,
+            value: value?.toString() ?? '-',
           );
         }).toList(),
       );
-      _rowToReservationMap[row] = r;
+      _rowToItemMap[row] = item;
       return row;
     }).toList();
   }
 
+  /// Lekéri a cella értékét (akár Map, akár objektum)
+  dynamic _extractValue(T item, String field) {
+    if (item is Map<String, dynamic>) {
+      return item[field];
+    }
+    try {
+      final dynamic obj = item;
+      if (obj.toJson is Function) {
+        return obj.toJson()[field];
+      }
+      return obj[field];
+    } catch (_) {
+      return null;
+    }
+  }
+
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
-    final reservation = _rowToReservationMap[row];
-    final rowColor = getRowColor(reservation!);
     return DataGridRowAdapter(
-      color: rowColor,
+      color: Colors.white,
       cells: row.getCells().map((cell) {
         return Container(
           alignment: Alignment.center,
@@ -221,18 +236,5 @@ class ReservationDataSource extends DataGridSource {
     );
   }
 
-  Color getRowColor(ValidReservation reservation) {
-    switch (reservation.state) {
-      case 1:
-        return Colors.green;
-      case 3:
-        return Colors.red;
-      default:
-        return Colors.white;
-    }
-  }
-
-  ValidReservation? getReservationForRow(DataGridRow row) {
-    return _rowToReservationMap[row];
-  }
+  T? getItemForRow(DataGridRow row) => _rowToItemMap[row];
 }

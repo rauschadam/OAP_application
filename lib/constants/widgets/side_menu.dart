@@ -16,14 +16,13 @@ class _SideMenuState extends State<SideMenu> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.zero,
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       child: Container(
         color: AppColors.secondary,
         child: Padding(
-          padding: const EdgeInsets.only(top: AppPadding.large),
+          padding: EdgeInsets.zero,
           child: ListView.builder(
+            padding: EdgeInsets.zero,
             itemCount: widget.menuItems.length,
             itemBuilder: (context, index) {
               final item = widget.menuItems[index];
@@ -38,23 +37,18 @@ class _SideMenuState extends State<SideMenu> {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: AppPadding.medium,
-                        vertical: AppPadding.small),
+                      horizontal: AppPadding.medium,
+                      vertical: AppPadding.small,
+                    ),
                     color: isHovered
                         ? AppColors.primary.withAlpha(40)
                         : Colors.transparent,
-                    child: Row(
-                      children: [
-                        Icon(item.icon, color: AppColors.primary),
-                        const SizedBox(width: 12),
-                        Text(
-                          item.title,
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      item.title,
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -68,12 +62,12 @@ class _SideMenuState extends State<SideMenu> {
 }
 
 class MenuItem {
-  final IconData icon;
+  final IconData? icon;
   final String title;
   final VoidCallback onPressed;
 
   MenuItem({
-    required this.icon,
+    this.icon,
     required this.title,
     required this.onPressed,
   });

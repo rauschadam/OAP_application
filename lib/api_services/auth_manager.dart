@@ -11,6 +11,7 @@ class AuthManager {
   static void setLoginData(LoginData data) {
     ReceptionistToken = data.authorizationToken;
     TokenExpiration = data.expiration;
+    AvailableListPanels = data.availableListPanels!;
 
     scheduleTokenRefresh();
   }

@@ -1,3 +1,5 @@
+import 'package:airport_test/api_services/api_classes/available_list_panel.dart';
+
 class LoginData {
   final int? sysUserId;
   final int? webUserId;
@@ -5,7 +7,7 @@ class LoginData {
   final String personId;
   final String authorizationToken;
   final DateTime expiration;
-  final List<Map<String, dynamic>>? availableListPanels;
+  final List<AvailableListPanel>? availableListPanels;
 
   LoginData({
     required this.authorizationToken,
@@ -25,7 +27,8 @@ class LoginData {
       "partnerId": partnerId,
       "authorizationToken": authorizationToken,
       "expiration": expiration.toIso8601String(),
-      "availableListPanels": availableListPanels,
+      "availableListPanels":
+          availableListPanels?.map((e) => e.toJson()).toList(),
     };
   }
 
@@ -38,7 +41,7 @@ class LoginData {
       authorizationToken: json['authorizationToken'],
       expiration: DateTime.parse(json['expiration']),
       availableListPanels: (json['availableListPanels'] as List?)
-          ?.map((e) => Map<String, dynamic>.from(e))
+          ?.map((e) => AvailableListPanel.fromJson(e))
           .toList(),
     );
   }

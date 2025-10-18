@@ -1,6 +1,4 @@
 import 'dart:async';
-
-import 'package:airport_test/Pages/genericListPanelPage.dart';
 import 'package:airport_test/Pages/reservationListPage.dart';
 import 'package:airport_test/Pages/reservationForm/reservationOptionPage.dart';
 import 'package:airport_test/api_Services/api_service.dart';
@@ -41,6 +39,8 @@ class _HomePageState extends State<HomePage> {
   final GlobalKey searchContainerKey = GlobalKey();
   final GlobalKey<RefreshIndicatorState> refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
+
+  int selectedPageIndex = 0;
 
   /// Automatikusan frissítjük az adatokat 1 percenként
   Timer? refreshTimer;
@@ -666,38 +666,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget buildSideMenu() {
-    // Kezdő, fix menüpont
-    List<MenuItem> menuItems = [
-      MenuItem(
-        icon: Icons.list_alt_rounded,
-        title: "Foglalások",
-        onPressed: GoToReservationPage,
-      ),
-    ];
-
-    for (final panel in AvailableListPanels) {
-      menuItems.add(
-        MenuItem(
-          //icon: Icons.table_chart_rounded,
-          title: panel.listPanelName,
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => BasePage(
-                  child: GenericListPanelPage(listPanel: panel),
-                ),
-              ),
-            );
-          },
-        ),
-      );
-    }
-
-    return SideMenu(menuItems: menuItems);
-  }
-
   Widget newReservationButton() {
     return Align(
       alignment: Alignment.bottomRight,
@@ -823,7 +791,9 @@ class _HomePageState extends State<HomePage> {
               flex: 1,
               child: Padding(
                 padding: const EdgeInsets.only(right: AppPadding.medium),
-                child: buildSideMenu(),
+                child: SideMenu(
+                  currentTitle: "Menü",
+                ),
               ),
             ),
             Expanded(

@@ -1,135 +1,97 @@
-import 'package:airport_test/constants/theme.dart';
+import 'package:airport_test/Pages/genericListPanelPage.dart';
+import 'package:airport_test/Pages/homePage.dart';
+import 'package:airport_test/Pages/reservationListPage.dart';
+import 'package:airport_test/api_services/api_classes/available_list_panel.dart';
+import 'package:airport_test/constants/globals.dart';
+import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:flutter/material.dart';
+import 'package:airport_test/constants/theme.dart';
 
-class SideMenu extends StatefulWidget {
-  final List<MenuItem> menuItems;
+class SideMenu extends StatelessWidget {
+  final String currentTitle;
 
-  const SideMenu({super.key, required this.menuItems});
-
-  @override
-  State<SideMenu> createState() => _SideMenuState();
-}
-
-class _SideMenuState extends State<SideMenu> {
-  int? hoveredIndex;
+  const SideMenu({
+    super.key,
+    required this.currentTitle,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Drawer(
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-      child: Container(
-        color: AppColors.secondary,
-        child: Padding(
-          padding: EdgeInsets.zero,
-          child: ListView.builder(
-            padding: EdgeInsets.zero,
-            itemCount: widget.menuItems.length,
-            itemBuilder: (context, index) {
-              final item = widget.menuItems[index];
-              final isHovered = hoveredIndex == index;
-
-              return MouseRegion(
-                cursor: SystemMouseCursors.click,
-                onEnter: (_) => setState(() => hoveredIndex = index),
-                onExit: (_) => setState(() => hoveredIndex = null),
-                child: GestureDetector(
-                  onTap: item.onPressed,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppPadding.medium,
-                      vertical: AppPadding.small,
-                    ),
-                    color: isHovered
-                        ? AppColors.primary.withAlpha(40)
-                        : Colors.transparent,
-                    child: Text(
-                      item.title,
-                      style: TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
+      backgroundColor: AppColors.secondary,
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          SideMenuTile(
+            title: "Menü",
+            destination: HomePage(),
+            currentTitle: currentTitle,
           ),
-        ),
+          SideMenuTile(
+            title: "Foglalások",
+            destination: ReservationListPage(),
+            currentTitle: currentTitle,
+          ),
+          for (final panel in AvailableListPanels)
+            SideMenuTile(
+              listPanel: panel,
+              currentTitle: currentTitle,
+            ),
+        ],
       ),
     );
   }
 }
 
-class MenuItem {
-  final IconData? icon;
-  final String title;
-  final VoidCallback onPressed;
+class SideMenuTile extends StatelessWidget {
+  final String? title;
+  final AvailableListPanel? listPanel;
+  final dynamic destination;
+  final String currentTitle;
 
-  MenuItem({
-    this.icon,
-    required this.title,
-    required this.onPressed,
+  const SideMenuTile({
+    super.key,
+    this.title,
+    this.listPanel,
+    this.destination,
+    required this.currentTitle,
   });
+
+  @override
+  Widget build(BuildContext context) {
+    final tileTitle = title ?? listPanel!.listPanelName;
+    final bool isActive = tileTitle == currentTitle;
+    return ListTile(
+      tileColor: isActive ? AppColors.primary : Colors.transparent,
+      title: Text(
+        title ?? listPanel!.listPanelName,
+        style: TextStyle(
+          color: isActive ? AppColors.background : AppColors.text,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      onTap: () {
+        destination != null
+            ? Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => BasePage(
+                    child: destination,
+                  ),
+                ),
+              )
+            : Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => BasePage(
+                    child: GenericListPanelPage(listPanel: listPanel!),
+                  ),
+                ),
+              );
+      },
+      hoverColor: AppColors.primary.withOpacity(0.1),
+      splashColor: AppColors.primary.withOpacity(0.2),
+    );
+  }
 }
-
-/// Ha esetleg szeretnénk, hogy mindig lássuk a bal oldali menüt, ez jó megoldás lehet ->
-
-// class SideNavigationRail extends StatefulWidget {
-//   final List<MenuItem> menuItems;
-//   final int initialIndex;
-
-//   const SideNavigationRail({
-//     super.key,
-//     required this.menuItems,
-//     this.initialIndex = 0,
-//   });
-
-//   @override
-//   State<SideNavigationRail> createState() => _SideNavigationRailState();
-// }
-
-// class _SideNavigationRailState extends State<SideNavigationRail> {
-//   late int selectedIndex;
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     selectedIndex = widget.initialIndex;
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return NavigationRail(
-//       backgroundColor: BasePage.defaultColors.secondary,
-//       selectedIndex: selectedIndex,
-//       onDestinationSelected: (index) {
-//         setState(() {
-//           selectedIndex = index;
-//         });
-//         widget.menuItems[index].onPressed();
-//       },
-//       labelType: NavigationRailLabelType.all, // mindig mutatja a szöveget
-//       selectedIconTheme: IconThemeData(
-//         color: BasePage.defaultColors.primary,
-//       ),
-//       unselectedIconTheme: IconThemeData(
-//         color: BasePage.defaultColors.primary.withAlpha(150),
-//       ),
-//       selectedLabelTextStyle: TextStyle(
-//         color: BasePage.defaultColors.primary,
-//         fontWeight: FontWeight.bold,
-//       ),
-//       unselectedLabelTextStyle: TextStyle(
-//         color: BasePage.defaultColors.primary.withAlpha(150),
-//       ),
-//       destinations: widget.menuItems.map((item) {
-//         return NavigationRailDestination(
-//           icon: Icon(item.icon),
-//           selectedIcon: Icon(item.icon),
-//           label: Text(item.title),
-//         );
-//       }).toList(),
-//     );
-//   }
-// }

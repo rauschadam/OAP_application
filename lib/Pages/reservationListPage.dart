@@ -9,6 +9,7 @@ import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/reservation_grid.dart';
 import 'package:airport_test/constants/widgets/my_icon_button.dart';
 import 'package:airport_test/constants/widgets/shimmer_placeholder_template.dart';
+import 'package:airport_test/constants/widgets/side_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -245,99 +246,110 @@ class _ReservationListPageState extends State<ReservationListPage> {
             return;
           }
         },
-        child: detectClicks(
-          Padding(
-            padding: EdgeInsets.symmetric(
-                horizontal: AppPadding.large, vertical: AppPadding.large),
-            child: Container(
-              color: AppColors.background,
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: Stack(
+        child: Row(
+          children: [
+            Expanded(flex: 1, child: SideMenu(currentTitle: "Foglalások")),
+            Expanded(
+              flex: 6,
+              child: detectClicks(
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                      horizontal: AppPadding.large, vertical: AppPadding.large),
+                  child: Container(
+                    color: AppColors.background,
+                    child: Row(
                       children: [
-                        Positioned.fill(
-                          top: 50,
-                          child: Padding(
-                            padding: const EdgeInsets.all(AppPadding.large),
-                            child: loading
-                                ? ShimmerPlaceholderTemplate(
-                                    width: double.infinity,
-                                    height: double.infinity)
-                                : ReservationGrid(
-                                    reservations:
-                                        filteredReservations ?? reservations!,
-                                    listPanelFields: listPanelFields ?? [],
-                                    onReservationSelected: (reservation) {
-                                      setState(() {
-                                        selectedReservation = reservation;
-                                      });
-                                    },
-                                    onRightClick: (selectedReservation) =>
-                                        showReservationOptionsDialog(
-                                      context,
-                                      selectedReservation,
-                                      onArrival: attemptRegisterArrival,
-                                      onLeave: attemptRegisterLeave,
-                                      onChangeLicense:
-                                          attemptChangeLicensePlate,
-                                    ),
-                                    selectedReservation: selectedReservation,
-                                  ),
-                          ),
-                        ),
-                        Positioned(
-                          top: 3,
-                          left: AppPadding.medium,
-                          child: Container(
-                            key: searchContainerKey,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: showFilters
-                                    ? AppColors.primary
-                                    : Colors.transparent,
+                        Expanded(
+                          flex: 3,
+                          child: Stack(
+                            children: [
+                              Positioned.fill(
+                                top: 50,
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.all(AppPadding.large),
+                                  child: loading
+                                      ? ShimmerPlaceholderTemplate(
+                                          width: double.infinity,
+                                          height: double.infinity)
+                                      : ReservationGrid(
+                                          reservations: filteredReservations ??
+                                              reservations!,
+                                          listPanelFields:
+                                              listPanelFields ?? [],
+                                          onReservationSelected: (reservation) {
+                                            setState(() {
+                                              selectedReservation = reservation;
+                                            });
+                                          },
+                                          onRightClick: (selectedReservation) =>
+                                              showReservationOptionsDialog(
+                                            context,
+                                            selectedReservation,
+                                            onArrival: attemptRegisterArrival,
+                                            onLeave: attemptRegisterLeave,
+                                            onChangeLicense:
+                                                attemptChangeLicensePlate,
+                                          ),
+                                          selectedReservation:
+                                              selectedReservation,
+                                        ),
+                                ),
                               ),
-                              borderRadius:
-                                  BorderRadius.circular(AppBorderRadius.large),
-                              color: showFilters
-                                  ? Colors.white
-                                  : Colors.transparent,
-                            ),
-                            padding: EdgeInsets.all(AppPadding.small),
-                            child: Column(
-                              children: [
-                                buildSearchBar(),
-                                buildSearchFilters(),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: AppPadding.medium,
-                          right: AppPadding.large,
-                          child: MyIconButton(
-                            icon: Icons.add_rounded,
-                            labelText: "Foglalás rögzítése",
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const BasePage(
-                                    child: ReservationOptionPage(),
+                              Positioned(
+                                top: 3,
+                                left: AppPadding.medium,
+                                child: Container(
+                                  key: searchContainerKey,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: showFilters
+                                          ? AppColors.primary
+                                          : Colors.transparent,
+                                    ),
+                                    borderRadius: BorderRadius.circular(
+                                        AppBorderRadius.large),
+                                    color: showFilters
+                                        ? Colors.white
+                                        : Colors.transparent,
+                                  ),
+                                  padding: EdgeInsets.all(AppPadding.small),
+                                  child: Column(
+                                    children: [
+                                      buildSearchBar(),
+                                      buildSearchFilters(),
+                                    ],
                                   ),
                                 ),
-                              );
-                            },
+                              ),
+                              Positioned(
+                                top: AppPadding.medium,
+                                right: AppPadding.large,
+                                child: MyIconButton(
+                                  icon: Icons.add_rounded,
+                                  labelText: "Foglalás rögzítése",
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const BasePage(
+                                          child: ReservationOptionPage(),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
                   ),
-                ],
+                ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );

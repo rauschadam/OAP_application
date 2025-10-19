@@ -18,12 +18,19 @@ class SideDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Drawer(
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-      backgroundColor: AppColors.secondary,
+      backgroundColor: AppColors.background,
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
           SizedBox(
-            height: 55,
+            height: 80,
+            child: Align(
+              alignment: Alignment.center,
+              child: Text(
+                "Orha Airport Parking",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+              ),
+            ),
           ),
           SideMenuTile(
             title: "Menü",

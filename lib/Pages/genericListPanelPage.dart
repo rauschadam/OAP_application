@@ -178,86 +178,77 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
               return;
             }
           },
-          child: Row(
-            children: [
-              Expanded(
-                flex: 5,
-                child: loading
-                    ? Center(child: CircularProgressIndicator())
-                    : detectClicks(
-                        Padding(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: AppPadding.large,
-                              vertical: AppPadding.large),
-                          child: Container(
-                            color: AppColors.background,
-                            child: Row(
+          child: loading
+              ? Center(child: CircularProgressIndicator())
+              : detectClicks(
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: AppPadding.large,
+                        vertical: AppPadding.large),
+                    child: Container(
+                      color: AppColors.background,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: Stack(
                               children: [
-                                Expanded(
-                                  flex: 3,
-                                  child: Stack(
-                                    children: [
-                                      Positioned.fill(
-                                        top: 50,
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(
-                                              AppPadding.large),
-                                          child: loading
-                                              ? ShimmerPlaceholderTemplate(
-                                                  width: double.infinity,
-                                                  height: double.infinity)
-                                              : GenericDataGrid(
-                                                  rows: filteredData ??
-                                                      listPanelData!,
-                                                  listPanelFields:
-                                                      listPanelFields ?? [],
-                                                  onRowSelected: (row) {
-                                                    setState(() {
-                                                      selectedRow = row;
-                                                    });
-                                                  },
-                                                ),
-                                        ),
-                                      ),
-                                      Positioned(
-                                        top: 3,
-                                        left: AppPadding.medium,
-                                        child: Container(
-                                          key: searchContainerKey,
-                                          decoration: BoxDecoration(
-                                            border: Border.all(
-                                              color: showFilters
-                                                  ? AppColors.primary
-                                                  : Colors.transparent,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                                AppBorderRadius.large),
-                                            color: showFilters
-                                                ? Colors.white
-                                                : Colors.transparent,
+                                Positioned.fill(
+                                  top: 50,
+                                  child: Padding(
+                                    padding:
+                                        const EdgeInsets.all(AppPadding.large),
+                                    child: loading
+                                        ? ShimmerPlaceholderTemplate(
+                                            width: double.infinity,
+                                            height: double.infinity)
+                                        : GenericDataGrid(
+                                            rows:
+                                                filteredData ?? listPanelData!,
+                                            listPanelFields:
+                                                listPanelFields ?? [],
+                                            onRowSelected: (row) {
+                                              setState(() {
+                                                selectedRow = row;
+                                              });
+                                            },
                                           ),
-                                          padding:
-                                              EdgeInsets.all(AppPadding.small),
-                                          child: Column(
-                                            children: [
-                                              buildSearchBar(),
-                                              buildSearchFilters(),
-                                            ],
-                                          ),
-                                        ),
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 3,
+                                  left: AppPadding.medium,
+                                  child: Container(
+                                    key: searchContainerKey,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: showFilters
+                                            ? AppColors.primary
+                                            : Colors.transparent,
                                       ),
-                                    ],
+                                      borderRadius: BorderRadius.circular(
+                                          AppBorderRadius.large),
+                                      color: showFilters
+                                          ? Colors.white
+                                          : Colors.transparent,
+                                    ),
+                                    padding: EdgeInsets.all(AppPadding.small),
+                                    child: Column(
+                                      children: [
+                                        buildSearchBar(),
+                                        buildSearchFilters(),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                        ),
+                        ],
                       ),
-              ),
-              Expanded(child: Container())
-            ],
-          ),
+                    ),
+                  ),
+                ),
         ),
       ),
     );
@@ -378,30 +369,33 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
       padding: const EdgeInsets.only(top: AppPadding.small),
       child: SizedBox(
         width: 300,
-        child: SingleChildScrollView(
-          child: Column(
-            children: searchOptions.entries.map((entry) {
-              return CheckboxListTile(
-                title: Text(
-                  entry.key,
-                  style: TextStyle(
-                    color: AppColors.text,
-                    fontSize: 13,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: 300),
+          child: SingleChildScrollView(
+            child: Column(
+              children: searchOptions.entries.map((entry) {
+                return CheckboxListTile(
+                  title: Text(
+                    entry.key,
+                    style: TextStyle(
+                      color: AppColors.text,
+                      fontSize: 13,
+                    ),
                   ),
-                ),
-                value: entry.value,
-                onChanged: (value) {
-                  setState(() {
-                    searchOptions[entry.key] = value ?? false;
-                  });
-                  // Alkalmazd a szűrést azonnal az új beállításokkal
-                  applySearchFilter();
-                },
-                dense: true,
-                activeColor: AppColors.primary,
-                checkColor: AppColors.background,
-              );
-            }).toList(),
+                  value: entry.value,
+                  onChanged: (value) {
+                    setState(() {
+                      searchOptions[entry.key] = value ?? false;
+                    });
+                    // Alkalmazd a szűrést azonnal az új beállításokkal
+                    applySearchFilter();
+                  },
+                  dense: true,
+                  activeColor: AppColors.primary,
+                  checkColor: AppColors.background,
+                );
+              }).toList(),
+            ),
           ),
         ),
       ),

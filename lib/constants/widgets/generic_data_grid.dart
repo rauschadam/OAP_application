@@ -55,15 +55,18 @@ class _GenericDataGridState<T> extends State<GenericDataGrid<T>> {
         widget.listPanelFields.where((f) => f.fieldVisible).toList();
 
     // korábban beállított szélesség megtartása
-    for (var f in visibleFields) {
-      columnWidths.putIfAbsent(f.listFieldName, () => double.nan);
+    for (var field in visibleFields) {
+      columnWidths.putIfAbsent(field.listFieldName, () => double.nan);
     }
 
     return visibleFields.map((field) {
       return GridColumn(
         columnName: field.listFieldName,
-        width: columnWidths[field.listFieldName] ?? double.nan,
-        minimumWidth: 75,
+        width: field.fieldWidth
+                ?.toDouble() ?? // Ha van EuroStone-ban megadva szélesség
+            columnWidths[field.listFieldName] ?? // Ha van eltárolt szélessége
+            double.nan,
+        minimumWidth: field.fieldMinWidth?.toDouble() ?? 75,
         maximumWidth: 300,
         label: Container(
           alignment: Alignment.center,

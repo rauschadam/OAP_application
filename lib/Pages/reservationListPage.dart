@@ -235,119 +235,109 @@ class _ReservationListPageState extends State<ReservationListPage> {
               return;
             }
           },
-          child: Row(
-            children: [
-              Expanded(
-                flex: 6,
-                child: loading
-                    ? Center(child: CircularProgressIndicator())
-                    : detectClicks(
-                        Padding(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: AppPadding.large,
-                              vertical: AppPadding.large),
-                          child: Container(
-                            color: AppColors.background,
-                            child: Row(
+          child: loading
+              ? Center(child: CircularProgressIndicator())
+              : detectClicks(
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: AppPadding.large,
+                        vertical: AppPadding.large),
+                    child: Container(
+                      color: AppColors.background,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: Stack(
                               children: [
-                                Expanded(
-                                  flex: 3,
-                                  child: Stack(
-                                    children: [
-                                      Positioned.fill(
-                                        top: 50,
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(
-                                              AppPadding.large),
-                                          child: loading
-                                              ? ShimmerPlaceholderTemplate(
-                                                  width: double.infinity,
-                                                  height: double.infinity)
-                                              : ReservationGrid(
-                                                  reservations:
-                                                      filteredReservations ??
-                                                          reservations!,
-                                                  listPanelFields:
-                                                      listPanelFields ?? [],
-                                                  onReservationSelected:
-                                                      (reservation) {
-                                                    setState(() {
-                                                      selectedReservation =
-                                                          reservation;
-                                                    });
-                                                  },
-                                                  onRightClick:
-                                                      (selectedReservation) =>
-                                                          showReservationOptionsDialog(
-                                                    context,
-                                                    selectedReservation,
-                                                    onArrival:
-                                                        attemptRegisterArrival,
-                                                    onLeave:
-                                                        attemptRegisterLeave,
-                                                    onChangeLicense:
-                                                        attemptChangeLicensePlate,
-                                                  ),
-                                                  selectedReservation:
-                                                      selectedReservation,
-                                                ),
-                                        ),
-                                      ),
-                                      Positioned(
-                                        top: 3,
-                                        left: AppPadding.medium,
-                                        child: Container(
-                                          key: searchContainerKey,
-                                          decoration: BoxDecoration(
-                                            border: Border.all(
-                                              color: showFilters
-                                                  ? AppColors.primary
-                                                  : Colors.transparent,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                                AppBorderRadius.large),
-                                            color: showFilters
-                                                ? Colors.white
-                                                : Colors.transparent,
-                                          ),
-                                          padding:
-                                              EdgeInsets.all(AppPadding.small),
-                                          child: Column(
-                                            children: [
-                                              buildSearchBar(),
-                                              buildSearchFilters(),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      Positioned(
-                                        top: AppPadding.medium,
-                                        right: AppPadding.large,
-                                        child: MyIconButton(
-                                          icon: Icons.add_rounded,
-                                          labelText: "Foglalás rögzítése",
-                                          onPressed: () {
-                                            Navigator.push(
+                                Positioned.fill(
+                                  top: 50,
+                                  child: Padding(
+                                    padding:
+                                        const EdgeInsets.all(AppPadding.large),
+                                    child: loading
+                                        ? ShimmerPlaceholderTemplate(
+                                            width: double.infinity,
+                                            height: double.infinity)
+                                        : ReservationGrid(
+                                            reservations:
+                                                filteredReservations ??
+                                                    reservations!,
+                                            listPanelFields:
+                                                listPanelFields ?? [],
+                                            onReservationSelected:
+                                                (reservation) {
+                                              setState(() {
+                                                selectedReservation =
+                                                    reservation;
+                                              });
+                                            },
+                                            onRightClick:
+                                                (selectedReservation) =>
+                                                    showReservationOptionsDialog(
                                               context,
-                                              MaterialPageRoute(
-                                                builder: (_) =>
-                                                    const ReservationOptionPage(),
-                                              ),
-                                            );
-                                          },
-                                        ),
+                                              selectedReservation,
+                                              onArrival: attemptRegisterArrival,
+                                              onLeave: attemptRegisterLeave,
+                                              onChangeLicense:
+                                                  attemptChangeLicensePlate,
+                                            ),
+                                            selectedReservation:
+                                                selectedReservation,
+                                          ),
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 3,
+                                  left: AppPadding.medium,
+                                  child: Container(
+                                    key: searchContainerKey,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: showFilters
+                                            ? AppColors.primary
+                                            : Colors.transparent,
                                       ),
-                                    ],
+                                      borderRadius: BorderRadius.circular(
+                                          AppBorderRadius.large),
+                                      color: showFilters
+                                          ? Colors.white
+                                          : Colors.transparent,
+                                    ),
+                                    padding: EdgeInsets.all(AppPadding.small),
+                                    child: Column(
+                                      children: [
+                                        buildSearchBar(),
+                                        buildSearchFilters(),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  top: AppPadding.medium,
+                                  right: AppPadding.large,
+                                  child: MyIconButton(
+                                    icon: Icons.add_rounded,
+                                    labelText: "Foglalás rögzítése",
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const ReservationOptionPage(),
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                        ),
+                        ],
                       ),
-              ),
-            ],
-          ),
+                    ),
+                  ),
+                ),
         ),
       ),
     );
@@ -468,30 +458,33 @@ class _ReservationListPageState extends State<ReservationListPage> {
       padding: const EdgeInsets.only(top: AppPadding.small),
       child: SizedBox(
         width: 300,
-        child: SingleChildScrollView(
-          child: Column(
-            children: searchOptions.entries.map((entry) {
-              return CheckboxListTile(
-                title: Text(
-                  entry.key,
-                  style: TextStyle(
-                    color: AppColors.text,
-                    fontSize: 13,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: 300),
+          child: SingleChildScrollView(
+            child: Column(
+              children: searchOptions.entries.map((entry) {
+                return CheckboxListTile(
+                  title: Text(
+                    entry.key,
+                    style: TextStyle(
+                      color: AppColors.text,
+                      fontSize: 13,
+                    ),
                   ),
-                ),
-                value: entry.value,
-                onChanged: (value) {
-                  setState(() {
-                    searchOptions[entry.key] = value ?? false;
-                  });
-                  // Alkalmazd a szűrést azonnal az új beállításokkal
-                  applySearchFilter();
-                },
-                dense: true,
-                activeColor: AppColors.primary,
-                checkColor: AppColors.background,
-              );
-            }).toList(),
+                  value: entry.value,
+                  onChanged: (value) {
+                    setState(() {
+                      searchOptions[entry.key] = value ?? false;
+                    });
+                    // Alkalmazd a szűrést azonnal az új beállításokkal
+                    applySearchFilter();
+                  },
+                  dense: true,
+                  activeColor: AppColors.primary,
+                  checkColor: AppColors.background,
+                );
+              }).toList(),
+            ),
           ),
         ),
       ),

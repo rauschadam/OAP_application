@@ -220,17 +220,6 @@ class _HomePageState extends State<HomePage> {
         padding: const EdgeInsets.symmetric(vertical: AppPadding.large),
         child: Column(
           children: [
-            // Padding(
-            //   padding: const EdgeInsets.only(bottom: AppPadding.medium),
-            //   child: Text(
-            //     'Jelenlegi Telítettség',
-            //     style: TextStyle(
-            //       fontSize: 18,
-            //       fontWeight: FontWeight.bold,
-            //       color: Colors.black,
-            //     ),
-            //   ),
-            // ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -468,18 +457,6 @@ class _HomePageState extends State<HomePage> {
       return aEarliest.compareTo(bEarliest);
     });
 
-    // return Center(
-    //   child: MyDataGrid(
-    //     reservations: expectedReservations,
-    //     onRightClick: (selectedReservation) =>
-    //         rightClickDialog(selectedReservation),
-    //     showName: true,
-    //     showLicense: true,
-    //     showArriveDate: true,
-    //     showLeaveDate: true,
-    //   ),
-    // );
-
     // Widget visszaadása
     return ReservationList(
       maxHeight: maxHeight,
@@ -560,81 +537,84 @@ class _HomePageState extends State<HomePage> {
       padding: const EdgeInsets.only(top: AppPadding.small),
       child: SizedBox(
         width: 300,
-        child: SingleChildScrollView(
-          child: Column(
-            children: searchResults!.asMap().entries.map((entry) {
-              final index = entry.key;
-              final selectedReservation = entry.value;
-              final licensePlate = selectedReservation.licensePlate;
-              final state = selectedReservation.state;
-              final stateName = getStateName(state);
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: 300),
+          child: SingleChildScrollView(
+            child: Column(
+              children: searchResults!.asMap().entries.map((entry) {
+                final index = entry.key;
+                final selectedReservation = entry.value;
+                final licensePlate = selectedReservation.licensePlate;
+                final state = selectedReservation.state;
+                final stateName = getStateName(state);
 
-              return Container(
-                color: (selectedSearchIndex == index)
-                    ? AppColors.secondary
-                    : Colors.transparent,
-                child: InkWell(
-                  onTap: () {
-                    showReservationOptionsDialog(
-                      context,
-                      selectedReservation,
-                      onArrival: attemptRegisterArrival,
-                      onLeave: attemptRegisterLeave,
-                      onChangeLicense: attemptChangeLicensePlate,
-                    );
-                    searchController.clear();
-                    //searchFocus.unfocus();
-                  },
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: Row(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: AppPadding.small),
-                              child: const Icon(Icons.directions_car,
-                                  size: 16, color: Colors.grey),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                licensePlate,
-                                style: TextStyle(
-                                  color: AppColors.text,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
+                return Container(
+                  color: (selectedSearchIndex == index)
+                      ? AppColors.secondary
+                      : Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      showReservationOptionsDialog(
+                        context,
+                        selectedReservation,
+                        onArrival: attemptRegisterArrival,
+                        onLeave: attemptRegisterLeave,
+                        onChangeLicense: attemptChangeLicensePlate,
+                      );
+                      searchController.clear();
+                      //searchFocus.unfocus();
+                    },
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Row(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: AppPadding.small),
+                                child: const Icon(Icons.directions_car,
+                                    size: 16, color: Colors.grey),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  licensePlate,
+                                  style: TextStyle(
+                                    color: AppColors.text,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: AppPadding.small),
-                              child: Text(
-                                stateName,
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 12,
+                              const SizedBox(width: 8),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: AppPadding.small),
+                                child: Text(
+                                  stateName,
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                      // Divider csak ha nem az utolsó elem
-                      if (index < searchResults!.length - 1)
-                        Divider(
-                          height: 1,
-                          thickness: 1,
-                          color: Colors.grey[300],
-                        ),
-                    ],
+                        // Divider csak ha nem az utolsó elem
+                        if (index < searchResults!.length - 1)
+                          Divider(
+                            height: 1,
+                            thickness: 1,
+                            color: Colors.grey[300],
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            }).toList(),
+                );
+              }).toList(),
+            ),
           ),
         ),
       ),
@@ -774,15 +754,6 @@ class _HomePageState extends State<HomePage> {
           },
           child: Row(
             children: [
-              // Expanded(
-              //   flex: 1,
-              //   child: Padding(
-              //     padding: const EdgeInsets.only(right: AppPadding.medium),
-              //     child: SideMenu(
-              //       currentTitle: "Menü",
-              //     ),
-              //   ),
-              // ),
               Expanded(
                 flex: 4,
                 child: Stack(
@@ -826,19 +797,6 @@ class _HomePageState extends State<HomePage> {
                                                     .add(const Duration(
                                                         days: 1))),
                                           ),
-                                          // Container(
-                                          //   constraints:
-                                          //       BoxConstraints(maxHeight: 200),
-                                          //   child: buildTodoList(
-                                          //       listTitle: 'Holnap',
-                                          //       reservations: reservations,
-                                          //       startTime: DateTime(
-                                          //               now.year, now.month, now.day)
-                                          //           .add(const Duration(days: 1)),
-                                          //       endTime: DateTime(
-                                          //               now.year, now.month, now.day)
-                                          //           .add(const Duration(days: 2))),
-                                          // ),
                                         ],
                                       ),
                                     ),
@@ -881,6 +839,11 @@ class _HomePageState extends State<HomePage> {
                         parkingServiceType: 1,
                       ),
                       SizedBox(height: AppPadding.medium),
+                      buildZoneOccupancyIndicators(
+                        zoneCounters: zoneCounters,
+                        parkingServiceType: 2,
+                      ),
+                      SizedBox(height: AppPadding.medium),
                       Flexible(
                         child: buildFullyBookedTimeList(
                             fullyBookedDateTimes: fullyBookedDateTimes),
@@ -903,9 +866,17 @@ class _HomePageState extends State<HomePage> {
         children: [
           Row(
             children: [
-              Flexible(
-                child: buildZoneOccupancyIndicators(
-                    zoneCounters: zoneCounters, parkingServiceType: 1),
+              Column(
+                children: [
+                  Flexible(
+                    child: buildZoneOccupancyIndicators(
+                        zoneCounters: zoneCounters, parkingServiceType: 1),
+                  ),
+                  Flexible(
+                    child: buildZoneOccupancyIndicators(
+                        zoneCounters: zoneCounters, parkingServiceType: 2),
+                  ),
+                ],
               ),
             ],
           ),

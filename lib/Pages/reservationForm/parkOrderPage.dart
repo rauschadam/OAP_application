@@ -19,10 +19,7 @@ import 'package:airport_test/constants/enums/parkingFormEnums.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class ParkOrderPage extends StatefulWidget with PageWithTitle {
-  @override
-  String get pageTitle => 'Parkolás foglalás';
-
+class ParkOrderPage extends StatefulWidget {
   final String authToken;
   final String partnerId;
   final String personId;
@@ -353,9 +350,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => BasePage(
-                child: nextPage!,
-              ),
+              builder: (_) => nextPage!,
             ),
           );
         } else {
@@ -386,33 +381,37 @@ class ParkOrderPageState extends State<ParkOrderPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: formKey,
-      child: ScrollConfiguration(
-        behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppPadding.medium),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              buildTextFormFields(),
-              buildDatePickerRow(),
-              buildParkZoneSelector(),
-              buildCheckBoxes(),
-              buildPaymentMethods(),
-              MyTextFormField(
-                controller: descriptionController,
-                focusNode: descriptionFocus,
-                textInputAction: TextInputAction.next,
-                nextFocus: nextPageButtonFocus,
-                hintText: 'Megjegyzés a recepciónak',
-                onEditingComplete: OnNextPageButtonPressed,
-              ),
-              NextPageButton(
-                focusNode: nextPageButtonFocus,
-                onPressed: OnNextPageButtonPressed,
-              ),
-            ],
+    return BasePage(
+      pageTitle: "Parkolás foglalás",
+      haveMargins: true,
+      child: Form(
+        key: formKey,
+        child: ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppPadding.medium),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                buildTextFormFields(),
+                buildDatePickerRow(),
+                buildParkZoneSelector(),
+                buildCheckBoxes(),
+                buildPaymentMethods(),
+                MyTextFormField(
+                  controller: descriptionController,
+                  focusNode: descriptionFocus,
+                  textInputAction: TextInputAction.next,
+                  nextFocus: nextPageButtonFocus,
+                  hintText: 'Megjegyzés a recepciónak',
+                  onEditingComplete: OnNextPageButtonPressed,
+                ),
+                NextPageButton(
+                  focusNode: nextPageButtonFocus,
+                  onPressed: OnNextPageButtonPressed,
+                ),
+              ],
+            ),
           ),
         ),
       ),

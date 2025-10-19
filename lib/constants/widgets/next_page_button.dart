@@ -1,4 +1,3 @@
-import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:flutter/material.dart';
 
@@ -38,19 +37,13 @@ class NextPageButton extends StatelessWidget {
               if (pushReplacement) {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(
-                      builder: (_) => BasePage(
-                            child: nextPage!,
-                          )),
+                  MaterialPageRoute(builder: (_) => nextPage!),
                 );
                 return;
               } else {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (_) => BasePage(
-                            child: nextPage!,
-                          )),
+                  MaterialPageRoute(builder: (_) => nextPage!),
                 );
               }
             }

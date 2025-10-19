@@ -9,10 +9,7 @@ import 'package:airport_test/constants/globals.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 
-class ReceptionLoginPage extends StatefulWidget with PageWithTitle {
-  @override
-  String get pageTitle => 'Recepciós bejelentkezés';
-
+class ReceptionLoginPage extends StatefulWidget {
   const ReceptionLoginPage({super.key});
 
   @override
@@ -43,31 +40,30 @@ class _ReceptionLoginPageState extends State<ReceptionLoginPage> {
       ReceptionistEmail = 'recepcio@oap.hu';
       ReceptionistPassword = 'asd';
 
-      // Token már elérhető → most kérjük le az adatokat
-      if (!mounted) return loginData;
-
       try {
         ServiceTemplates = await api.getServiceTemplates(context) ?? [];
-        if (!mounted) return loginData;
 
         PayTypes = await api.getPayTypes(context) ?? [];
-        if (!mounted) return loginData;
 
         CarWashServices = await api.getCarWashServices(context) ?? [];
-        if (!mounted) return loginData;
 
         // Sikeres lekérések után navigáljunk tovább
-        if (!mounted) return loginData;
+        // Navigator.pushReplacement(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (_) => BasePage(
+        //       child: HomePage(),
+        //     ),
+        //   ),
+        // );
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => BasePage(
-              child: HomePage(),
-            ),
+            builder: (_) => HomePage(),
           ),
         );
       } catch (e) {
-        debugPrint("❌ Hiba az adatok lekérése közben: $e");
+        debugPrint("Hiba az adatok lekérése közben: $e");
         if (!mounted) return loginData;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Nem sikerült lekérni a szükséges adatokat.')),
@@ -97,9 +93,7 @@ class _ReceptionLoginPageState extends State<ReceptionLoginPage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => BasePage(
-              child: HomePage(),
-            ),
+            builder: (_) => HomePage(),
           ),
         );
       }
@@ -108,17 +102,21 @@ class _ReceptionLoginPageState extends State<ReceptionLoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          buildTextFormFields(),
-          NextPageButton(
-            focusNode: nextPageButtonFocus,
-            onPressed: OnNextPageButtonPressed,
-          ),
-        ],
+    return BasePage(
+      pageTitle: "Recepciós bejelentkezés",
+      haveMargins: true,
+      child: Form(
+        key: formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            buildTextFormFields(),
+            NextPageButton(
+              focusNode: nextPageButtonFocus,
+              onPressed: OnNextPageButtonPressed,
+            ),
+          ],
+        ),
       ),
     );
   }

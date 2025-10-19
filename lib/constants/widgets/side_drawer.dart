@@ -3,14 +3,13 @@ import 'package:airport_test/Pages/homePage.dart';
 import 'package:airport_test/Pages/reservationListPage.dart';
 import 'package:airport_test/api_services/api_classes/available_list_panel.dart';
 import 'package:airport_test/constants/globals.dart';
-import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:flutter/material.dart';
 import 'package:airport_test/constants/theme.dart';
 
-class SideMenu extends StatelessWidget {
+class SideDrawer extends StatelessWidget {
   final String currentTitle;
 
-  const SideMenu({
+  const SideDrawer({
     super.key,
     required this.currentTitle,
   });
@@ -23,6 +22,9 @@ class SideMenu extends StatelessWidget {
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
+          SizedBox(
+            height: 55,
+          ),
           SideMenuTile(
             title: "Menü",
             destination: HomePage(),
@@ -76,17 +78,13 @@ class SideMenuTile extends StatelessWidget {
             ? Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => BasePage(
-                    child: destination,
-                  ),
+                  builder: (_) => destination,
                 ),
               )
             : Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => BasePage(
-                    child: GenericListPanelPage(listPanel: listPanel!),
-                  ),
+                  builder: (_) => GenericListPanelPage(listPanel: listPanel!),
                 ),
               );
       },

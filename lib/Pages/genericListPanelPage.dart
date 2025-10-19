@@ -6,17 +6,12 @@ import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/generic_data_grid.dart';
 import 'package:airport_test/constants/widgets/shimmer_placeholder_template.dart';
-import 'package:airport_test/constants/widgets/side_menu.dart';
+import 'package:airport_test/constants/widgets/side_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class GenericListPanelPage extends StatefulWidget with PageWithTitle {
+class GenericListPanelPage extends StatefulWidget {
   final AvailableListPanel listPanel;
-  @override
-  String get pageTitle => listPanel.listPanelName;
-
-  @override
-  bool get haveMargins => false;
 
   const GenericListPanelPage({
     super.key,
@@ -165,106 +160,104 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      key: refreshIndicatorKey,
-      color: AppColors.primary,
-      onRefresh: () async => fetchData(),
-      child: KeyboardListener(
-        focusNode: keyboardFocus,
-        onKeyEvent: (event) async {
-          if (event is! KeyDownEvent) return;
+    return BasePage(
+      pageTitle: widget.listPanel.listPanelName,
+      drawer: SideDrawer(currentTitle: widget.listPanel.listPanelName),
+      child: RefreshIndicator(
+        key: refreshIndicatorKey,
+        color: AppColors.primary,
+        onRefresh: () async => fetchData(),
+        child: KeyboardListener(
+          focusNode: keyboardFocus,
+          onKeyEvent: (event) async {
+            if (event is! KeyDownEvent) return;
 
-          // F5 -> frissítés
-          if (event.logicalKey == LogicalKeyboardKey.f5) {
-            refreshIndicatorKey.currentState?.show();
-            return;
-          }
-        },
-        child: Row(
-          children: [
-            Expanded(
-              flex: 1,
-              child: SideMenu(
-                currentTitle: widget.listPanel.listPanelName,
-              ),
-            ),
-            Expanded(
-              flex: 5,
-              child: loading
-                  ? Center(child: CircularProgressIndicator())
-                  : detectClicks(
-                      Padding(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: AppPadding.large,
-                            vertical: AppPadding.large),
-                        child: Container(
-                          color: AppColors.background,
-                          child: Row(
-                            children: [
-                              Expanded(
-                                flex: 3,
-                                child: Stack(
-                                  children: [
-                                    Positioned.fill(
-                                      top: 50,
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(
-                                            AppPadding.large),
-                                        child: loading
-                                            ? ShimmerPlaceholderTemplate(
-                                                width: double.infinity,
-                                                height: double.infinity)
-                                            : GenericDataGrid(
-                                                rows: filteredData ??
-                                                    listPanelData!,
-                                                listPanelFields:
-                                                    listPanelFields ?? [],
-                                                onRowSelected: (row) {
-                                                  setState(() {
-                                                    selectedRow = row;
-                                                  });
-                                                },
-                                              ),
+            // F5 -> frissítés
+            if (event.logicalKey == LogicalKeyboardKey.f5) {
+              refreshIndicatorKey.currentState?.show();
+              return;
+            }
+          },
+          child: Row(
+            children: [
+              Expanded(
+                flex: 5,
+                child: loading
+                    ? Center(child: CircularProgressIndicator())
+                    : detectClicks(
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: AppPadding.large,
+                              vertical: AppPadding.large),
+                          child: Container(
+                            color: AppColors.background,
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 3,
+                                  child: Stack(
+                                    children: [
+                                      Positioned.fill(
+                                        top: 50,
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(
+                                              AppPadding.large),
+                                          child: loading
+                                              ? ShimmerPlaceholderTemplate(
+                                                  width: double.infinity,
+                                                  height: double.infinity)
+                                              : GenericDataGrid(
+                                                  rows: filteredData ??
+                                                      listPanelData!,
+                                                  listPanelFields:
+                                                      listPanelFields ?? [],
+                                                  onRowSelected: (row) {
+                                                    setState(() {
+                                                      selectedRow = row;
+                                                    });
+                                                  },
+                                                ),
+                                        ),
                                       ),
-                                    ),
-                                    Positioned(
-                                      top: 3,
-                                      left: AppPadding.medium,
-                                      child: Container(
-                                        key: searchContainerKey,
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
+                                      Positioned(
+                                        top: 3,
+                                        left: AppPadding.medium,
+                                        child: Container(
+                                          key: searchContainerKey,
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                              color: showFilters
+                                                  ? AppColors.primary
+                                                  : Colors.transparent,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                                AppBorderRadius.large),
                                             color: showFilters
-                                                ? AppColors.primary
+                                                ? Colors.white
                                                 : Colors.transparent,
                                           ),
-                                          borderRadius: BorderRadius.circular(
-                                              AppBorderRadius.large),
-                                          color: showFilters
-                                              ? Colors.white
-                                              : Colors.transparent,
-                                        ),
-                                        padding:
-                                            EdgeInsets.all(AppPadding.small),
-                                        child: Column(
-                                          children: [
-                                            buildSearchBar(),
-                                            buildSearchFilters(),
-                                          ],
+                                          padding:
+                                              EdgeInsets.all(AppPadding.small),
+                                          child: Column(
+                                            children: [
+                                              buildSearchBar(),
+                                              buildSearchFilters(),
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-            ),
-            Expanded(child: Container())
-          ],
+              ),
+              Expanded(child: Container())
+            ],
+          ),
         ),
       ),
     );

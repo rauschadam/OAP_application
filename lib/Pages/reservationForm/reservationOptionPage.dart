@@ -6,10 +6,7 @@ import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/constants/enums/parkingFormEnums.dart';
 import 'package:flutter/material.dart';
 
-class ReservationOptionPage extends StatefulWidget with PageWithTitle {
-  @override
-  String get pageTitle => 'Foglalási lehetőségek';
-
+class ReservationOptionPage extends StatefulWidget {
   const ReservationOptionPage({super.key});
 
   @override
@@ -21,16 +18,20 @@ class _ReservationOptionPageState extends State<ReservationOptionPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        buildRadioListTiles(),
-        NextPageButton(
-          nextPage: RegistrationOptionPage(
-            bookingOption: selectedBookingOption,
+    return BasePage(
+      pageTitle: "Foglalási lehetőségek",
+      haveMargins: true,
+      child: Column(
+        children: [
+          buildRadioListTiles(),
+          NextPageButton(
+            nextPage: RegistrationOptionPage(
+              bookingOption: selectedBookingOption,
+            ),
+            pushReplacement: false,
           ),
-          pushReplacement: false,
-        ),
-      ],
+        ],
+      ),
     );
   }
 

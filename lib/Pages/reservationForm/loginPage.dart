@@ -9,10 +9,7 @@ import 'package:airport_test/constants/enums/parkingFormEnums.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 
-class LoginPage extends StatefulWidget with PageWithTitle {
-  @override
-  String get pageTitle => 'Bejelentkezés';
-
+class LoginPage extends StatefulWidget {
   final BookingOption bookingOption;
   final bool alreadyRegistered;
   final bool withoutRegistration;
@@ -80,9 +77,7 @@ class _LoginPageState extends State<LoginPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => BasePage(
-              child: nextPage,
-            ),
+            builder: (_) => nextPage,
           ),
         );
       }
@@ -100,19 +95,23 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: formKey,
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            buildTextFormFields(),
-            NextPageButton(
-              focusNode: nextPageButtonFocus,
-              onPressed: OnNextPageButtonPressed,
-              pushReplacement: false,
-            ),
-          ],
+    return BasePage(
+      pageTitle: "Bejelentkezés",
+      haveMargins: true,
+      child: Form(
+        key: formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              buildTextFormFields(),
+              NextPageButton(
+                focusNode: nextPageButtonFocus,
+                onPressed: OnNextPageButtonPressed,
+                pushReplacement: false,
+              ),
+            ],
+          ),
         ),
       ),
     );

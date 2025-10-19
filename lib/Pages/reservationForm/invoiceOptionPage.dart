@@ -7,10 +7,7 @@ import 'package:airport_test/constants/enums/parkingFormEnums.dart';
 import 'package:airport_test/Pages/homePage.dart';
 import 'package:flutter/material.dart';
 
-class InvoiceOptionPage extends StatefulWidget with PageWithTitle {
-  @override
-  String get pageTitle => 'Számlázás';
-
+class InvoiceOptionPage extends StatefulWidget {
   final String authToken;
   final String partnerId;
   final String payTypeId;
@@ -117,9 +114,7 @@ class _InvoiceOptionPageState extends State<InvoiceOptionPage> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (_) => BasePage(
-          child: HomePage(),
-        ),
+        builder: (_) => HomePage(),
       ),
     );
   }
@@ -154,41 +149,45 @@ class _InvoiceOptionPageState extends State<InvoiceOptionPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        MyRadioListTile<InvoiceOption>(
-          title: 'Nem kérek számlát',
-          value: InvoiceOption.no,
-          groupValue: selectedInvoiceOption,
-          onChanged: (InvoiceOption? value) {
-            setState(() {
-              selectedInvoiceOption = value!;
-            });
-          },
-        ),
-        MyRadioListTile<InvoiceOption>(
-          title: 'Kérek számlát',
-          value: InvoiceOption.yes,
-          groupValue: selectedInvoiceOption,
-          onChanged: (InvoiceOption? value) {
-            setState(() {
-              selectedInvoiceOption = value!;
-            });
-          },
-        ),
-        NextPageButton(
-          text: "Foglalás küldése",
-          onPressed: () {
-            submitReservation();
-            if (checkCustomerArrivalIsSoon()) {
-              showArrivalDialog();
-            } else {
-              goToHomePage();
-            }
-          },
-        ),
-      ],
+    return BasePage(
+      pageTitle: "Számlázás",
+      haveMargins: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          MyRadioListTile<InvoiceOption>(
+            title: 'Nem kérek számlát',
+            value: InvoiceOption.no,
+            groupValue: selectedInvoiceOption,
+            onChanged: (InvoiceOption? value) {
+              setState(() {
+                selectedInvoiceOption = value!;
+              });
+            },
+          ),
+          MyRadioListTile<InvoiceOption>(
+            title: 'Kérek számlát',
+            value: InvoiceOption.yes,
+            groupValue: selectedInvoiceOption,
+            onChanged: (InvoiceOption? value) {
+              setState(() {
+                selectedInvoiceOption = value!;
+              });
+            },
+          ),
+          NextPageButton(
+            text: "Foglalás küldése",
+            onPressed: () {
+              submitReservation();
+              if (checkCustomerArrivalIsSoon()) {
+                showArrivalDialog();
+              } else {
+                goToHomePage();
+              }
+            },
+          ),
+        ],
+      ),
     );
   }
 }

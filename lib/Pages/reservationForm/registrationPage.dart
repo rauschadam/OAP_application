@@ -11,10 +11,7 @@ import 'package:airport_test/constants/enums/parkingFormEnums.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 
-class RegistrationPage extends StatefulWidget with PageWithTitle {
-  @override
-  String get pageTitle => 'Regisztráció';
-
+class RegistrationPage extends StatefulWidget {
   final BookingOption bookingOption;
   final bool alreadyRegistered;
   final bool withoutRegistration;
@@ -139,7 +136,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => BasePage(child: nextPage),
+            builder: (_) => nextPage,
           ),
         );
       }
@@ -156,18 +153,22 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: formKey,
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            buildTextFormFields(),
-            NextPageButton(
-              focusNode: nextPageButtonFocus,
-              onPressed: OnNextPageButtonPressed,
-            ),
-          ],
+    return BasePage(
+      pageTitle: "Regisztráció",
+      haveMargins: true,
+      child: Form(
+        key: formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              buildTextFormFields(),
+              NextPageButton(
+                focusNode: nextPageButtonFocus,
+                onPressed: OnNextPageButtonPressed,
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -17,10 +17,7 @@ import 'package:airport_test/constants/enums/parkingFormEnums.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class WashOrderPage extends StatefulWidget with PageWithTitle {
-  @override
-  String get pageTitle => 'Mosás foglalás';
-
+class WashOrderPage extends StatefulWidget {
   final String authToken;
   final String personId;
   final String partnerId;
@@ -217,33 +214,31 @@ class WashOrderPageState extends State<WashOrderPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => BasePage(
-              child: InvoiceOptionPage(
-                authToken: widget.authToken,
-                payTypeId: selectedPayTypeId,
-                partnerId: widget.partnerId,
-                nameController: nameController,
-                emailController: widget.emailController,
-                phoneController: phoneController,
-                licensePlateController: licensePlateController,
-                arriveDate: widget.arriveDate,
-                leaveDate: widget.leaveDate,
-                transferPersonCount: widget.transferPersonCount,
-                washDateTime: DateTime(
-                    selectedWashDate!.year,
-                    selectedWashDate!.month,
-                    selectedWashDate!.day,
-                    selectedWashTime!.hour,
-                    selectedWashTime!.minute),
-                vip: widget.vip,
-                descriptionController: descriptionController,
-                bookingOption: widget.bookingOption,
-                carWashArticleId: selectedCarWashService!.article_Id,
-                suitcaseWrappingCount: widget.suitcaseWrappingCount,
-                parkingArticleId: widget.parkingArticleId,
-                alreadyRegistered: widget.alreadyRegistered,
-                withoutRegistration: widget.withoutRegistration,
-              ),
+            builder: (_) => InvoiceOptionPage(
+              authToken: widget.authToken,
+              payTypeId: selectedPayTypeId,
+              partnerId: widget.partnerId,
+              nameController: nameController,
+              emailController: widget.emailController,
+              phoneController: phoneController,
+              licensePlateController: licensePlateController,
+              arriveDate: widget.arriveDate,
+              leaveDate: widget.leaveDate,
+              transferPersonCount: widget.transferPersonCount,
+              washDateTime: DateTime(
+                  selectedWashDate!.year,
+                  selectedWashDate!.month,
+                  selectedWashDate!.day,
+                  selectedWashTime!.hour,
+                  selectedWashTime!.minute),
+              vip: widget.vip,
+              descriptionController: descriptionController,
+              bookingOption: widget.bookingOption,
+              carWashArticleId: selectedCarWashService!.article_Id,
+              suitcaseWrappingCount: widget.suitcaseWrappingCount,
+              parkingArticleId: widget.parkingArticleId,
+              alreadyRegistered: widget.alreadyRegistered,
+              withoutRegistration: widget.withoutRegistration,
             ),
           ),
         );
@@ -278,31 +273,35 @@ class WashOrderPageState extends State<WashOrderPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: formKey,
-      child: ScrollConfiguration(
-        behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppPadding.medium),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              buildTextFormFields(),
-              buildDatePickerRow(),
-              buildCarWashSelector(),
-              buildPaymentMethods(),
-              MyTextFormField(
-                focusNode: descriptionFocus,
-                controller: descriptionController,
-                hintText: 'Megjegyzés a recepciónak',
-                nextFocus: nextPageButtonFocus,
-                onEditingComplete: OnNextPageButtonPressed,
-              ),
-              NextPageButton(
-                focusNode: nextPageButtonFocus,
-                onPressed: OnNextPageButtonPressed,
-              )
-            ],
+    return BasePage(
+      pageTitle: "Mosás foglalás",
+      haveMargins: true,
+      child: Form(
+        key: formKey,
+        child: ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppPadding.medium),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                buildTextFormFields(),
+                buildDatePickerRow(),
+                buildCarWashSelector(),
+                buildPaymentMethods(),
+                MyTextFormField(
+                  focusNode: descriptionFocus,
+                  controller: descriptionController,
+                  hintText: 'Megjegyzés a recepciónak',
+                  nextFocus: nextPageButtonFocus,
+                  onEditingComplete: OnNextPageButtonPressed,
+                ),
+                NextPageButton(
+                  focusNode: nextPageButtonFocus,
+                  onPressed: OnNextPageButtonPressed,
+                )
+              ],
+            ),
           ),
         ),
       ),

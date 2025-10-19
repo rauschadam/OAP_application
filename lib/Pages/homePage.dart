@@ -11,7 +11,7 @@ import 'package:airport_test/constants/widgets/my_icon_button.dart';
 import 'package:airport_test/constants/widgets/reservation_list.dart';
 import 'package:airport_test/constants/widgets/search_bar.dart';
 import 'package:airport_test/constants/widgets/shimmer_placeholder_template.dart';
-import 'package:airport_test/constants/widgets/side_menu.dart';
+import 'package:airport_test/constants/widgets/side_drawer.dart';
 import 'package:airport_test/constants/widgets/zone_occupancy_indicator.dart';
 import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/theme.dart';
@@ -19,14 +19,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
-class HomePage extends StatefulWidget with PageWithTitle {
-  HomePage({super.key});
-
-  @override
-  String get pageTitle => 'Menü';
-
-  @override
-  bool get haveMargins => false;
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -651,9 +645,7 @@ class _HomePageState extends State<HomePage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => BasePage(
-          child: ReservationListPage(),
-        ),
+        builder: (_) => ReservationListPage(),
       ),
     );
   }
@@ -668,9 +660,7 @@ class _HomePageState extends State<HomePage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => const BasePage(
-                child: ReservationOptionPage(),
-              ),
+              builder: (_) => const ReservationOptionPage(),
             ),
           );
         },
@@ -715,186 +705,192 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget desktopBuild() {
-    return RefreshIndicator(
-      key: refreshIndicatorKey,
-      color: AppColors.primary,
-      onRefresh: () async => fetchData(),
-      child: KeyboardListener(
-        focusNode: keyboardFocus,
-        onKeyEvent: (event) async {
-          if (event is! KeyDownEvent) return;
+    return BasePage(
+      pageTitle: "Menü",
+      drawer: const SideDrawer(currentTitle: "Menü"),
+      child: RefreshIndicator(
+        key: refreshIndicatorKey,
+        color: AppColors.primary,
+        onRefresh: () async => fetchData(),
+        child: KeyboardListener(
+          focusNode: keyboardFocus,
+          onKeyEvent: (event) async {
+            if (event is! KeyDownEvent) return;
 
-          // F5 -> frissítés
-          if (event.logicalKey == LogicalKeyboardKey.f5) {
-            refreshIndicatorKey.currentState?.show();
-            return;
-          }
-
-          // Csak akkor, ha van találat
-          if (searchResults != null && searchResults!.isNotEmpty) {
-            // LE nyíl
-            if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-              setState(() {
-                if (selectedSearchIndex == null) {
-                  selectedSearchIndex = 0;
-                } else {
-                  selectedSearchIndex =
-                      (selectedSearchIndex! + 1) % searchResults!.length;
-                }
-              });
+            // F5 -> frissítés
+            if (event.logicalKey == LogicalKeyboardKey.f5) {
+              refreshIndicatorKey.currentState?.show();
               return;
             }
 
-            // FEL nyíl
-            if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-              setState(() {
-                if (selectedSearchIndex == null) {
-                  selectedSearchIndex = searchResults!.length - 1;
-                } else {
-                  selectedSearchIndex =
-                      (selectedSearchIndex! - 1 + searchResults!.length) %
-                          searchResults!.length;
-                }
-              });
-              return;
-            }
+            // Csak akkor, ha van találat
+            if (searchResults != null && searchResults!.isNotEmpty) {
+              // LE nyíl
+              if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+                setState(() {
+                  if (selectedSearchIndex == null) {
+                    selectedSearchIndex = 0;
+                  } else {
+                    selectedSearchIndex =
+                        (selectedSearchIndex! + 1) % searchResults!.length;
+                  }
+                });
+                return;
+              }
 
-            // ENTER -> kiválasztott megnyitása
-            if (event.logicalKey == LogicalKeyboardKey.enter &&
-                selectedSearchIndex != null) {
-              final selectedReservation = searchResults![selectedSearchIndex!];
-              await showReservationOptionsDialog(
-                context,
-                selectedReservation,
-                onArrival: attemptRegisterArrival,
-                onLeave: attemptRegisterLeave,
-                onChangeLicense: attemptChangeLicensePlate,
-              );
-              setState(() {
-                searchController.clear();
-                selectedSearchIndex = null;
-              });
-              return;
+              // FEL nyíl
+              if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+                setState(() {
+                  if (selectedSearchIndex == null) {
+                    selectedSearchIndex = searchResults!.length - 1;
+                  } else {
+                    selectedSearchIndex =
+                        (selectedSearchIndex! - 1 + searchResults!.length) %
+                            searchResults!.length;
+                  }
+                });
+                return;
+              }
+
+              // ENTER -> kiválasztott megnyitása
+              if (event.logicalKey == LogicalKeyboardKey.enter &&
+                  selectedSearchIndex != null) {
+                final selectedReservation =
+                    searchResults![selectedSearchIndex!];
+                await showReservationOptionsDialog(
+                  context,
+                  selectedReservation,
+                  onArrival: attemptRegisterArrival,
+                  onLeave: attemptRegisterLeave,
+                  onChangeLicense: attemptChangeLicensePlate,
+                );
+                setState(() {
+                  searchController.clear();
+                  selectedSearchIndex = null;
+                });
+                return;
+              }
             }
-          }
-        },
-        child: Row(
-          children: [
-            Expanded(
-              flex: 1,
-              child: Padding(
-                padding: const EdgeInsets.only(right: AppPadding.medium),
-                child: SideMenu(
-                  currentTitle: "Menü",
-                ),
-              ),
-            ),
-            Expanded(
-              flex: 4,
-              child: Stack(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(AppPadding.medium),
-                    child: Column(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Padding(
-                                padding:
-                                    EdgeInsets.only(bottom: AppPadding.small),
-                                child: newReservationButton(),
-                              ),
-                              Flexible(
-                                child: Padding(
-                                  padding: EdgeInsets.only(
-                                      bottom: AppPadding.medium),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(
-                                            AppBorderRadius.medium),
-                                        color: AppColors.secondary),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        Container(
-                                          constraints:
-                                              BoxConstraints(maxHeight: 300),
-                                          child: buildTodoList(
-                                              listTitle: 'Ma',
-                                              reservations: reservations,
-                                              startTime: now,
-                                              endTime: DateTime(now.year,
-                                                      now.month, now.day)
-                                                  .add(
-                                                      const Duration(days: 1))),
-                                        ),
-                                        // Container(
-                                        //   constraints:
-                                        //       BoxConstraints(maxHeight: 200),
-                                        //   child: buildTodoList(
-                                        //       listTitle: 'Holnap',
-                                        //       reservations: reservations,
-                                        //       startTime: DateTime(
-                                        //               now.year, now.month, now.day)
-                                        //           .add(const Duration(days: 1)),
-                                        //       endTime: DateTime(
-                                        //               now.year, now.month, now.day)
-                                        //           .add(const Duration(days: 2))),
-                                        // ),
-                                      ],
+          },
+          child: Row(
+            children: [
+              // Expanded(
+              //   flex: 1,
+              //   child: Padding(
+              //     padding: const EdgeInsets.only(right: AppPadding.medium),
+              //     child: SideMenu(
+              //       currentTitle: "Menü",
+              //     ),
+              //   ),
+              // ),
+              Expanded(
+                flex: 4,
+                child: Stack(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(AppPadding.medium),
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Padding(
+                                  padding:
+                                      EdgeInsets.only(bottom: AppPadding.small),
+                                  child: newReservationButton(),
+                                ),
+                                Flexible(
+                                  child: Padding(
+                                    padding: EdgeInsets.only(
+                                        bottom: AppPadding.medium),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                              AppBorderRadius.medium),
+                                          color: AppColors.secondary),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          Container(
+                                            constraints:
+                                                BoxConstraints(maxHeight: 300),
+                                            child: buildTodoList(
+                                                listTitle: 'Ma',
+                                                reservations: reservations,
+                                                startTime: now,
+                                                endTime: DateTime(now.year,
+                                                        now.month, now.day)
+                                                    .add(const Duration(
+                                                        days: 1))),
+                                          ),
+                                          // Container(
+                                          //   constraints:
+                                          //       BoxConstraints(maxHeight: 200),
+                                          //   child: buildTodoList(
+                                          //       listTitle: 'Holnap',
+                                          //       reservations: reservations,
+                                          //       startTime: DateTime(
+                                          //               now.year, now.month, now.day)
+                                          //           .add(const Duration(days: 1)),
+                                          //       endTime: DateTime(
+                                          //               now.year, now.month, now.day)
+                                          //           .add(const Duration(days: 2))),
+                                          // ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
 
-                  // Search bar a középső oszlop tetején
-                  Positioned(
-                    top: AppPadding.medium,
-                    left: AppPadding.medium,
-                    child: SearchBarContainer(
-                      searchContainerKey: searchContainerKey,
-                      transparency: searchController.value.text.isNotEmpty,
-                      children: [
-                        MySearchBar(
-                          searchController: searchController,
-                          searchFocus: searchFocus,
-                        ),
-                        buildSearchResults(),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: EdgeInsets.all(AppPadding.medium),
-                child: Column(
-                  children: [
-                    buildZoneOccupancyIndicators(
-                      zoneCounters: zoneCounters,
-                      parkingServiceType: 1,
-                    ),
-                    SizedBox(height: AppPadding.medium),
-                    Flexible(
-                      child: buildFullyBookedTimeList(
-                          fullyBookedDateTimes: fullyBookedDateTimes),
+                    // Search bar a középső oszlop tetején
+                    Positioned(
+                      top: AppPadding.medium,
+                      left: AppPadding.medium,
+                      child: SearchBarContainer(
+                        searchContainerKey: searchContainerKey,
+                        transparency: searchController.value.text.isNotEmpty,
+                        children: [
+                          MySearchBar(
+                            searchController: searchController,
+                            searchFocus: searchFocus,
+                          ),
+                          buildSearchResults(),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
+              Expanded(
+                flex: 2,
+                child: Padding(
+                  padding: EdgeInsets.all(AppPadding.medium),
+                  child: Column(
+                    children: [
+                      buildZoneOccupancyIndicators(
+                        zoneCounters: zoneCounters,
+                        parkingServiceType: 1,
+                      ),
+                      SizedBox(height: AppPadding.medium),
+                      Flexible(
+                        child: buildFullyBookedTimeList(
+                            fullyBookedDateTimes: fullyBookedDateTimes),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -165,10 +165,6 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (loading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
     return RefreshIndicator(
       key: refreshIndicatorKey,
       color: AppColors.primary,
@@ -187,80 +183,85 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
         child: Row(
           children: [
             Expanded(
-              flex: 2,
+              flex: 1,
               child: SideMenu(
                 currentTitle: widget.listPanel.listPanelName,
               ),
             ),
             Expanded(
-              flex: 12,
-              child: detectClicks(
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                      horizontal: AppPadding.large, vertical: AppPadding.large),
-                  child: Container(
-                    color: AppColors.background,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: Stack(
+              flex: 5,
+              child: loading
+                  ? Center(child: CircularProgressIndicator())
+                  : detectClicks(
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: AppPadding.large,
+                            vertical: AppPadding.large),
+                        child: Container(
+                          color: AppColors.background,
+                          child: Row(
                             children: [
-                              Positioned.fill(
-                                top: 50,
-                                child: Padding(
-                                  padding:
-                                      const EdgeInsets.all(AppPadding.large),
-                                  child: loading
-                                      ? ShimmerPlaceholderTemplate(
-                                          width: double.infinity,
-                                          height: double.infinity)
-                                      : GenericDataGrid(
-                                          rows: filteredData ?? listPanelData!,
-                                          listPanelFields:
-                                              listPanelFields ?? [],
-                                          onRowSelected: (row) {
-                                            setState(() {
-                                              selectedRow = row;
-                                            });
-                                          },
-                                        ),
-                                ),
-                              ),
-                              Positioned(
-                                top: 3,
-                                left: AppPadding.medium,
-                                child: Container(
-                                  key: searchContainerKey,
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: showFilters
-                                          ? AppColors.primary
-                                          : Colors.transparent,
+                              Expanded(
+                                flex: 3,
+                                child: Stack(
+                                  children: [
+                                    Positioned.fill(
+                                      top: 50,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(
+                                            AppPadding.large),
+                                        child: loading
+                                            ? ShimmerPlaceholderTemplate(
+                                                width: double.infinity,
+                                                height: double.infinity)
+                                            : GenericDataGrid(
+                                                rows: filteredData ??
+                                                    listPanelData!,
+                                                listPanelFields:
+                                                    listPanelFields ?? [],
+                                                onRowSelected: (row) {
+                                                  setState(() {
+                                                    selectedRow = row;
+                                                  });
+                                                },
+                                              ),
+                                      ),
                                     ),
-                                    borderRadius: BorderRadius.circular(
-                                        AppBorderRadius.large),
-                                    color: showFilters
-                                        ? Colors.white
-                                        : Colors.transparent,
-                                  ),
-                                  padding: EdgeInsets.all(AppPadding.small),
-                                  child: Column(
-                                    children: [
-                                      buildSearchBar(),
-                                      buildSearchFilters(),
-                                    ],
-                                  ),
+                                    Positioned(
+                                      top: 3,
+                                      left: AppPadding.medium,
+                                      child: Container(
+                                        key: searchContainerKey,
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: showFilters
+                                                ? AppColors.primary
+                                                : Colors.transparent,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                              AppBorderRadius.large),
+                                          color: showFilters
+                                              ? Colors.white
+                                              : Colors.transparent,
+                                        ),
+                                        padding:
+                                            EdgeInsets.all(AppPadding.small),
+                                        child: Column(
+                                          children: [
+                                            buildSearchBar(),
+                                            buildSearchFilters(),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-              ),
             ),
             Expanded(child: Container())
           ],

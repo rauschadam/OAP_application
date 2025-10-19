@@ -66,23 +66,15 @@ class _HomePageState extends State<HomePage> {
 
   /// Foglalások és szolgáltatások lekérdezése
   Future<void> fetchData() async {
+    if (!mounted) return;
     final api = ApiService();
     // Foglalások lekérdezése
     final reservationsData = await api.getValidReservations(context);
-    // Szolgáltatások lekérdezése
-    final servicesData = await api.getServiceTemplates(context);
-    final payTypeData = await api.getPayTypes(context);
-    final carWashServicesData = await api.getCarWashServices(context);
+    if (!mounted) return;
 
-    if (reservationsData != null &&
-        servicesData != null &&
-        payTypeData != null &&
-        carWashServicesData != null) {
+    if (reservationsData != null) {
       setState(() {
         reservations = reservationsData;
-        ServiceTemplates = servicesData;
-        PayTypes = payTypeData;
-        CarWashServices = carWashServicesData;
         zoneCounters = mapCurrentOccupancyByZones(reservations!);
         fullyBookedDateTimes = mapBookedDateTimesByZones(reservations!);
         loading = false;
@@ -697,11 +689,12 @@ class _HomePageState extends State<HomePage> {
 
     // percenként frissítjük a foglalásokat
     refreshTimer = Timer.periodic(Duration(minutes: 5), (_) {
+      if (!mounted) return;
       fetchData();
+      if (!mounted) return;
       setState(() {
         now = DateTime.now();
       });
-      print('Frissítve');
     });
   }
 

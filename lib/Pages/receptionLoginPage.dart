@@ -36,23 +36,45 @@ class _ReceptionLoginPageState extends State<ReceptionLoginPage> {
   Future<LoginData?> loginReceptionist() async {
     final api = ApiService();
     final LoginData? loginData =
-        //await api.loginUser(emailController.text, passwordController.text);
-        await api.loginUser(context, 'recepcio@oap.hu',
-            'asd'); // Automatikus login a teszteléshez.
+        await api.loginUser(context, 'recepcio@oap.hu', 'asd'); // teszt login
 
     if (loginData != null) {
       AuthManager.setLoginData(loginData);
       ReceptionistEmail = 'recepcio@oap.hu';
       ReceptionistPassword = 'asd';
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => BasePage(
-            child: HomePage(),
+
+      // Token már elérhető → most kérjük le az adatokat
+      if (!mounted) return loginData;
+
+      try {
+        ServiceTemplates = await api.getServiceTemplates(context) ?? [];
+        if (!mounted) return loginData;
+
+        PayTypes = await api.getPayTypes(context) ?? [];
+        if (!mounted) return loginData;
+
+        CarWashServices = await api.getCarWashServices(context) ?? [];
+        if (!mounted) return loginData;
+
+        // Sikeres lekérések után navigáljunk tovább
+        if (!mounted) return loginData;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => BasePage(
+              child: HomePage(),
+            ),
           ),
-        ),
-      );
+        );
+      } catch (e) {
+        debugPrint("❌ Hiba az adatok lekérése közben: $e");
+        if (!mounted) return loginData;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Nem sikerült lekérni a szükséges adatokat.')),
+        );
+      }
     }
+
     return loginData;
   }
 

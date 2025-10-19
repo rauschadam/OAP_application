@@ -60,17 +60,7 @@ class _ReservationListPageState extends State<ReservationListPage> {
   bool loading = true;
 
   /// Kereséi szűrők, a bekapcsolhatjuk, hogy melyik oszlopokban keresünk.
-  final Map<String, bool> searchOptions = {
-    'Név': true,
-    'Rendszám': true,
-    'Telefonszám': false,
-    'Email-cím': false,
-    'Parkoló zóna': false,
-    'Érkezés dátuma': false,
-    'Távozás dátuma': false,
-    'Státusz': false,
-    'Id': false,
-  };
+  final Map<String, bool> searchOptions = {};
 
   /// Adatok lekérdezése
   Future<void> fetchData() async {
@@ -82,10 +72,17 @@ class _ReservationListPageState extends State<ReservationListPage> {
         listPanelId: 107,
         errorDialogTitle: "Lista Panel Mezők lekérdezése sikertelen!");
 
-    if (reservationsData != null) {
+    if (reservationsData != null && fieldsData != null) {
+      final generatedSearchOptions = {
+        for (var f in fieldsData.where((f) => f.fieldVisible))
+          f.fieldCaption ?? f.listFieldName: false,
+      };
       setState(() {
         reservations = reservationsData;
         listPanelFields = fieldsData;
+        searchOptions
+          ..clear()
+          ..addAll(generatedSearchOptions);
         loading = false;
       });
     } else {
@@ -212,7 +209,6 @@ class _ReservationListPageState extends State<ReservationListPage> {
 
     refreshTimer = Timer.periodic(Duration(minutes: 1), (_) {
       fetchData();
-      print('Frissítve');
     });
   }
 
@@ -227,10 +223,6 @@ class _ReservationListPageState extends State<ReservationListPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (loading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
     return RefreshIndicator(
       key: refreshIndicatorKey,
       color: AppColors.primary,
@@ -251,103 +243,112 @@ class _ReservationListPageState extends State<ReservationListPage> {
             Expanded(flex: 1, child: SideMenu(currentTitle: "Foglalások")),
             Expanded(
               flex: 6,
-              child: detectClicks(
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                      horizontal: AppPadding.large, vertical: AppPadding.large),
-                  child: Container(
-                    color: AppColors.background,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: Stack(
+              child: loading
+                  ? Center(child: CircularProgressIndicator())
+                  : detectClicks(
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: AppPadding.large,
+                            vertical: AppPadding.large),
+                        child: Container(
+                          color: AppColors.background,
+                          child: Row(
                             children: [
-                              Positioned.fill(
-                                top: 50,
-                                child: Padding(
-                                  padding:
-                                      const EdgeInsets.all(AppPadding.large),
-                                  child: loading
-                                      ? ShimmerPlaceholderTemplate(
-                                          width: double.infinity,
-                                          height: double.infinity)
-                                      : ReservationGrid(
-                                          reservations: filteredReservations ??
-                                              reservations!,
-                                          listPanelFields:
-                                              listPanelFields ?? [],
-                                          onReservationSelected: (reservation) {
-                                            setState(() {
-                                              selectedReservation = reservation;
-                                            });
-                                          },
-                                          onRightClick: (selectedReservation) =>
-                                              showReservationOptionsDialog(
-                                            context,
-                                            selectedReservation,
-                                            onArrival: attemptRegisterArrival,
-                                            onLeave: attemptRegisterLeave,
-                                            onChangeLicense:
-                                                attemptChangeLicensePlate,
-                                          ),
-                                          selectedReservation:
-                                              selectedReservation,
-                                        ),
-                                ),
-                              ),
-                              Positioned(
-                                top: 3,
-                                left: AppPadding.medium,
-                                child: Container(
-                                  key: searchContainerKey,
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: showFilters
-                                          ? AppColors.primary
-                                          : Colors.transparent,
+                              Expanded(
+                                flex: 3,
+                                child: Stack(
+                                  children: [
+                                    Positioned.fill(
+                                      top: 50,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(
+                                            AppPadding.large),
+                                        child: loading
+                                            ? ShimmerPlaceholderTemplate(
+                                                width: double.infinity,
+                                                height: double.infinity)
+                                            : ReservationGrid(
+                                                reservations:
+                                                    filteredReservations ??
+                                                        reservations!,
+                                                listPanelFields:
+                                                    listPanelFields ?? [],
+                                                onReservationSelected:
+                                                    (reservation) {
+                                                  setState(() {
+                                                    selectedReservation =
+                                                        reservation;
+                                                  });
+                                                },
+                                                onRightClick:
+                                                    (selectedReservation) =>
+                                                        showReservationOptionsDialog(
+                                                  context,
+                                                  selectedReservation,
+                                                  onArrival:
+                                                      attemptRegisterArrival,
+                                                  onLeave: attemptRegisterLeave,
+                                                  onChangeLicense:
+                                                      attemptChangeLicensePlate,
+                                                ),
+                                                selectedReservation:
+                                                    selectedReservation,
+                                              ),
+                                      ),
                                     ),
-                                    borderRadius: BorderRadius.circular(
-                                        AppBorderRadius.large),
-                                    color: showFilters
-                                        ? Colors.white
-                                        : Colors.transparent,
-                                  ),
-                                  padding: EdgeInsets.all(AppPadding.small),
-                                  child: Column(
-                                    children: [
-                                      buildSearchBar(),
-                                      buildSearchFilters(),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                top: AppPadding.medium,
-                                right: AppPadding.large,
-                                child: MyIconButton(
-                                  icon: Icons.add_rounded,
-                                  labelText: "Foglalás rögzítése",
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => const BasePage(
-                                          child: ReservationOptionPage(),
+                                    Positioned(
+                                      top: 3,
+                                      left: AppPadding.medium,
+                                      child: Container(
+                                        key: searchContainerKey,
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: showFilters
+                                                ? AppColors.primary
+                                                : Colors.transparent,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                              AppBorderRadius.large),
+                                          color: showFilters
+                                              ? Colors.white
+                                              : Colors.transparent,
+                                        ),
+                                        padding:
+                                            EdgeInsets.all(AppPadding.small),
+                                        child: Column(
+                                          children: [
+                                            buildSearchBar(),
+                                            buildSearchFilters(),
+                                          ],
                                         ),
                                       ),
-                                    );
-                                  },
+                                    ),
+                                    Positioned(
+                                      top: AppPadding.medium,
+                                      right: AppPadding.large,
+                                      child: MyIconButton(
+                                        icon: Icons.add_rounded,
+                                        labelText: "Foglalás rögzítése",
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) => const BasePage(
+                                                child: ReservationOptionPage(),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-              ),
             ),
           ],
         ),

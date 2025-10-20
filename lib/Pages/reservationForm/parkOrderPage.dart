@@ -6,6 +6,7 @@ import 'package:airport_test/constants/functions/occupancy_colors.dart';
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/api_services/api_classes/parking_zone.dart';
 import 'package:airport_test/constants/globals.dart';
+import 'package:airport_test/constants/navigation.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/my_checkbox.dart';
 import 'package:airport_test/constants/widgets/my_icon_button.dart';
@@ -347,12 +348,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
           );
         }
         if (selectedArriveDate != null && selectedLeaveDate != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => nextPage!,
-            ),
-          );
+          Navigation(context: context, page: nextPage!).push();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(

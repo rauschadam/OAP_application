@@ -1,5 +1,6 @@
 import 'package:airport_test/api_Services/api_service.dart';
 import 'package:airport_test/api_services/api_classes/reservation.dart';
+import 'package:airport_test/constants/navigation.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/my_radio_list_tile.dart';
 import 'package:airport_test/constants/widgets/next_page_button.dart';
@@ -111,12 +112,7 @@ class _InvoiceOptionPageState extends State<InvoiceOptionPage> {
 
   /// HomePage-re navigálás
   void goToHomePage() async {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => HomePage(),
-      ),
-    );
+    Navigation(context: context, page: HomePage()).pushReplacement();
   }
 
   /// Foglalás rögzítése

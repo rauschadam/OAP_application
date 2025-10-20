@@ -4,6 +4,7 @@ import 'package:airport_test/api_services/api_classes/list_panel_field.dart';
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/api_services/api_classes/valid_reservation.dart';
 import 'package:airport_test/constants/dialogs/reservation_options_dialog.dart';
+import 'package:airport_test/constants/navigation.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/reservation_grid.dart';
@@ -320,13 +321,11 @@ class _ReservationListPageState extends State<ReservationListPage> {
                                     icon: Icons.add_rounded,
                                     labelText: "Foglalás rögzítése",
                                     onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              const ReservationOptionPage(),
-                                        ),
-                                      );
+                                      Navigation(
+                                              context: context,
+                                              page:
+                                                  const ReservationOptionPage())
+                                          .push();
                                     },
                                   ),
                                 ),

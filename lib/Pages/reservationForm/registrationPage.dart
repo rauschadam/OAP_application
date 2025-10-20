@@ -3,6 +3,7 @@ import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/api_services/api_classes/registration.dart';
 import 'package:airport_test/Pages/reservationForm/parkOrderPage.dart';
 import 'package:airport_test/Pages/reservationForm/washOrderPage.dart';
+import 'package:airport_test/constants/navigation.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/my_text_form_field.dart';
@@ -133,12 +134,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
             );
             break;
         }
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => nextPage,
-          ),
-        );
+        Navigation(context: context, page: nextPage).push();
       }
     }
   }

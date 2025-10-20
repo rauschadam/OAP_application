@@ -1,8 +1,9 @@
-import 'package:airport_test/Pages/genericListPanelPage.dart';
+import 'package:airport_test/Pages/listPanelPage.dart';
 import 'package:airport_test/Pages/homePage.dart';
 import 'package:airport_test/Pages/reservationListPage.dart';
 import 'package:airport_test/api_services/api_classes/available_list_panel.dart';
 import 'package:airport_test/constants/globals.dart';
+import 'package:airport_test/constants/navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:airport_test/constants/theme.dart';
 
@@ -82,21 +83,14 @@ class SideMenuTile extends StatelessWidget {
       ),
       onTap: () {
         destination != null
-            ? Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => destination,
-                ),
-              )
-            : Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => GenericListPanelPage(listPanel: listPanel!),
-                ),
-              );
+            ? Navigation(context: context, page: destination).pushReplacement()
+            : Navigation(
+                    context: context,
+                    page: GenericListPanelPage(listPanel: listPanel!))
+                .pushReplacement();
       },
-      hoverColor: AppColors.primary.withOpacity(0.1),
-      splashColor: AppColors.primary.withOpacity(0.2),
+      hoverColor: AppColors.primary.withAlpha(25),
+      splashColor: AppColors.primary.withAlpha(50),
     );
   }
 }

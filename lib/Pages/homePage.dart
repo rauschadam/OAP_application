@@ -1,11 +1,11 @@
 import 'dart:async';
-import 'package:airport_test/Pages/reservationListPage.dart';
 import 'package:airport_test/Pages/reservationForm/reservationOptionPage.dart';
 import 'package:airport_test/api_Services/api_service.dart';
 import 'package:airport_test/api_services/api_classes/service_templates.dart';
 import 'package:airport_test/api_services/api_classes/valid_reservation.dart';
 import 'package:airport_test/constants/dialogs/reservation_options_dialog.dart';
 import 'package:airport_test/constants/functions/reservation_state.dart';
+import 'package:airport_test/constants/navigation.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/my_icon_button.dart';
 import 'package:airport_test/constants/widgets/reservation_list.dart';
@@ -621,15 +621,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void GoToReservationPage() async {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ReservationListPage(),
-      ),
-    );
-  }
-
   Widget newReservationButton() {
     return Align(
       alignment: Alignment.bottomRight,
@@ -637,12 +628,8 @@ class _HomePageState extends State<HomePage> {
         icon: Icons.add_rounded,
         labelText: "Foglalás rögzítése",
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const ReservationOptionPage(),
-            ),
-          );
+          Navigation(context: context, page: const ReservationOptionPage())
+              .push();
         },
       ),
     );

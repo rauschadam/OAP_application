@@ -2,6 +2,7 @@ import 'package:airport_test/Pages/homePage.dart';
 import 'package:airport_test/api_services/api_classes/login_data.dart';
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/api_services/auth_manager.dart';
+import 'package:airport_test/constants/navigation.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/my_text_form_field.dart';
 import 'package:airport_test/constants/widgets/next_page_button.dart';
@@ -46,22 +47,7 @@ class _ReceptionLoginPageState extends State<ReceptionLoginPage> {
         PayTypes = await api.getPayTypes(context) ?? [];
 
         CarWashServices = await api.getCarWashServices(context) ?? [];
-
-        // Sikeres lekérések után navigáljunk tovább
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (_) => BasePage(
-        //       child: HomePage(),
-        //     ),
-        //   ),
-        // );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => HomePage(),
-          ),
-        );
+        Navigation(context: context, page: HomePage()).pushReplacement();
       } catch (e) {
         debugPrint("Hiba az adatok lekérése közben: $e");
         if (!mounted) return loginData;
@@ -90,12 +76,7 @@ class _ReceptionLoginPageState extends State<ReceptionLoginPage> {
     if (formKey.currentState!.validate()) {
       final LoginData? loginData = await loginReceptionist();
       if (loginData != null) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => HomePage(),
-          ),
-        );
+        Navigation(context: context, page: HomePage()).pushReplacement();
       }
     }
   }

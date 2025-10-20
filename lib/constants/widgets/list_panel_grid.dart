@@ -3,13 +3,13 @@ import 'package:airport_test/constants/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
-class GenericDataGrid<T> extends StatefulWidget {
+class ListPanelGrid<T> extends StatefulWidget {
   final List<T> rows;
   final List<ListPanelField> listPanelFields;
   final ValueChanged<T?>? onRowSelected;
   final void Function(T selectedItem)? onRightClick;
 
-  const GenericDataGrid({
+  const ListPanelGrid({
     super.key,
     required this.rows,
     required this.listPanelFields,
@@ -18,11 +18,11 @@ class GenericDataGrid<T> extends StatefulWidget {
   });
 
   @override
-  State<GenericDataGrid<T>> createState() => _GenericDataGridState<T>();
+  State<ListPanelGrid<T>> createState() => _ListPanelGridState<T>();
 }
 
-class _GenericDataGridState<T> extends State<GenericDataGrid<T>> {
-  late GenericDataSource<T> dataSource;
+class _ListPanelGridState<T> extends State<ListPanelGrid<T>> {
+  late ListPanelDataSource<T> dataSource;
   late List<GridColumn> gridColumns;
   final DataGridController dataGridController = DataGridController();
   late Map<String, double> columnWidths = {};
@@ -35,7 +35,7 @@ class _GenericDataGridState<T> extends State<GenericDataGrid<T>> {
   }
 
   @override
-  void didUpdateWidget(covariant GenericDataGrid<T> oldWidget) {
+  void didUpdateWidget(covariant ListPanelGrid<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.rows != widget.rows) {
       dataSource.updateData(items: widget.rows);
@@ -43,8 +43,8 @@ class _GenericDataGridState<T> extends State<GenericDataGrid<T>> {
     }
   }
 
-  GenericDataSource<T> createDataSource() {
-    return GenericDataSource<T>(
+  ListPanelDataSource<T> createDataSource() {
+    return ListPanelDataSource<T>(
       items: widget.rows,
       columnOrder: gridColumns.map((c) => c.columnName).toList(),
     );
@@ -122,7 +122,8 @@ class _GenericDataGridState<T> extends State<GenericDataGrid<T>> {
     final clickedRow = dataSource.effectiveRows[rowIndex - 1];
     dataGridController.selectedRows = [clickedRow];
 
-    final item = dataSource.getItemForRow(clickedRow)!;
+    final item = dataSource.getItemForRow(clickedRow);
+    if (item == null) return;
     widget.onRightClick?.call(item);
   }
 
@@ -166,8 +167,8 @@ class _GenericDataGridState<T> extends State<GenericDataGrid<T>> {
   }
 }
 
-class GenericDataSource<T> extends DataGridSource {
-  GenericDataSource({
+class ListPanelDataSource<T> extends DataGridSource {
+  ListPanelDataSource({
     required List<T> items,
     required this.columnOrder,
   }) : _items = items {
@@ -193,7 +194,7 @@ class GenericDataSource<T> extends DataGridSource {
     _rows = _items.map((item) {
       final row = DataGridRow(
         cells: columnOrder.map((col) {
-          final value = _extractValue(item, col);
+          final value = extractValue(item, col);
           return DataGridCell<String>(
             columnName: col,
             value: value?.toString() ?? '-',
@@ -206,7 +207,7 @@ class GenericDataSource<T> extends DataGridSource {
   }
 
   /// Lekéri a cella értékét (akár Map, akár objektum)
-  dynamic _extractValue(T item, String field) {
+  dynamic extractValue(T item, String field) {
     if (item is Map<String, dynamic>) {
       return item[field];
     }

@@ -1,7 +1,7 @@
 import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/constants/widgets/side_drawer.dart';
-import 'package:airport_test/responsive.dart';
+import 'package:airport_test/constants/responsive.dart';
 import 'package:flutter/material.dart';
 
 class BasePage extends StatelessWidget {

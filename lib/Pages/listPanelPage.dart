@@ -4,7 +4,7 @@ import 'package:airport_test/api_services/api_classes/list_panel_field.dart';
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
-import 'package:airport_test/constants/widgets/generic_data_grid.dart';
+import 'package:airport_test/constants/widgets/list_panel_grid.dart';
 import 'package:airport_test/constants/widgets/shimmer_placeholder_template.dart';
 import 'package:airport_test/constants/widgets/side_drawer.dart';
 import 'package:flutter/material.dart';
@@ -202,7 +202,7 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
                                         ? ShimmerPlaceholderTemplate(
                                             width: double.infinity,
                                             height: double.infinity)
-                                        : GenericDataGrid(
+                                        : ListPanelGrid(
                                             rows:
                                                 filteredData ?? listPanelData!,
                                             listPanelFields:

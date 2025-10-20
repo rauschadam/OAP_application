@@ -5,6 +5,7 @@ import 'package:airport_test/api_services/api_classes/valid_reservation.dart';
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/constants/formatters.dart';
 import 'package:airport_test/constants/globals.dart';
+import 'package:airport_test/constants/navigation.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/car_wash_selection_card.dart';
 import 'package:airport_test/constants/widgets/my_date_picker_dialog.dart';
@@ -211,10 +212,9 @@ class WashOrderPageState extends State<WashOrderPage> {
   void OnNextPageButtonPressed() async {
     if (formKey.currentState!.validate()) {
       if (selectedWashDate != null && selectedWashTime != null) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => InvoiceOptionPage(
+        Navigation(
+            context: context,
+            page: InvoiceOptionPage(
               authToken: widget.authToken,
               payTypeId: selectedPayTypeId,
               partnerId: widget.partnerId,
@@ -239,9 +239,7 @@ class WashOrderPageState extends State<WashOrderPage> {
               parkingArticleId: widget.parkingArticleId,
               alreadyRegistered: widget.alreadyRegistered,
               withoutRegistration: widget.withoutRegistration,
-            ),
-          ),
-        );
+            )).push();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Válassz ki időpontot!')),

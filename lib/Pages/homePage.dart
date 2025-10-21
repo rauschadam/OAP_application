@@ -458,42 +458,48 @@ class _HomePageState extends State<HomePage> {
     });
 
     // Widget visszaadása
-    return ReservationList(
-      maxHeight: maxHeight,
-      listTitle: listTitle,
-      emptyText: "Nem várható bejelentett ügyfél.",
-      reservations: expectedReservations,
-      columns: {
-        'Név': 'Name',
-        'Rendszám': 'LicensePlate',
-        'Időpont': 'Time',
-        'Típus': 'Type',
-      },
-      formatters: {
-        'Time': (reservation) {
-          final arriveDate = reservation.arriveDate;
-          final leaveDate = reservation.leaveDate;
-          final isArriveToday =
-              arriveDate.isAfter(startTime) && arriveDate.isBefore(endTime);
-
-          if (isArriveToday) {
-            return DateFormat('HH:mm').format(arriveDate);
-          } else {
-            return DateFormat('HH:mm').format(leaveDate);
-          }
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppBorderRadius.medium),
+        color: AppColors.secondary,
+      ),
+      child: ReservationList(
+        maxHeight: maxHeight,
+        listTitle: listTitle,
+        emptyText: "Nem várható bejelentett ügyfél.",
+        reservations: expectedReservations,
+        columns: {
+          'Név': 'Name',
+          'Rendszám': 'LicensePlate',
+          'Időpont': 'Time',
+          'Típus': 'Type',
         },
-        'Type': (reservation) {
-          final arriveDate = reservation.arriveDate;
-          final isArriveToday =
-              arriveDate.isAfter(startTime) && arriveDate.isBefore(endTime);
+        formatters: {
+          'Time': (reservation) {
+            final arriveDate = reservation.arriveDate;
+            final leaveDate = reservation.leaveDate;
+            final isArriveToday =
+                arriveDate.isAfter(startTime) && arriveDate.isBefore(endTime);
 
-          if (isArriveToday) {
-            return 'Érkezés';
-          } else {
-            return 'Távozás';
-          }
+            if (isArriveToday) {
+              return DateFormat('HH:mm').format(arriveDate);
+            } else {
+              return DateFormat('HH:mm').format(leaveDate);
+            }
+          },
+          'Type': (reservation) {
+            final arriveDate = reservation.arriveDate;
+            final isArriveToday =
+                arriveDate.isAfter(startTime) && arriveDate.isBefore(endTime);
+
+            if (isArriveToday) {
+              return 'Érkezés';
+            } else {
+              return 'Távozás';
+            }
+          },
         },
-      },
+      ),
     );
   }
 
@@ -673,8 +679,8 @@ class _HomePageState extends State<HomePage> {
 
   Widget desktopBuild() {
     return BasePage(
-      pageTitle: "Menü",
-      drawer: const SideDrawer(currentTitle: "Menü"),
+      pageTitle: "Fő oldal",
+      drawer: const SideDrawer(currentTitle: "Fő oldal"),
       child: RefreshIndicator(
         key: refreshIndicatorKey,
         color: AppColors.primary,
@@ -762,30 +768,14 @@ class _HomePageState extends State<HomePage> {
                                   child: Padding(
                                     padding: EdgeInsets.only(
                                         bottom: AppPadding.medium),
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(
-                                              AppBorderRadius.medium),
-                                          color: AppColors.secondary),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.end,
-                                        children: [
-                                          Container(
-                                            constraints:
-                                                BoxConstraints(maxHeight: 300),
-                                            child: buildTodoList(
-                                                listTitle: 'Ma',
-                                                reservations: reservations,
-                                                startTime: now,
-                                                endTime: DateTime(now.year,
-                                                        now.month, now.day)
-                                                    .add(const Duration(
-                                                        days: 1))),
-                                          ),
-                                        ],
-                                      ),
+                                    child: buildTodoList(
+                                      listTitle: 'Ma',
+                                      reservations: reservations,
+                                      startTime: now,
+                                      endTime:
+                                          DateTime(now.year, now.month, now.day)
+                                              .add(const Duration(days: 1)),
+                                      maxHeight: 350.0, // Példa maxHeight
                                     ),
                                   ),
                                 ),

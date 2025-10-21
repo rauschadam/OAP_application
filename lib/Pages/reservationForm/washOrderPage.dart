@@ -1,5 +1,7 @@
 import 'package:airport_test/Pages/reservationForm/invoiceOptionPage.dart';
 import 'package:airport_test/api_services/api_classes/car_wash_service.dart';
+import 'package:airport_test/api_services/api_classes/reservation.dart';
+import 'package:airport_test/api_services/api_classes/service_templates.dart';
 import 'package:airport_test/api_services/api_classes/user_data.dart';
 import 'package:airport_test/api_services/api_classes/valid_reservation.dart';
 import 'package:airport_test/api_services/api_service.dart';
@@ -16,53 +18,17 @@ import 'package:airport_test/constants/widgets/next_page_button.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/constants/enums/parkingFormEnums.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-class WashOrderPage extends StatefulWidget {
-  final String authToken;
-  final String personId;
-  final String partnerId;
-  final BookingOption bookingOption;
-  final bool alreadyRegistered;
-  final bool withoutRegistration;
-  final TextEditingController emailController;
-  final TextEditingController? nameController;
-  final TextEditingController? phoneController;
-  final TextEditingController? licensePlateController;
-  final TextEditingController? descriptionController;
-  final DateTime? arriveDate;
-  final DateTime? leaveDate;
-  final int? transferPersonCount;
-  final bool? vip;
-  final int? parkingCost;
-  final int? suitcaseWrappingCount;
-  final String? parkingArticleId;
-  const WashOrderPage(
-      {super.key,
-      required this.authToken,
-      required this.personId,
-      required this.partnerId,
-      required this.bookingOption,
-      required this.emailController,
-      this.nameController,
-      this.phoneController,
-      this.licensePlateController,
-      this.descriptionController,
-      this.arriveDate,
-      this.leaveDate,
-      this.transferPersonCount,
-      this.vip,
-      this.parkingCost,
-      this.suitcaseWrappingCount,
-      this.parkingArticleId,
-      required this.alreadyRegistered,
-      required this.withoutRegistration});
+class WashOrderPage extends ConsumerStatefulWidget {
+  const WashOrderPage({super.key});
 
   @override
-  State<WashOrderPage> createState() => WashOrderPageState();
+  ConsumerState<WashOrderPage> createState() => WashOrderPageState();
 }
 
-class WashOrderPageState extends State<WashOrderPage> {
+class WashOrderPageState extends ConsumerState<WashOrderPage> {
   final formKey = GlobalKey<FormState>();
 
   TextEditingController nameController = TextEditingController();
@@ -78,20 +44,11 @@ class WashOrderPageState extends State<WashOrderPage> {
   FocusNode descriptionFocus = FocusNode();
   FocusNode nextPageButtonFocus = FocusNode();
 
-  /// Aktuális idő
-  DateTime now = DateTime.now();
-
   /// Érkezési / Távozási dátum
   DateTime? selectedWashDate;
   TimeOfDay? selectedWashTime;
 
-  /// Ideiglenes dátum a datePicker-ben, ellenőrzés -> selectedWashDate
-  DateTime? tempWashDate;
-
-  /// Ideiglenes időpont a datePicker-ben, ellenőrzés -> selectedWashTime
-  TimeOfDay? tempWashTime;
-
-  /// Parkolási zóna cikkszáma
+  /// Mosási szolgáltatás
   CarWashService? selectedCarWashService;
 
   String selectedPayTypeId = PayTypes.first.payTypeId;
@@ -106,18 +63,16 @@ class WashOrderPageState extends State<WashOrderPage> {
   /// A teljes fizetendő összeg
   int totalCost = 0;
 
-  /// A megadott napon elérhető időpontok
-  List<TimeOfDay> availableSlots = [];
-
-  /// Foglalások lekérdezése
+  /// Foglalások lekérdezése és a Riverpod állapot inicializálása
   Future<void> fetchData() async {
     final api = ApiService();
+    final reservationState = ref.read(reservationProvider);
 
-    /// Foglalások lekérdezése
+    /// Érvényes foglalások lekérdezése (a foglalt időkhoz)
     final reservationData = await api.getValidReservations(context);
 
     if (reservationData == null) {
-      print('Nem sikerült a lekérdezés');
+      debugPrint('Nem sikerült a lekérdezés');
     } else {
       setState(() {
         reservations = reservationData;
@@ -125,26 +80,77 @@ class WashOrderPageState extends State<WashOrderPage> {
       });
     }
 
-    if (widget.bookingOption == BookingOption.washing) {
-      // Felhasználói fiók lekérése
+    if (reservationState.bookingOption == BookingOption.washing) {
+      // Ha csak mosás, lekérjük az ügyfél adatait
       final UserData? userData =
-          await api.getUserData(context, widget.personId);
+          await api.getUserData(context, reservationState.personId);
+
       if (userData != null) {
         setState(() {
           // A beviteli mezők kitöltése a felhasználói adatokkal
           nameController.text = userData.person_Name;
           phoneController.text = formatPhone(userData.phone);
-          widget.emailController.text = userData.email;
+          // A email már bekerült a Riverpodba a LoginPage-en
         });
       }
     }
+
+    // Controllerek és állapot betöltése a Riverpodból (mindig)
+    setState(() {
+      // Controllerek (az utolsó állapotból)
+      if (nameController.text.isEmpty) {
+        // Ha nem töltöttük be a serverről
+        nameController.text = reservationState.name;
+      }
+      if (phoneController.text.isEmpty) {
+        // Ha nem töltöttük be a serverről
+        phoneController.text =
+            formatPhone(reservationState.phone.replaceFirst('+', ''));
+      }
+      licensePlateController.text = reservationState.licensePlate;
+      descriptionController.text = reservationState.description;
+
+      // Lokális állapotok
+      selectedPayTypeId = reservationState.payTypeId.isNotEmpty
+          ? reservationState.payTypeId
+          : PayTypes.first.payTypeId;
+      totalCost = reservationState.parkingCost;
+
+      // Mosás szolgáltatás (ha volt már választva)
+      if (reservationState.carWashArticleId != null &&
+          CarWashServices.isNotEmpty) {
+        selectedCarWashService = CarWashServices.firstWhere(
+          (s) => s.article_Id == reservationState.carWashArticleId,
+          orElse: () => CarWashServices.first,
+        );
+        CalculateTotalCost();
+      }
+
+      // Mosás időpontja (ha volt már választva)
+      selectedWashDate = reservationState.washDateTime;
+      selectedWashTime = selectedWashDate != null
+          ? TimeOfDay(
+              hour: selectedWashDate!.hour, minute: selectedWashDate!.minute)
+          : null;
+    });
   }
 
-  /// telített időpontok
   /// Telített időpontok kiszámítása – mivel csak egy zóna van, nem bontjuk szét.
   List<DateTime> listFullyBookedDateTimes(List<dynamic> reservations) {
-    // Az egyetlen mosási zóna kapacitása (pl. 2 autó / időpont)
-    const int capacity = 2;
+    final int capacity = ServiceTemplates.firstWhere(
+          (t) => t.parkingServiceType == 2,
+          // Ha nem találja, visszatérünk egy placeholderrel, ahol a capacity null.
+          orElse: () => ServiceTemplate(
+            parkingTemplateId: -1,
+            parkingServiceName: '',
+            parkingServiceType: 2,
+            zoneCapacity: null, // Ez indítja a ?? 2-t, ha nem volt találat
+            articleId: null,
+            advanceReserveLimit: 0,
+            reserveIntervalLimit: null,
+          ),
+        ).zoneCapacity ??
+        2;
 
     // Időpontok számlálója
     Map<DateTime, int> counters = {};
@@ -172,12 +178,14 @@ class WashOrderPageState extends State<WashOrderPage> {
         .toList();
   }
 
-  /// Teljes összeg kalkulálása, az árakat később adatbázisból fogja előhívni.
+  /// Teljes összeg kalkulálása (Riverpod állapotból olvassa a parkolás árát).
   void CalculateTotalCost() {
-    int baseCost =
-        widget.bookingOption == BookingOption.both ? widget.parkingCost! : 0;
+    final reservationState = ref.read(reservationProvider);
+    int baseCost = reservationState.bookingOption == BookingOption.both
+        ? reservationState.parkingCost
+        : 0;
 
-    // Hozzáadjuk a parkolás árát
+    // Hozzáadjuk a mosás árát
     if (selectedCarWashService != null) {
       baseCost += selectedCarWashService!.price.toInt();
     }
@@ -188,7 +196,6 @@ class WashOrderPageState extends State<WashOrderPage> {
   }
 
   /// Dátum választó pop-up dialog
-  /// Időpont választó dialógus a parkolási intervallum kiválasztásához.
   void showDatePickerDialog() {
     showDialog(
       context: context,
@@ -201,48 +208,52 @@ class WashOrderPageState extends State<WashOrderPage> {
             selectedWashDate = washDate;
             selectedWashTime = washTime;
           });
+          CalculateTotalCost();
         },
       ),
     ).then((_) {
-      // A dialógus bezárása után fókusz átadása
-      //FocusScope.of(context).requestFocus(transferFocus);
+      FocusScope.of(context).requestFocus(descriptionFocus);
     });
   }
 
   void OnNextPageButtonPressed() async {
     if (formKey.currentState!.validate()) {
-      if (selectedWashDate != null && selectedWashTime != null) {
-        Navigation(
-            context: context,
-            page: InvoiceOptionPage(
-              authToken: widget.authToken,
-              payTypeId: selectedPayTypeId,
-              partnerId: widget.partnerId,
-              nameController: nameController,
-              emailController: widget.emailController,
-              phoneController: phoneController,
-              licensePlateController: licensePlateController,
-              arriveDate: widget.arriveDate,
-              leaveDate: widget.leaveDate,
-              transferPersonCount: widget.transferPersonCount,
+      if (selectedWashDate != null &&
+          selectedWashTime != null &&
+          selectedCarWashService != null) {
+        final reservationState = ref.read(reservationProvider);
+
+        // Kontakt és Rendszám adatok mentése, ha csak mosás (washing)
+        if (reservationState.bookingOption == BookingOption.washing) {
+          ref.read(reservationProvider.notifier).updateContactAndLicense(
+                name: nameController.text,
+                email: reservationState.email,
+                phone: '+${phoneController.text}',
+                licensePlate: licensePlateController.text,
+              );
+        }
+
+        // Mosási adatok mentése a Riverpodba
+        ref.read(reservationProvider.notifier).updateWash(
+              carWashArticleId: selectedCarWashService!.article_Id,
               washDateTime: DateTime(
                   selectedWashDate!.year,
                   selectedWashDate!.month,
                   selectedWashDate!.day,
                   selectedWashTime!.hour,
                   selectedWashTime!.minute),
-              vip: widget.vip,
-              descriptionController: descriptionController,
-              bookingOption: widget.bookingOption,
-              carWashArticleId: selectedCarWashService!.article_Id,
-              suitcaseWrappingCount: widget.suitcaseWrappingCount,
-              parkingArticleId: widget.parkingArticleId,
-              alreadyRegistered: widget.alreadyRegistered,
-              withoutRegistration: widget.withoutRegistration,
-            )).push();
+              payTypeId: selectedPayTypeId,
+              description: descriptionController.text,
+            );
+
+        // Navigálás a következő oldalra
+        Navigation(
+          context: context,
+          page: const InvoiceOptionPage(),
+        ).push();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Válassz ki időpontot!')),
+          const SnackBar(content: Text('Válassz ki időpontot és mosást!')),
         );
       }
     }
@@ -252,20 +263,12 @@ class WashOrderPageState extends State<WashOrderPage> {
   void initState() {
     super.initState();
 
-    if (widget.bookingOption == BookingOption.both) {
-      nameController = widget.nameController!;
-      phoneController = widget.phoneController!;
-      licensePlateController = widget.licensePlateController!;
-      descriptionController = widget.descriptionController!;
-    }
-
-    totalCost = widget.parkingCost ?? 0;
-
     // Kis késleltetéssel adunk fókuszt, hogy a build lefusson
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(nameFocus);
     });
 
+    // Adatok betöltése a Riverpod állapotból és a szerverről
     fetchData();
   }
 
@@ -307,7 +310,8 @@ class WashOrderPageState extends State<WashOrderPage> {
   }
 
   Widget buildTextFormFields() {
-    if (widget.bookingOption == BookingOption.both) return Container();
+    final bookingOption = ref.read(reservationProvider).bookingOption;
+    if (bookingOption == BookingOption.both) return Container();
     return Column(
       children: [
         MyTextFormField(
@@ -474,13 +478,14 @@ class WashOrderPageState extends State<WashOrderPage> {
   }
 
   Widget buildPaymentMethods() {
+    final bookingOption = ref.read(reservationProvider).bookingOption;
     return Column(
       children: [
         Align(
           alignment: Alignment.centerLeft,
           child: Text.rich(
             TextSpan(
-              text: widget.bookingOption == BookingOption.both
+              text: bookingOption == BookingOption.both
                   ? 'Teljes összeg: '
                   : 'Fizetendő összeg: ',
               style: TextStyle(fontSize: 16),

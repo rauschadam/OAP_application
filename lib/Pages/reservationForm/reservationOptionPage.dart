@@ -1,20 +1,38 @@
 import 'package:airport_test/Pages/reservationForm/registrationOptionPage.dart';
+import 'package:airport_test/api_services/api_classes/reservation.dart';
+import 'package:airport_test/constants/navigation.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/my_radio_list_tile.dart';
 import 'package:airport_test/constants/widgets/next_page_button.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/constants/enums/parkingFormEnums.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ReservationOptionPage extends StatefulWidget {
+class ReservationOptionPage extends ConsumerStatefulWidget {
   const ReservationOptionPage({super.key});
 
   @override
-  State<ReservationOptionPage> createState() => _ReservationOptionPageState();
+  ConsumerState<ReservationOptionPage> createState() =>
+      _ReservationOptionPageState();
 }
 
-class _ReservationOptionPageState extends State<ReservationOptionPage> {
+class _ReservationOptionPageState extends ConsumerState<ReservationOptionPage> {
   BookingOption selectedBookingOption = BookingOption.parking;
+
+  void onNextPageButtonPressed() {
+    // Adat beírása a Riverpod állapotba
+    ref.read(reservationProvider.notifier).updateOptions(
+          bookingOption: selectedBookingOption,
+          alreadyRegistered: false, // Ezt a következő oldalon felülírjuk
+          withoutRegistration: false, // Ezt a következő oldalon felülírjuk
+        );
+    // Navigálás
+    Navigation(
+      context: context,
+      page: const RegistrationOptionPage(),
+    ).push();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,9 +43,7 @@ class _ReservationOptionPageState extends State<ReservationOptionPage> {
         children: [
           buildRadioListTiles(),
           NextPageButton(
-            nextPage: RegistrationOptionPage(
-              bookingOption: selectedBookingOption,
-            ),
+            onPressed: onNextPageButtonPressed,
             pushReplacement: false,
           ),
         ],

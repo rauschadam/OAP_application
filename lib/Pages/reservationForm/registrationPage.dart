@@ -1,4 +1,5 @@
 import 'package:airport_test/api_services/api_classes/login_data.dart';
+import 'package:airport_test/api_services/api_classes/reservation.dart';
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/api_services/api_classes/registration.dart';
 import 'package:airport_test/Pages/reservationForm/parkOrderPage.dart';
@@ -11,23 +12,16 @@ import 'package:airport_test/constants/widgets/next_page_button.dart';
 import 'package:airport_test/constants/enums/parkingFormEnums.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class RegistrationPage extends StatefulWidget {
-  final BookingOption bookingOption;
-  final bool alreadyRegistered;
-  final bool withoutRegistration;
-  const RegistrationPage({
-    super.key,
-    required this.bookingOption,
-    required this.alreadyRegistered,
-    required this.withoutRegistration,
-  });
+class RegistrationPage extends ConsumerStatefulWidget {
+  const RegistrationPage({super.key});
 
   @override
-  State<RegistrationPage> createState() => _RegistrationPageState();
+  ConsumerState<RegistrationPage> createState() => _RegistrationPageState();
 }
 
-class _RegistrationPageState extends State<RegistrationPage> {
+class _RegistrationPageState extends ConsumerState<RegistrationPage> {
   final formKey = GlobalKey<FormState>();
 
   /// CONTROLLEREK
@@ -102,36 +96,30 @@ class _RegistrationPageState extends State<RegistrationPage> {
     if (formKey.currentState!.validate()) {
       final loginData = await RegisterUser();
       if (loginData != null) {
+        // Állapot frissítése hitelesítési és kapcsolati adatokkal
+        final currentState = ref.read(reservationProvider);
+
+        ref.read(reservationProvider.notifier).updateAuth(
+              authToken: loginData.authorizationToken,
+              partnerId: loginData.partnerId,
+              personId: loginData.personId,
+            );
+
+        ref.read(reservationProvider.notifier).updateContactAndLicense(
+              name: nameController.text,
+              email: emailController.text,
+              phone: '+${phoneController.text}',
+              licensePlate: favoriteLicensePlateNumberController.text,
+            );
+
         Widget nextPage;
-        switch (widget.bookingOption) {
+        switch (currentState.bookingOption) {
           case BookingOption.parking:
           case BookingOption.both:
-            nextPage = ParkOrderPage(
-              authToken: loginData.authorizationToken,
-              personId: loginData.personId,
-              partnerId: loginData.partnerId,
-              bookingOption: widget.bookingOption,
-              emailController: emailController,
-              licensePlateController: favoriteLicensePlateNumberController,
-              nameController: nameController,
-              phoneController: phoneController,
-              alreadyRegistered: widget.alreadyRegistered,
-              withoutRegistration: widget.withoutRegistration,
-            );
+            nextPage = const ParkOrderPage();
             break;
           case BookingOption.washing:
-            nextPage = WashOrderPage(
-              authToken: loginData.authorizationToken,
-              personId: loginData.personId,
-              partnerId: loginData.partnerId,
-              bookingOption: widget.bookingOption,
-              emailController: emailController,
-              licensePlateController: favoriteLicensePlateNumberController,
-              nameController: nameController,
-              phoneController: phoneController,
-              alreadyRegistered: widget.alreadyRegistered,
-              withoutRegistration: widget.withoutRegistration,
-            );
+            nextPage = const WashOrderPage();
             break;
         }
         Navigation(context: context, page: nextPage).push();

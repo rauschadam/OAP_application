@@ -34,7 +34,7 @@ class SideDrawer extends StatelessWidget {
             ),
           ),
           SideMenuTile(
-            title: "Menü",
+            title: "Fő oldal",
             destination: HomePage(),
             currentTitle: currentTitle,
           ),

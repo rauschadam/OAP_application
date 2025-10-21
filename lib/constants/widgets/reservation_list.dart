@@ -103,46 +103,56 @@ class _ReservationListState extends State<ReservationList> {
   }
 
   Widget _buildRows(List<ValidReservation> reservations) {
+    final double? actualMaxHeight = widget.maxHeight;
+
     return Flexible(
-      child: ListView.builder(
-        itemCount: reservations.length,
-        itemBuilder: (context, index) {
-          final reservation = reservations[index];
-          return Column(
-            children: [
-              InkWell(
-                onTap: widget.onRowTap != null
-                    ? () => widget.onRowTap!(reservation)
-                    : null,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: AppPadding.small,
-                    horizontal: AppPadding.medium,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _getRowColor(reservation, index),
-                    borderRadius: index == reservations.length - 1
-                        ? const BorderRadius.only(
-                            bottomLeft: Radius.circular(AppBorderRadius.small),
-                            bottomRight: Radius.circular(AppBorderRadius.small),
-                          )
-                        : null,
-                  ),
-                  child: Row(
-                    children: [
-                      for (var fieldName in widget.columns.values)
-                        Expanded(
-                          child: _buildCell(reservation, fieldName),
-                        ),
-                    ],
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: actualMaxHeight ?? double.infinity,
+        ),
+        child: ListView.builder(
+          shrinkWrap: true,
+          itemCount: reservations.length,
+          itemBuilder: (context, index) {
+            final reservation = reservations[index];
+            return Column(
+              children: [
+                InkWell(
+                  onTap: widget.onRowTap != null
+                      ? () => widget.onRowTap!(reservation)
+                      : null,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppPadding.small,
+                      horizontal: AppPadding.medium,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _getRowColor(reservation, index),
+                      borderRadius: index == reservations.length - 1
+                          ? const BorderRadius.only(
+                              bottomLeft:
+                                  Radius.circular(AppBorderRadius.small),
+                              bottomRight:
+                                  Radius.circular(AppBorderRadius.small),
+                            )
+                          : null,
+                    ),
+                    child: Row(
+                      children: [
+                        for (var fieldName in widget.columns.values)
+                          Expanded(
+                            child: _buildCell(reservation, fieldName),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              if (index < reservations.length - 1)
-                const Divider(height: 1, thickness: 1),
-            ],
-          );
-        },
+                if (index < reservations.length - 1)
+                  const Divider(height: 1, thickness: 1),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

@@ -1,3 +1,203 @@
+import 'package:airport_test/constants/enums/parkingFormEnums.dart';
+import 'package:flutter_riverpod/legacy.dart';
+
+class ReservationFormState {
+  // Hitelesítés / Felhasználó
+  final String authToken;
+  final String partnerId;
+  final String personId;
+  final bool alreadyRegistered;
+  final bool withoutRegistration;
+  final BookingOption bookingOption;
+
+  // Személyes adatok
+  final String name;
+  final String email;
+  final String phone;
+  final String licensePlate;
+
+  // Parkolási adatok
+  final DateTime? arriveDate;
+  final DateTime? leaveDate;
+  final String? parkingArticleId;
+  final int transferPersonCount;
+  final bool vip;
+  final int suitcaseWrappingCount;
+  final int parkingCost; // A parkolás teljes költsége
+
+  // Mosási adatok
+  final String? carWashArticleId;
+  final DateTime? washDateTime;
+
+  // Végső adatok
+  final String payTypeId;
+  final String description;
+
+  ReservationFormState({
+    this.authToken = '',
+    this.partnerId = '',
+    this.personId = '',
+    this.alreadyRegistered = false,
+    this.withoutRegistration = false,
+    this.bookingOption = BookingOption.parking,
+    this.name = '',
+    this.email = '',
+    this.phone = '',
+    this.licensePlate = '',
+    this.arriveDate,
+    this.leaveDate,
+    this.parkingArticleId,
+    this.transferPersonCount = 1,
+    this.vip = false,
+    this.suitcaseWrappingCount = 0,
+    this.parkingCost = 0,
+    this.carWashArticleId,
+    this.washDateTime,
+    this.payTypeId = '',
+    this.description = '',
+  });
+
+  ReservationFormState copyWith({
+    String? authToken,
+    String? partnerId,
+    String? personId,
+    bool? alreadyRegistered,
+    bool? withoutRegistration,
+    BookingOption? bookingOption,
+    String? name,
+    String? email,
+    String? phone,
+    String? licensePlate,
+    DateTime? arriveDate,
+    DateTime? leaveDate,
+    String? parkingArticleId,
+    int? transferPersonCount,
+    bool? vip,
+    int? suitcaseWrappingCount,
+    int? parkingCost,
+    String? carWashArticleId,
+    DateTime? washDateTime,
+    String? payTypeId,
+    String? description,
+  }) {
+    return ReservationFormState(
+      authToken: authToken ?? this.authToken,
+      partnerId: partnerId ?? this.partnerId,
+      personId: personId ?? this.personId,
+      alreadyRegistered: alreadyRegistered ?? this.alreadyRegistered,
+      withoutRegistration: withoutRegistration ?? this.withoutRegistration,
+      bookingOption: bookingOption ?? this.bookingOption,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      phone: phone ?? this.phone,
+      licensePlate: licensePlate ?? this.licensePlate,
+      arriveDate: arriveDate ?? this.arriveDate,
+      leaveDate: leaveDate ?? this.leaveDate,
+      parkingArticleId: parkingArticleId ?? this.parkingArticleId,
+      transferPersonCount: transferPersonCount ?? this.transferPersonCount,
+      vip: vip ?? this.vip,
+      suitcaseWrappingCount:
+          suitcaseWrappingCount ?? this.suitcaseWrappingCount,
+      parkingCost: parkingCost ?? this.parkingCost,
+      carWashArticleId: carWashArticleId ?? this.carWashArticleId,
+      washDateTime: washDateTime ?? this.washDateTime,
+      payTypeId: payTypeId ?? this.payTypeId,
+      description: description ?? this.description,
+    );
+  }
+}
+
+// Állapotkezelő (Notifier)
+class ReservationNotifier extends StateNotifier<ReservationFormState> {
+  ReservationNotifier() : super(ReservationFormState());
+
+  // Kezdő beállítások (BookingOption + RegistrationOption)
+  void updateOptions({
+    required BookingOption bookingOption,
+    required bool alreadyRegistered,
+    required bool withoutRegistration,
+  }) {
+    state = state.copyWith(
+      bookingOption: bookingOption,
+      alreadyRegistered: alreadyRegistered,
+      withoutRegistration: withoutRegistration,
+    );
+  }
+
+  // Hitelesítési adatok (Login / Registration után)
+  void updateAuth({
+    required String authToken,
+    required String partnerId,
+    required String personId,
+  }) {
+    state = state.copyWith(
+      authToken: authToken,
+      partnerId: partnerId,
+      personId: personId,
+    );
+  }
+
+  // Kapcsolattartási és rendszám adatok
+  void updateContactAndLicense({
+    required String name,
+    required String email,
+    required String phone,
+    required String licensePlate,
+  }) {
+    state = state.copyWith(
+      name: name,
+      email: email,
+      phone: phone,
+      licensePlate: licensePlate,
+    );
+  }
+
+  // Parkolás adatok
+  void updateParking({
+    required DateTime arriveDate,
+    required DateTime leaveDate,
+    required String? parkingArticleId,
+    required int transferPersonCount,
+    required bool vip,
+    required int suitcaseWrappingCount,
+    required int parkingCost,
+    required String payTypeId,
+    required String description,
+  }) {
+    state = state.copyWith(
+      arriveDate: arriveDate,
+      leaveDate: leaveDate,
+      parkingArticleId: parkingArticleId,
+      transferPersonCount: transferPersonCount,
+      vip: vip,
+      suitcaseWrappingCount: suitcaseWrappingCount,
+      parkingCost: parkingCost,
+      payTypeId: payTypeId,
+      description: description,
+    );
+  }
+
+  // Mosás adatok
+  void updateWash({
+    required String? carWashArticleId,
+    required DateTime? washDateTime,
+    required String payTypeId,
+    required String description,
+  }) {
+    state = state.copyWith(
+      carWashArticleId: carWashArticleId,
+      washDateTime: washDateTime,
+      payTypeId: payTypeId,
+      description: description,
+    );
+  }
+}
+
+// Globális Provider
+final reservationProvider =
+    StateNotifierProvider<ReservationNotifier, ReservationFormState>(
+        (ref) => ReservationNotifier());
+
 class Reservation {
   final int parkingService;
   final String partnerId;

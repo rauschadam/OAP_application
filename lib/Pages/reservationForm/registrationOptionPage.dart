@@ -1,22 +1,55 @@
 import 'package:airport_test/Pages/reservationForm/loginPage.dart';
 import 'package:airport_test/Pages/reservationForm/registrationPage.dart';
+import 'package:airport_test/api_services/api_classes/reservation.dart';
+import 'package:airport_test/constants/navigation.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/my_radio_list_tile.dart';
 import 'package:airport_test/constants/widgets/next_page_button.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/constants/enums/parkingFormEnums.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class RegistrationOptionPage extends StatefulWidget {
-  final BookingOption bookingOption;
-  const RegistrationOptionPage({super.key, required this.bookingOption});
+class RegistrationOptionPage extends ConsumerStatefulWidget {
+  const RegistrationOptionPage({super.key});
 
   @override
-  State<RegistrationOptionPage> createState() => _RegistrationOptionPageState();
+  ConsumerState<RegistrationOptionPage> createState() =>
+      _RegistrationOptionPageState();
 }
 
-class _RegistrationOptionPageState extends State<RegistrationOptionPage> {
+class _RegistrationOptionPageState
+    extends ConsumerState<RegistrationOptionPage> {
   RegistrationOption selectedRegistrationOption = RegistrationOption.registered;
+
+  void onNextPageButtonPressed() {
+    Widget? nextPage;
+    bool alreadyRegistered = false;
+    bool withoutRegistration = false;
+
+    switch (selectedRegistrationOption) {
+      case RegistrationOption.registerNow:
+        nextPage = const RegistrationPage();
+        break;
+      case RegistrationOption.registered:
+        nextPage = const LoginPage();
+        alreadyRegistered = true;
+        break;
+      case RegistrationOption.withoutRegistration:
+        nextPage = const LoginPage();
+        withoutRegistration = true;
+        break;
+    }
+
+    // A foglalás opciók frissítése (hozzáadva a regisztrációs opciókat)
+    ref.read(reservationProvider.notifier).updateOptions(
+          bookingOption: ref.read(reservationProvider).bookingOption,
+          alreadyRegistered: alreadyRegistered,
+          withoutRegistration: withoutRegistration,
+        );
+
+    Navigation(context: context, page: nextPage).push();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +60,11 @@ class _RegistrationOptionPageState extends State<RegistrationOptionPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           buildRadioListTile(),
-          buildNextPageButton(),
+          NextPageButton(
+            text: 'Tovább',
+            onPressed: onNextPageButtonPressed,
+            pushReplacement: false,
+          ),
         ],
       ),
     );
@@ -93,38 +130,5 @@ class _RegistrationOptionPageState extends State<RegistrationOptionPage> {
         ],
       ),
     );
-  }
-
-  /// Következő oldal gomb
-  Widget buildNextPageButton() {
-    switch (selectedRegistrationOption) {
-      case RegistrationOption.registerNow:
-        return NextPageButton(
-          nextPage: RegistrationPage(
-            bookingOption: widget.bookingOption,
-            alreadyRegistered: false,
-            withoutRegistration: false,
-          ),
-          pushReplacement: false,
-        );
-      case RegistrationOption.registered:
-        return NextPageButton(
-          nextPage: LoginPage(
-            bookingOption: widget.bookingOption,
-            alreadyRegistered: true,
-            withoutRegistration: false,
-          ),
-          pushReplacement: false,
-        );
-      case RegistrationOption.withoutRegistration:
-        return NextPageButton(
-          nextPage: LoginPage(
-            bookingOption: widget.bookingOption,
-            alreadyRegistered: false,
-            withoutRegistration: true,
-          ),
-          pushReplacement: false,
-        );
-    }
   }
 }

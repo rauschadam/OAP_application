@@ -7,64 +7,33 @@ import 'package:airport_test/constants/widgets/next_page_button.dart';
 import 'package:airport_test/constants/enums/parkingFormEnums.dart';
 import 'package:airport_test/Pages/homePage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class InvoiceOptionPage extends StatefulWidget {
-  final String authToken;
-  final String partnerId;
-  final String payTypeId;
-  final BookingOption bookingOption;
-  // final int parkingService;
-  final bool alreadyRegistered;
-  final bool withoutRegistration;
-  final TextEditingController nameController;
-  final TextEditingController emailController;
-  final TextEditingController phoneController;
-  final TextEditingController licensePlateController;
-  final DateTime? arriveDate;
-  final DateTime? leaveDate;
-  final String? parkingArticleId;
-  //final String parkingArticleVolume;
-  final int? transferPersonCount;
-  final bool? vip;
-  final int? suitcaseWrappingCount;
-  final String? carWashArticleId;
-  final DateTime? washDateTime;
-  final TextEditingController descriptionController;
-  const InvoiceOptionPage(
-      {super.key,
-      required this.authToken,
-      required this.partnerId,
-      required this.payTypeId,
-      required this.nameController,
-      required this.emailController,
-      required this.phoneController,
-      required this.licensePlateController,
-      required this.arriveDate,
-      required this.leaveDate,
-      required this.transferPersonCount,
-      required this.vip,
-      this.washDateTime,
-      required this.descriptionController,
-      required this.bookingOption,
-      this.parkingArticleId,
-      this.suitcaseWrappingCount,
-      this.carWashArticleId,
-      required this.alreadyRegistered,
-      required this.withoutRegistration});
+class InvoiceOptionPage extends ConsumerStatefulWidget {
+  const InvoiceOptionPage({super.key});
 
   @override
-  State<InvoiceOptionPage> createState() => _InvoiceOptionPageState();
+  ConsumerState<InvoiceOptionPage> createState() => _InvoiceOptionPageState();
 }
 
-class _InvoiceOptionPageState extends State<InvoiceOptionPage> {
+class _InvoiceOptionPageState extends ConsumerState<InvoiceOptionPage> {
   InvoiceOption selectedInvoiceOption = InvoiceOption.no;
 
   /// Megnzézzük, hogy lehet-e egyből érkeztetni
   bool checkCustomerArrivalIsSoon() {
-    if (widget.arriveDate == null) return false;
+    final state = ref.read(reservationProvider);
+    if (state.arriveDate == null) return false;
     final now = DateTime.now();
-    final diff = widget.arriveDate!.difference(now);
+    final diff = state.arriveDate!.difference(now);
     return diff.inHours < 24;
+  }
+
+  /// Ügyfél érkeztetése
+  Future<void> attemptRegisterArrival() async {
+    final state = ref.read(reservationProvider);
+    final api = ApiService();
+    await api.logCustomerArrival(context, state.licensePlate);
+    goToHomePage();
   }
 
   /// Felveti az érkeztetés lehetőségét
@@ -89,7 +58,7 @@ class _InvoiceOptionPageState extends State<InvoiceOptionPage> {
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                attemptRegisterArrival(widget.licensePlateController.text);
+                attemptRegisterArrival();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
@@ -103,13 +72,6 @@ class _InvoiceOptionPageState extends State<InvoiceOptionPage> {
     );
   }
 
-  /// Ügyfél érkeztetése
-  Future<void> attemptRegisterArrival(String licensePlate) async {
-    final api = ApiService();
-    await api.logCustomerArrival(context, licensePlate);
-    goToHomePage();
-  }
-
   /// HomePage-re navigálás
   void goToHomePage() async {
     Navigation(context: context, page: HomePage()).pushReplacement();
@@ -117,30 +79,33 @@ class _InvoiceOptionPageState extends State<InvoiceOptionPage> {
 
   /// Foglalás rögzítése
   void submitReservation() async {
+    final state =
+        ref.read(reservationProvider); // Minden adat olvasása az állapotból
+
     final reservation = Reservation(
       parkingService: 1,
-      partnerId: widget.partnerId,
-      alreadyRegistered: widget.alreadyRegistered,
-      withoutRegistration: widget.withoutRegistration,
-      name: widget.nameController.text,
-      email: widget.emailController.text,
-      phone: '+${widget.phoneController.text}',
-      licensePlate: widget.licensePlateController.text,
-      arriveDate: widget.arriveDate!,
-      leaveDate: widget.leaveDate!,
-      parkingArticleId: widget.parkingArticleId,
+      partnerId: state.partnerId,
+      alreadyRegistered: state.alreadyRegistered,
+      withoutRegistration: state.withoutRegistration,
+      name: state.name,
+      email: state.email,
+      phone: state.phone,
+      licensePlate: state.licensePlate,
+      arriveDate: state.arriveDate!,
+      leaveDate: state.leaveDate!,
+      parkingArticleId: state.parkingArticleId,
       parkingArticleVolume: "1",
-      transferPersonCount: widget.transferPersonCount,
-      vip: widget.vip!,
-      suitcaseWrappingCount: widget.suitcaseWrappingCount,
-      washDateTime: widget.washDateTime,
-      payTypeId: widget.payTypeId,
-      description: widget.descriptionController.text,
-      carWashArticleId: widget.carWashArticleId,
+      transferPersonCount: state.transferPersonCount,
+      vip: state.vip,
+      suitcaseWrappingCount: state.suitcaseWrappingCount,
+      washDateTime: state.washDateTime,
+      payTypeId: state.payTypeId,
+      description: state.description,
+      carWashArticleId: state.carWashArticleId,
     );
 
-    await ApiService()
-        .submitReservation(context, reservation, widget.authToken);
+    await ApiService().submitReservation(
+        context, reservation, state.authToken); // AuthToken is az állapotból
   }
 
   @override

@@ -1,5 +1,6 @@
 import 'package:airport_test/Pages/reservationForm/invoiceOptionPage.dart';
 import 'package:airport_test/Pages/reservationForm/washOrderPage.dart';
+import 'package:airport_test/api_services/api_classes/reservation.dart';
 import 'package:airport_test/api_services/api_classes/user_data.dart';
 import 'package:airport_test/constants/formatters.dart';
 import 'package:airport_test/constants/functions/occupancy_colors.dart';
@@ -18,37 +19,17 @@ import 'package:airport_test/constants/widgets/parking_zone_selection_card.dart'
 import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/constants/enums/parkingFormEnums.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-class ParkOrderPage extends StatefulWidget {
-  final String authToken;
-  final String partnerId;
-  final String personId;
-  final BookingOption bookingOption;
-  final bool alreadyRegistered;
-  final bool withoutRegistration;
-  final TextEditingController emailController;
-  final TextEditingController? nameController;
-  final TextEditingController? phoneController;
-  final TextEditingController? licensePlateController;
-  const ParkOrderPage(
-      {super.key,
-      required this.authToken,
-      required this.personId,
-      required this.partnerId,
-      required this.bookingOption,
-      required this.emailController,
-      this.nameController,
-      this.phoneController,
-      this.licensePlateController,
-      required this.alreadyRegistered,
-      required this.withoutRegistration});
+class ParkOrderPage extends ConsumerStatefulWidget {
+  const ParkOrderPage({super.key});
 
   @override
-  State<ParkOrderPage> createState() => ParkOrderPageState();
+  ConsumerState<ParkOrderPage> createState() => ParkOrderPageState();
 }
 
-class ParkOrderPageState extends State<ParkOrderPage> {
+class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
   final formKey = GlobalKey<FormState>();
 
   final TextEditingController nameController = TextEditingController();
@@ -121,17 +102,46 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   /// Foglalások és szolgáltatások lekérdezése
   Future<void> fetchData() async {
     final api = ApiService();
+    // Adatok olvasása a Riverpod állapotból
+    final reservationState = ref.read(reservationProvider);
+    final String personId = reservationState.personId;
 
-    // Felhasználói fiók lekérése
-    final UserData? userData = await api.getUserData(context, widget.personId);
+    // ... (Felhasználói adatok lekérése a `personId` alapján)
+    final UserData? userData = await api.getUserData(context, personId);
 
     if (userData != null) {
       setState(() {
-        // A beviteli mezők kitöltése a felhasználói adatokkal
+        // Controllerek feltöltése
         nameController.text = userData.person_Name;
         phoneController.text = formatPhone(userData.phone);
+        licensePlateController.text = reservationState.licensePlate;
+        descriptionController.text = reservationState.description;
       });
     }
+
+    // Állapot betöltése a Riverpodból
+    setState(() {
+      selectedArriveDate = reservationState.arriveDate;
+      selectedLeaveDate = reservationState.leaveDate;
+      selectedArriveTime = selectedArriveDate != null
+          ? TimeOfDay(
+              hour: selectedArriveDate!.hour,
+              minute: selectedArriveDate!.minute)
+          : null;
+      selectedParkingArticleId = reservationState.parkingArticleId;
+      transferCount = reservationState.transferPersonCount;
+      VIPDriverRequested = reservationState.vip;
+      suitcaseWrappingCount = reservationState.suitcaseWrappingCount;
+      suitcaseWrappingRequested = suitcaseWrappingCount > 0;
+      selectedPayTypeId = reservationState.payTypeId.isNotEmpty
+          ? reservationState.payTypeId
+          : PayTypes.first.payTypeId;
+
+      if (selectedArriveDate != null && selectedLeaveDate != null) {
+        UpdateParkingDays();
+        fetchParkingPrices();
+      }
+    });
   }
 
   /// Parkoló zóna árak lekérdezése
@@ -156,14 +166,16 @@ class ParkOrderPageState extends State<ParkOrderPage> {
       ),
     );
     final api = ApiService();
+    final reservationState = ref.read(reservationProvider);
     // Parkoló zóna árak lekérdezése
     final parkingPriceData = await api.getParkingPrices(
-        context,
-        widget.authToken,
-        beginInterval,
-        endInterval,
-        widget.partnerId,
-        selectedPayTypeId);
+      context,
+      reservationState.authToken,
+      beginInterval,
+      endInterval,
+      reservationState.partnerId,
+      selectedPayTypeId,
+    );
     if (parkingPriceData != null && ServiceTemplates.isNotEmpty) {
       setState(() {
         parkingPrices = parkingPriceData;
@@ -299,62 +311,45 @@ class ParkOrderPageState extends State<ParkOrderPage> {
 
   void OnNextPageButtonPressed() async {
     if (formKey.currentState!.validate()) {
-      if (selectedParkingArticleId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Válasszon parkoló zónát')),
-        );
-      } else {
-        Widget? nextPage;
-        if (widget.bookingOption == BookingOption.parking) {
-          nextPage = InvoiceOptionPage(
-            authToken: widget.authToken,
-            payTypeId: selectedPayTypeId,
-            partnerId: widget.partnerId,
-            nameController: nameController,
-            emailController: widget.emailController,
-            phoneController: phoneController,
-            licensePlateController: licensePlateController,
-            arriveDate: selectedArriveDate,
-            leaveDate: selectedLeaveDate,
-            transferPersonCount: transferCount,
-            vip: VIPDriverRequested,
-            descriptionController: descriptionController,
-            bookingOption: widget.bookingOption,
-            parkingArticleId: selectedParkingArticleId!,
-            suitcaseWrappingCount: suitcaseWrappingCount,
-            alreadyRegistered: widget.alreadyRegistered,
-            withoutRegistration: widget.withoutRegistration,
+      // ... (ellenőrzések)
+
+      // 1. Kontakt és Rendszám adatok mentése
+      ref.read(reservationProvider.notifier).updateContactAndLicense(
+            name: nameController.text,
+            email: ref.read(reservationProvider).email, // Korábbi oldalról
+            phone: '+${phoneController.text}',
+            licensePlate: licensePlateController.text,
           );
-        } else if (widget.bookingOption == BookingOption.both) {
-          nextPage = WashOrderPage(
-            authToken: widget.authToken,
-            personId: widget.personId,
-            partnerId: widget.partnerId,
-            bookingOption: widget.bookingOption,
-            emailController: widget.emailController,
-            licensePlateController: licensePlateController,
-            nameController: nameController,
-            phoneController: phoneController,
-            descriptionController: descriptionController,
-            arriveDate: selectedArriveDate,
-            leaveDate: selectedLeaveDate,
-            transferPersonCount: transferCount,
-            vip: VIPDriverRequested,
-            parkingCost: totalCost,
-            suitcaseWrappingCount: suitcaseWrappingCount,
-            alreadyRegistered: widget.alreadyRegistered,
-            withoutRegistration: widget.withoutRegistration,
+
+      // 2. Parkolás adatok mentése
+      ref.read(reservationProvider.notifier).updateParking(
+            arriveDate: selectedArriveDate!,
+            leaveDate: selectedLeaveDate!,
             parkingArticleId: selectedParkingArticleId,
+            transferPersonCount: transferCount,
+            vip: VIPDriverRequested,
+            suitcaseWrappingCount: suitcaseWrappingCount,
+            parkingCost: totalCost,
+            payTypeId: selectedPayTypeId,
+            description: descriptionController.text,
           );
-        }
-        if (selectedArriveDate != null && selectedLeaveDate != null) {
-          Navigation(context: context, page: nextPage!).push();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Válassz ki Parkolási intervallumot!')),
-          );
-        }
+
+      // 3. Navigálás a következő oldalra a bookingOption alapján
+      Widget? nextPage;
+      final bookingOption = ref.read(reservationProvider).bookingOption;
+
+      if (bookingOption == BookingOption.parking) {
+        nextPage = const InvoiceOptionPage();
+      } else if (bookingOption == BookingOption.both) {
+        nextPage = const WashOrderPage();
+      }
+
+      if (nextPage != null) {
+        Navigation(context: context, page: nextPage).push();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Válassz ki Parkolási intervallumot!')),
+        );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -751,12 +746,13 @@ class ParkOrderPageState extends State<ParkOrderPage> {
   }
 
   Widget buildPaymentMethods() {
+    final bookingOption = ref.read(reservationProvider).bookingOption;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text.rich(
           TextSpan(
-            text: widget.bookingOption == BookingOption.parking
+            text: bookingOption == BookingOption.parking
                 ? 'Fizetendő összeg: '
                 : 'A parkolás ára: ',
             style: TextStyle(fontSize: 16),
@@ -768,7 +764,7 @@ class ParkOrderPageState extends State<ParkOrderPage> {
             ],
           ),
         ),
-        widget.bookingOption == BookingOption.parking
+        bookingOption == BookingOption.parking
             ? Column(
                 children: PayTypes.map((payType) {
                   return MyRadioListTile<String>(

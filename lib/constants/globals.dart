@@ -28,7 +28,7 @@ List<AvailableListPanel> AvailableListPanels = [];
 
 /// Elindításkor megnézi, hogy mobilról van-e megnyitva.
 /// True -> Mobil | False -> Desktop
-bool? IsMobile;
+bool IsMobile = false;
 
 /// Az applikáció elindításakor lekért fizetési módok.
 // A fizetési módokat CSAK az elindításkor kérjük le.

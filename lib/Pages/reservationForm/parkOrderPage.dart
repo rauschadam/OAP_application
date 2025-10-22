@@ -12,7 +12,7 @@ import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/my_checkbox.dart';
 import 'package:airport_test/constants/widgets/my_icon_button.dart';
 import 'package:airport_test/constants/widgets/my_radio_list_tile.dart';
-import 'package:airport_test/constants/widgets/my_date_range_picker_dialog.dart';
+import 'package:airport_test/constants/dialogs/my_date_range_picker_dialog.dart';
 import 'package:airport_test/constants/widgets/my_text_form_field.dart';
 import 'package:airport_test/constants/widgets/next_page_button.dart';
 import 'package:airport_test/constants/widgets/parking_zone_selection_card.dart';
@@ -397,9 +397,16 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
                   hintText: 'Megjegyzés a recepciónak',
                   onEditingComplete: OnNextPageButtonPressed,
                 ),
-                NextPageButton(
-                  focusNode: nextPageButtonFocus,
-                  onPressed: OnNextPageButtonPressed,
+                Padding(
+                  padding: const EdgeInsets.all(AppPadding.medium),
+                  child: SafeArea(
+                    bottom: true,
+                    top: false, // Csak az alsó margó számít
+                    child: NextPageButton(
+                      focusNode: nextPageButtonFocus,
+                      onPressed: OnNextPageButtonPressed,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -491,45 +498,69 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
                           BorderRadius.circular(AppBorderRadius.small),
                       border: Border.all(color: AppColors.primary, width: 1),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Icon(Icons.flight_takeoff_rounded,
-                                color: AppColors.primary),
-                            SizedBox(width: 8),
-                            Text(
-                              "Érkezés: ${selectedArriveDate != null ? DateFormat('yyyy.MM.dd HH:mm').format(selectedArriveDate!) : "-"}",
-                              style: TextStyle(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.bold,
+                    // Row helyett Column, ha mobil
+                    child: IsMobile
+                        ? Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              // Érkezés
+                              buildDateInfo(
+                                Icons.flight_takeoff_rounded,
+                                "Érkezés",
+                                selectedArriveDate,
                               ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.flight_land_rounded,
-                                color: AppColors.primary),
-                            SizedBox(width: 8),
-                            Text(
-                              "Távozás: ${selectedLeaveDate != null ? DateFormat('yyyy.MM.dd HH:mm').format(selectedLeaveDate!) : "-"}",
-                              style: TextStyle(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.bold,
+                              const SizedBox(height: 8),
+                              // Távozás
+                              buildDateInfo(
+                                Icons.flight_land_rounded,
+                                "Távozás",
+                                selectedLeaveDate,
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                            ],
+                          )
+                        : Row(
+                            // PC: Egymás mellett
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              // Érkezés
+                              buildDateInfo(
+                                Icons.flight_takeoff_rounded,
+                                "Érkezés",
+                                selectedArriveDate,
+                              ),
+                              // Távozás
+                              buildDateInfo(
+                                Icons.flight_land_rounded,
+                                "Távozás",
+                                selectedLeaveDate,
+                              ),
+                            ],
+                          ),
                   ),
                 ),
               ),
           ],
+        ),
+      ],
+    );
+  }
+
+  // Segéd widget a dátum információk megjelenítéséhez
+  Widget buildDateInfo(IconData icon, String label, DateTime? date) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      mainAxisSize: MainAxisSize
+          .min, // Fontos, hogy ne feszítse szét a Row-t feleslegesen
+      children: [
+        Icon(icon, color: AppColors.primary),
+        const SizedBox(width: 8),
+        Text(
+          "$label: ${date != null ? DateFormat('yyyy.MM.dd HH:mm').format(date) : "-"}",
+          style: TextStyle(
+            color: AppColors.primary,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ],
     );
@@ -578,8 +609,8 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
       children: [
         Row(
           children: [
-            Text('Transzferre váró személyek száma'),
-            SizedBox(width: IsMobile! ? 0 : 16),
+            Text('Transzfer személyek száma'),
+            SizedBox(width: IsMobile ? 0 : 16),
             IconButton.filled(
               onPressed: () {
                 setState(() {
@@ -605,10 +636,10 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
                 padding: EdgeInsets.zero,
               ),
             ),
-            SizedBox(width: IsMobile! ? 0 : 8),
+            SizedBox(width: IsMobile ? 0 : 8),
             Text('$transferCount',
                 style: TextStyle(fontWeight: FontWeight.bold)),
-            SizedBox(width: IsMobile! ? 0 : 8),
+            SizedBox(width: IsMobile ? 0 : 8),
             IconButton.filled(
               onPressed: () {
                 setState(() {
@@ -648,7 +679,7 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
                 CalculateTotalCost();
               },
             ),
-            Text('VIP sofőr igénylése (Hozza viszi az autót a parkolóba)')
+            Text('VIP sofőr igénylése')
           ],
         ),
         Row(
@@ -656,7 +687,6 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
             MyCheckBox(
               value: suitcaseWrappingRequested,
               focusNode: suitcaseWrappingFocus,
-              //nextFocus: descriptionFocus,
               onChanged: (value) {
                 setState(() {
                   suitcaseWrappingRequested = value ?? false;
@@ -673,7 +703,7 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
             suitcaseWrappingRequested
                 ? Row(
                     children: [
-                      SizedBox(width: IsMobile! ? 0 : 16),
+                      SizedBox(width: IsMobile ? 0 : 16),
                       IconButton.filled(
                         onPressed: () {
                           setState(() {
@@ -704,10 +734,10 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
                           padding: EdgeInsets.zero,
                         ),
                       ),
-                      SizedBox(width: IsMobile! ? 0 : 8),
+                      SizedBox(width: IsMobile ? 0 : 8),
                       Text('$suitcaseWrappingCount',
                           style: TextStyle(fontWeight: FontWeight.bold)),
-                      SizedBox(width: IsMobile! ? 0 : 8),
+                      SizedBox(width: IsMobile ? 0 : 8),
                       IconButton.filled(
                         onPressed: () {
                           setState(() {

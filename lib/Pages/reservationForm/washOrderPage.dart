@@ -10,7 +10,7 @@ import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/navigation.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/car_wash_selection_card.dart';
-import 'package:airport_test/constants/widgets/my_date_picker_dialog.dart';
+import 'package:airport_test/constants/dialogs/my_date_picker_dialog.dart';
 import 'package:airport_test/constants/widgets/my_icon_button.dart';
 import 'package:airport_test/constants/widgets/my_radio_list_tile.dart';
 import 'package:airport_test/constants/widgets/my_text_form_field.dart';

@@ -1,4 +1,4 @@
-import 'package:airport_test/Pages/homePage.dart';
+import 'package:airport_test/Pages/homePage/homePage.dart';
 import 'package:airport_test/api_services/api_classes/login_data.dart';
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/api_services/auth_manager.dart';

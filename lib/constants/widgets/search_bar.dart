@@ -1,3 +1,4 @@
+import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:flutter/material.dart';
 
@@ -15,7 +16,7 @@ class MySearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 300,
+      width: IsMobile ? double.infinity : 300,
       height: 35,
       child: Theme(
         data: Theme.of(context).copyWith(

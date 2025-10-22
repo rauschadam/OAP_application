@@ -1,31 +1,35 @@
 import 'package:airport_test/constants/functions/timeslot_generator.dart';
 import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/theme.dart';
+import 'package:airport_test/constants/dialogs/error_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
-/// WashOrderPage-en használjuk
-class MyDatePickerDialog extends StatefulWidget {
-  final DateTime? initialWashDate;
-  final TimeOfDay? initialWashTime;
-  final List<DateTime> fullyBookedDateTimes;
-  final Function(DateTime washDate, TimeOfDay washTime) onDateSelected;
+/// A ParkOrderPage-n használjuk
+class MyDateRangePickerDialog extends StatefulWidget {
+  final DateTime? initialArriveDate;
+  final DateTime? initialLeaveDate;
+  final TimeOfDay? initialArriveTime;
+  final Function(DateTime arriveDate, DateTime leaveDate, TimeOfDay arriveTime)
+      onDateSelected;
 
-  const MyDatePickerDialog({
+  const MyDateRangePickerDialog({
     super.key,
-    this.initialWashDate,
-    this.initialWashTime,
-    required this.fullyBookedDateTimes,
+    this.initialArriveDate,
+    this.initialLeaveDate,
+    this.initialArriveTime,
     required this.onDateSelected,
   });
 
   @override
-  State<MyDatePickerDialog> createState() => _MyDatePickerDialogState();
+  State<MyDateRangePickerDialog> createState() =>
+      _MyDateRangePickerDialogState();
 }
 
-class _MyDatePickerDialogState extends State<MyDatePickerDialog> {
-  DateTime? tempWashDate;
-  TimeOfDay? tempWashTime;
+class _MyDateRangePickerDialogState extends State<MyDateRangePickerDialog> {
+  DateTime? tempArriveDate;
+  DateTime? tempLeaveDate;
+  TimeOfDay? tempArriveTime;
   List<TimeOfDay> availableSlots = [];
   Map<String, int> hoveredIndexMap = {
     "Hajnal": -1,
@@ -38,10 +42,11 @@ class _MyDatePickerDialogState extends State<MyDatePickerDialog> {
   @override
   void initState() {
     super.initState();
-    tempWashDate = widget.initialWashDate;
-    tempWashTime = widget.initialWashTime;
+    tempArriveDate = widget.initialArriveDate;
+    tempLeaveDate = widget.initialLeaveDate;
+    tempArriveTime = widget.initialArriveTime;
 
-    if (tempWashDate != null) {
+    if (tempArriveDate != null && tempLeaveDate != null) {
       updateAvailableSlots();
     }
   }
@@ -55,10 +60,10 @@ class _MyDatePickerDialogState extends State<MyDatePickerDialog> {
     setState(() {
       availableSlots = allSlots.where((time) {
         // Múltbeli időpontokat kiszűrjük
-        if (tempWashDate != null &&
-            tempWashDate!.year == today.year &&
-            tempWashDate!.month == today.month &&
-            tempWashDate!.day == today.day) {
+        if (tempArriveDate != null &&
+            tempArriveDate!.year == today.year &&
+            tempArriveDate!.month == today.month &&
+            tempArriveDate!.day == today.day) {
           if (time.hour < currentTime.hour ||
               (time.hour == currentTime.hour &&
                   time.minute <= currentTime.minute)) {
@@ -66,15 +71,7 @@ class _MyDatePickerDialogState extends State<MyDatePickerDialog> {
           }
         }
 
-        ///Ellenőrizzük, hogy foglalt-e az adott időpont
-        bool isBooked = widget.fullyBookedDateTimes.any((d) =>
-            d.year == (tempWashDate?.year ?? 0) &&
-            d.month == (tempWashDate?.month ?? 0) &&
-            d.day == (tempWashDate?.day ?? 0) &&
-            d.hour == time.hour &&
-            d.minute == time.minute);
-
-        return !isBooked;
+        return true;
       }).toList();
     });
   }
@@ -129,15 +126,15 @@ class _MyDatePickerDialogState extends State<MyDatePickerDialog> {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: IsMobile! ? 3 : 4,
+                      crossAxisCount: IsMobile ? 3 : 4,
                       mainAxisSpacing: 8,
-                      crossAxisSpacing: IsMobile! ? 2 : 8,
-                      childAspectRatio: IsMobile! ? 2.2 : 3,
+                      crossAxisSpacing: IsMobile ? 2 : 8,
+                      childAspectRatio: IsMobile ? 2.2 : 3,
                     ),
                     itemCount: entry.value.length,
                     itemBuilder: (context, index) {
                       final time = entry.value[index];
-                      bool isSelected = tempWashTime == time;
+                      bool isSelected = tempArriveTime == time;
                       bool isHovered = hoveredIndexMap[entry.key] == index;
 
                       Color cardColor;
@@ -164,7 +161,7 @@ class _MyDatePickerDialogState extends State<MyDatePickerDialog> {
                         child: GestureDetector(
                           onTap: () {
                             setState(() {
-                              tempWashTime = time;
+                              tempArriveTime = time;
                             });
                           },
                           child: Card(
@@ -176,7 +173,7 @@ class _MyDatePickerDialogState extends State<MyDatePickerDialog> {
                             color: cardColor,
                             child: Center(
                               child: Text(
-                                time.format(context),
+                                '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}',
                                 style: TextStyle(
                                   color:
                                       isSelected ? Colors.white : Colors.black,
@@ -201,16 +198,38 @@ class _MyDatePickerDialogState extends State<MyDatePickerDialog> {
   }
 
   void onConfirmSelection() {
-    if (tempWashDate != null && tempWashTime != null) {
+    if (tempArriveDate != null &&
+        tempLeaveDate != null &&
+        tempArriveTime != null) {
+      final diff = tempLeaveDate!.difference(tempArriveDate!).inDays;
+      if (diff < 1) {
+        showErrorDialog(context,
+            "A választott tartománynak legalább 1 napnak kell lennie.");
+        return;
+      }
+      if (diff > 30) {
+        showErrorDialog(
+            context, "A választott tartomány legfeljebb 30 nap lehet.");
+        return;
+      }
+
       final arriveDateTime = DateTime(
-        tempWashDate!.year,
-        tempWashDate!.month,
-        tempWashDate!.day,
-        tempWashTime!.hour,
-        tempWashTime!.minute,
+        tempArriveDate!.year,
+        tempArriveDate!.month,
+        tempArriveDate!.day,
+        tempArriveTime!.hour,
+        tempArriveTime!.minute,
       );
 
-      widget.onDateSelected(arriveDateTime, tempWashTime!);
+      final leaveDateTime = DateTime(
+        tempLeaveDate!.year,
+        tempLeaveDate!.month,
+        tempLeaveDate!.day,
+        tempArriveTime!.hour,
+        tempArriveTime!.minute,
+      );
+
+      widget.onDateSelected(arriveDateTime, leaveDateTime, tempArriveTime!);
       Navigator.of(context).pop();
     }
   }
@@ -237,23 +256,28 @@ class _MyDatePickerDialogState extends State<MyDatePickerDialog> {
                 backgroundColor: Colors.white,
               ),
               backgroundColor: Colors.white,
-              initialDisplayDate: tempWashDate,
-              initialSelectedDate: tempWashDate,
-              selectionMode: DateRangePickerSelectionMode.single,
+              initialSelectedRange:
+                  tempArriveDate != null && tempLeaveDate != null
+                      ? PickerDateRange(tempArriveDate, tempLeaveDate)
+                      : null,
+              selectionMode: DateRangePickerSelectionMode.range,
               todayHighlightColor: AppColors.primary,
-              selectionColor: AppColors.primary,
-              showNavigationArrow: true,
+              startRangeSelectionColor: AppColors.primary,
+              endRangeSelectionColor: AppColors.primary,
+              rangeSelectionColor: AppColors.secondary,
               enablePastDates: false,
               maxDate: DateTime.now().add(const Duration(days: 120)),
               onSelectionChanged: (args) {
-                if (args.value is DateTime) {
-                  final DateTime selectedDate = args.value;
+                if (args.value is PickerDateRange) {
+                  final start = args.value.startDate;
+                  final end = args.value.endDate;
 
                   setState(() {
-                    tempWashDate = selectedDate;
-                    tempWashTime = null; // Reseteljük
+                    tempArriveDate = start;
+                    tempLeaveDate = end;
+                    tempArriveTime = null; // Reseteljük
 
-                    if (tempWashDate != null) {
+                    if (tempArriveDate != null && tempLeaveDate != null) {
                       updateAvailableSlots();
                     }
                   });
@@ -262,18 +286,20 @@ class _MyDatePickerDialogState extends State<MyDatePickerDialog> {
             ),
 
             // Időpont választás
-            if (tempWashDate != null)
+            if (tempArriveDate != null && tempLeaveDate != null)
               availableSlots.isNotEmpty
                   ? buildTimeSlotPicker(availableSlots)
                   : const Text('Ezen a napon nincs szabad időpont')
             else
               const Text(
-                  'Válasszon ki érkezési dátumot az időpontok megtekintéséhez'),
+                  'Válasszon ki érkezési és távozási dátumot, az időpontok megtekintéséhez'),
 
             const SizedBox(height: 10),
 
             // Oké gomb
-            if (tempWashDate != null && tempWashTime != null)
+            if (tempArriveDate != null &&
+                tempLeaveDate != null &&
+                tempArriveTime != null)
               SizedBox(
                 height: 50,
                 width: double.infinity,

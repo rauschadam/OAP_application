@@ -40,7 +40,7 @@ class BasePage extends StatelessWidget {
         backgroundColor: AppColors.background,
         drawer: drawer,
         body: Center(
-          child: !IsMobile!
+          child: !IsMobile
               ? Row(
                   children: [
                     haveMargins

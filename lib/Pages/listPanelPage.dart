@@ -30,6 +30,9 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
   final GlobalKey searchContainerKey = GlobalKey();
   final GlobalKey<RefreshIndicatorState> refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
+  // Kulcs a ListPanelGrid eléréséhez az exportáláshoz
+  final GlobalKey<ListPanelGridState<dynamic>> gridKey =
+      GlobalKey<ListPanelGridState<dynamic>>();
 
   FocusNode searchFocus = FocusNode();
 
@@ -76,7 +79,7 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
       // SearchOptions automatikus feltöltése a látható mezőkből
       final generatedSearchOptions = {
         for (var f in fieldsData.where((f) => f.fieldVisible))
-          f.fieldCaption ?? f.listFieldName: false,
+          f.listFieldName: false,
       };
 
       setState(() {
@@ -203,6 +206,7 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
                                             width: double.infinity,
                                             height: double.infinity)
                                         : ListPanelGrid(
+                                            key: gridKey,
                                             rows:
                                                 filteredData ?? listPanelData!,
                                             listPanelFields:
@@ -218,27 +222,81 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
                                 Positioned(
                                   top: 3,
                                   left: AppPadding.medium,
-                                  child: Container(
-                                    key: searchContainerKey,
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                        color: showFilters
-                                            ? AppColors.primary
-                                            : Colors.transparent,
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        key: searchContainerKey,
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: showFilters
+                                                ? AppColors.primary
+                                                : Colors.transparent,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                              AppBorderRadius.large),
+                                          color: showFilters
+                                              ? Colors.white
+                                              : Colors.transparent,
+                                        ),
+                                        padding:
+                                            EdgeInsets.all(AppPadding.small),
+                                        child: Column(
+                                          children: [
+                                            buildSearchBar(),
+                                            buildSearchFilters(),
+                                          ],
+                                        ),
                                       ),
-                                      borderRadius: BorderRadius.circular(
-                                          AppBorderRadius.large),
-                                      color: showFilters
-                                          ? Colors.white
-                                          : Colors.transparent,
-                                    ),
-                                    padding: EdgeInsets.all(AppPadding.small),
-                                    child: Column(
-                                      children: [
-                                        buildSearchBar(),
-                                        buildSearchFilters(),
-                                      ],
-                                    ),
+                                      // Export gomb a kereső mellett
+                                      if (!loading &&
+                                          (filteredData ?? listPanelData)
+                                                  ?.isNotEmpty ==
+                                              true)
+                                        // 1. Másolás gomb
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              left: AppPadding.medium, top: 4),
+                                          child: Tooltip(
+                                            message: "Másolás vágólapra (TSV)",
+                                            child: IconButton(
+                                              onPressed: () {
+                                                gridKey.currentState
+                                                    ?.copyDataToClipboard(); // ÚJ HÍVÁS
+                                              },
+                                              icon: const Icon(
+                                                Icons.copy,
+                                                color: AppColors.primary,
+                                                size: 30,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      if (!loading &&
+                                          (filteredData ?? listPanelData)
+                                                  ?.isNotEmpty ==
+                                              true)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              left: AppPadding.medium, top: 4),
+                                          child: Tooltip(
+                                            message: "Exportálás Excelbe",
+                                            child: IconButton(
+                                              onPressed: () {
+                                                // Hívjuk meg az exportáló metódust a rácsból
+                                                gridKey.currentState
+                                                    ?.exportDataGridToExcel();
+                                              },
+                                              icon: const Icon(
+                                                Icons.cloud_download,
+                                                color: AppColors.primary,
+                                                size: 30,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                 ),
                               ],
@@ -363,8 +421,9 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
 
   /// Szűrők a kereső alatt
   Widget buildSearchFilters() {
-    if (!showFilters) return Container();
+    if (!showFilters || listPanelFields == null) return Container();
 
+    // A keresési opciókat most már a listPanelFields listából generáljuk.
     return Padding(
       padding: const EdgeInsets.only(top: AppPadding.small),
       child: SizedBox(
@@ -373,19 +432,31 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
           constraints: BoxConstraints(maxHeight: 300),
           child: SingleChildScrollView(
             child: Column(
-              children: searchOptions.entries.map((entry) {
+              children: listPanelFields! // A mezőlistán iterálunk
+                  .where((f) => f.fieldVisible)
+                  .map((field) {
+                // Megjelenítéshez a user-barát nevet használjuk
+                final String displayName =
+                    field.fieldCaption ?? field.listFieldName;
+                final String listFieldName =
+                    field.listFieldName; // A technikai kulcs
+
+                // Lekérdezés a searchOptions-ből a listFieldName kulccsal
+                final bool currentValue = searchOptions[listFieldName] ?? false;
+
                 return CheckboxListTile(
                   title: Text(
-                    entry.key,
+                    displayName,
                     style: TextStyle(
                       color: AppColors.text,
                       fontSize: 13,
                     ),
                   ),
-                  value: entry.value,
+                  value: currentValue,
                   onChanged: (value) {
                     setState(() {
-                      searchOptions[entry.key] = value ?? false;
+                      // Beállítás a listFieldName kulccsal
+                      searchOptions[listFieldName] = value ?? false;
                     });
                     // Alkalmazd a szűrést azonnal az új beállításokkal
                     applySearchFilter();

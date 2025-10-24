@@ -1,12 +1,8 @@
-import 'dart:io';
-
 import 'package:airport_test/api_services/api_classes/list_panel_field.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
-import 'package:syncfusion_flutter_datagrid_export/export.dart';
-import 'package:syncfusion_flutter_xlsio/xlsio.dart' hide Column;
 
 class ListPanelGrid<T> extends StatefulWidget {
   final List<T> rows;
@@ -33,65 +29,6 @@ class ListPanelGridState<T> extends State<ListPanelGrid<T>> {
   late Map<String, double> columnWidths = {};
   // GlobalKey az SfDataGrid állapotához az exportáláshoz
   final GlobalKey<SfDataGridState> sfGridKey = GlobalKey<SfDataGridState>();
-
-  // --- EXCEL EXPORT ---
-  Future<void> exportDataGridToExcel() async {
-    // 1. Exportálás Workbook-ba a GlobalKey segítségével
-    final Workbook workbook =
-        sfGridKey.currentState!.exportToExcelWorkbook(exportRowHeight: false);
-
-    // 2. Workbook mentése byte-okká
-    final List<int> bytes = workbook.saveAsStream();
-    workbook.dispose();
-
-    // 3. Fájl mentése és megnyitása (Desktop/Windows)
-    if (bytes.isNotEmpty) {
-      try {
-        // Fájlnév beállítása
-        final String fileName =
-            '${widget.listPanelFields.isNotEmpty ? widget.listPanelFields.first.fieldCaption ?? 'exported_data' : 'exported_data'}.xlsx';
-
-        // Mivel a `path_provider` nincs itt importálva (és nem fut a sandboxban),
-        // szimuláljuk az asztali útvonalat. Az éles kódban ide kell a path_provider.
-        // Helyettesítő útvonal az applikációs könyvtárban
-        final String desktopPath = './';
-        final String finalPath = Platform.isWindows
-            ? '$desktopPath\\$fileName'
-            : '$desktopPath/$fileName';
-
-        final File file = File(finalPath);
-        await file.writeAsBytes(bytes, flush: true);
-
-        // Fájl megnyitása a platform natív parancsával
-        if (Platform.isWindows) {
-          await Process.run('start', <String>[file.absolute.path],
-              runInShell: true);
-        } else if (Platform.isMacOS) {
-          await Process.run('open', <String>[file.absolute.path],
-              runInShell: true);
-        } else if (Platform.isLinux) {
-          await Process.run('xdg-open', <String>[file.absolute.path],
-              runInShell: true);
-        }
-
-        // Visszajelzés a felhasználónak
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Sikeres exportálás: $fileName megnyitva.')),
-          );
-        }
-      } catch (e) {
-        debugPrint('Hiba a fájl mentésekor: $e');
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text(
-                    'Hiba az exportálás során! Ellenőrizze a fájl jogosultságokat.')),
-          );
-        }
-      }
-    }
-  }
 
   // --- MÁSOLÁS VÁGÓLAPRA ---
   Future<void> copyDataToClipboard() async {
@@ -120,8 +57,7 @@ class ListPanelGridState<T> extends State<ListPanelGrid<T>> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text(
-                'A lista tartalma sikeresen a vágólapra másolva (TSV formátumban).')),
+            content: Text('A lista tartalma sikeresen a vágólapra másolva.')),
       );
     }
   }

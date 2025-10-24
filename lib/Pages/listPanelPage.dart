@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:airport_test/api_services/api_classes/available_list_panel.dart';
 import 'package:airport_test/api_services/api_classes/list_panel_field.dart';
 import 'package:airport_test/api_services/api_service.dart';
@@ -9,6 +10,7 @@ import 'package:airport_test/constants/widgets/shimmer_placeholder_template.dart
 import 'package:airport_test/constants/widgets/side_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class GenericListPanelPage extends StatefulWidget {
   final AvailableListPanel listPanel;
@@ -60,6 +62,52 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
   /// True -> Lekérdezések még folyamatban vannak
   bool loading = true;
 
+  /// A panel ID-jétől függő kulcs
+  String get listPanelKey =>
+      'list_panel_search_filters_${widget.listPanel.disrtibutedId}';
+
+  /// A mentett keresési opciók betöltése
+  Future<void> loadSearchOptions() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? savedJson = prefs.getString(listPanelKey);
+
+    if (savedJson != null) {
+      try {
+        final Map<String, dynamic> loadedMap =
+            Map<String, dynamic>.from(jsonDecode(savedJson));
+
+        // Csak a listPanelFields által ismert mezőket töltjük vissza
+        final newSearchOptions = <String, bool>{};
+        final currentKeys = searchOptions.keys.toSet();
+
+        loadedMap.forEach((key, value) {
+          if (currentKeys.contains(key) && value is bool) {
+            newSearchOptions[key] = value;
+          }
+        });
+
+        if (newSearchOptions.isNotEmpty) {
+          setState(() {
+            searchOptions
+              ..clear()
+              ..addAll(newSearchOptions);
+          });
+        }
+        applySearchFilter();
+      } catch (e) {
+        debugPrint(
+            'Hiba a keresési opciók betöltésekor (${widget.listPanel.disrtibutedId}): $e');
+      }
+    }
+  }
+
+  /// A jelenlegi keresési opciók mentése
+  Future<void> saveSearchOptions() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String jsonString = jsonEncode(searchOptions);
+    await prefs.setString(listPanelKey, jsonString);
+  }
+
   /// Adatok lekérdezése
   Future<void> fetchData() async {
     final api = ApiService();
@@ -90,6 +138,10 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
           ..addAll(generatedSearchOptions);
         loading = false;
       });
+
+      // Betöltjük az elmentett opciókat és alkalmazzuk a szűrést
+      await loadSearchOptions();
+      applySearchFilter();
     } else {
       setState(() => loading = false);
     }
@@ -249,53 +301,7 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
                                           ],
                                         ),
                                       ),
-                                      // Export gomb a kereső mellett
-                                      if (!loading &&
-                                          (filteredData ?? listPanelData)
-                                                  ?.isNotEmpty ==
-                                              true)
-                                        // 1. Másolás gomb
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                              left: AppPadding.medium, top: 4),
-                                          child: Tooltip(
-                                            message: "Másolás vágólapra (TSV)",
-                                            child: IconButton(
-                                              onPressed: () {
-                                                gridKey.currentState
-                                                    ?.copyDataToClipboard(); // ÚJ HÍVÁS
-                                              },
-                                              icon: const Icon(
-                                                Icons.copy,
-                                                color: AppColors.primary,
-                                                size: 30,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      if (!loading &&
-                                          (filteredData ?? listPanelData)
-                                                  ?.isNotEmpty ==
-                                              true)
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                              left: AppPadding.medium, top: 4),
-                                          child: Tooltip(
-                                            message: "Exportálás Excelbe",
-                                            child: IconButton(
-                                              onPressed: () {
-                                                // Hívjuk meg az exportáló metódust a rácsból
-                                                gridKey.currentState
-                                                    ?.exportDataGridToExcel();
-                                              },
-                                              icon: const Icon(
-                                                Icons.cloud_download,
-                                                color: AppColors.primary,
-                                                size: 30,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
+                                      copyGridButton(),
                                     ],
                                   ),
                                 ),
@@ -460,6 +466,7 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
                     });
                     // Alkalmazd a szűrést azonnal az új beállításokkal
                     applySearchFilter();
+                    saveSearchOptions();
                   },
                   dense: true,
                   activeColor: AppColors.primary,
@@ -467,6 +474,29 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
                 );
               }).toList(),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Másolás gomb
+  Widget copyGridButton() {
+    if (loading || (filteredData ?? listPanelData)?.isEmpty == true) {
+      return Container();
+    }
+    return Padding(
+      padding: const EdgeInsets.only(left: AppPadding.medium, top: 4),
+      child: Tooltip(
+        message: "Másolás vágólapra",
+        child: IconButton(
+          onPressed: () {
+            gridKey.currentState?.copyDataToClipboard();
+          },
+          icon: const Icon(
+            Icons.copy,
+            color: AppColors.primary,
+            size: 30,
           ),
         ),
       ),

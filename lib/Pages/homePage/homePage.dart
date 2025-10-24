@@ -28,13 +28,17 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage> {
+  // --- FOCUSNODE ---
+  FocusNode searchFocus = FocusNode();
+  FocusNode keyboardFocus = FocusNode();
+
+  // --- KONTROLLEREK ---
   final SearchController searchController = SearchController();
+
+  // --- KULCSOK ---
   final GlobalKey searchContainerKey = GlobalKey();
   final GlobalKey<RefreshIndicatorState> refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
-
-  FocusNode searchFocus = FocusNode();
-  FocusNode keyboardFocus = FocusNode();
 
   Timer? refreshTimer;
   late DateTime now = DateTime.now();
@@ -45,8 +49,7 @@ class HomePageState extends State<HomePage> {
   bool loading = true;
   Map<String, List<DateTime>> fullyBookedDateTimes = {};
 
-  // --- LOGIKAI ÉS SEGÉD METÓDUSOK (A VIEWEK FOGJÁK HÍVNI) ---
-
+  /// Adatok lekérdezése
   Future<void> fetchData() async {
     if (!mounted) return;
     final api = ApiService();
@@ -63,18 +66,21 @@ class HomePageState extends State<HomePage> {
     }
   }
 
+  /// Érkezése rögzítése
   Future<void> attemptRegisterArrival(String licensePlate) async {
     final api = ApiService();
     await api.logCustomerArrival(context, licensePlate);
     fetchData();
   }
 
+  /// Távozás rögzítése
   Future<void> attemptRegisterLeave(String licensePlate) async {
     final api = ApiService();
     await api.logCustomerLeave(context, licensePlate);
     fetchData();
   }
 
+  /// Rendszám változtatása
   Future<void> attemptChangeLicensePlate(
       int webParkingId, String newLicensePlate) async {
     final api = ApiService();
@@ -196,9 +202,7 @@ class HomePageState extends State<HomePage> {
   Widget detectClicks(Widget child) {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      onTapDown: (details) {
-        // ... (eredeti detectClicks logika)
-      },
+      onTapDown: (details) {},
       child: child,
     );
   }

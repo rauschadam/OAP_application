@@ -51,20 +51,23 @@ class MobileView extends StatelessWidget {
               ),
               SizedBox(height: AppPadding.medium),
 
-              // 4. Mai teendők lista
-              homePageState.buildTodoList(
-                listTitle: 'Ma',
-                reservations: homePageState.reservations,
-                startTime: homePageState.now,
-                endTime: DateTime(homePageState.now.year,
-                        homePageState.now.month, homePageState.now.day)
-                    .add(const Duration(days: 1)),
-                maxHeight: 600.0,
+              // 4. Foglalás rögzítése gomb
+              homePageState.newReservationButton(),
+              SizedBox(height: AppPadding.medium),
+              // 5. Mai teendők lista
+              SafeArea(
+                child: homePageState.buildTodoList(
+                  listTitle: 'Ma',
+                  reservations: homePageState.reservations,
+                  startTime: homePageState.now,
+                  endTime: DateTime(homePageState.now.year,
+                          homePageState.now.month, homePageState.now.day)
+                      .add(const Duration(days: 1)),
+                  maxHeight: 500.0,
+                ),
               ),
               SizedBox(height: AppPadding.medium),
 
-              // 5. Foglalás rögzítése gomb
-              homePageState.newReservationButton(),
               SizedBox(height: AppPadding.medium),
 
               // // 6. Telített időpontok lista

@@ -31,12 +31,14 @@ class WashOrderPage extends ConsumerStatefulWidget {
 class WashOrderPageState extends ConsumerState<WashOrderPage> {
   final formKey = GlobalKey<FormState>();
 
+  // --- KONTROLLEREK
   TextEditingController nameController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
   TextEditingController licensePlateController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
   final ScrollController WashOptionsScrollController = ScrollController();
 
+  // --- FOCUSNODE ---
   FocusNode nameFocus = FocusNode();
   FocusNode phoneFocus = FocusNode();
   FocusNode licensePlateFocus = FocusNode();

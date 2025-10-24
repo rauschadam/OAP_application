@@ -32,12 +32,14 @@ class ParkOrderPage extends ConsumerStatefulWidget {
 class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
   final formKey = GlobalKey<FormState>();
 
+  // --- KONTROLLEREK ---
   final TextEditingController nameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController licensePlateController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final ScrollController ParkOptionsScrollController = ScrollController();
 
+  // --- FOCUSNODE ---
   FocusNode nameFocus = FocusNode();
   FocusNode phoneFocus = FocusNode();
   FocusNode licensePlateFocus = FocusNode();

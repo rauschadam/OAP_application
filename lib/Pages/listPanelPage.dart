@@ -25,18 +25,26 @@ class GenericListPanelPage extends StatefulWidget {
 }
 
 class _ReservationListPageState extends State<GenericListPanelPage> {
-  final SearchController searchController = SearchController();
+  // --- FOCUSNODEOK ---
   FocusNode keyboardFocus = FocusNode();
+  FocusNode searchFocus = FocusNode();
 
+  // --- KONTROLLEREK ---
+  final SearchController searchController = SearchController();
+
+  // --- KULCSOK ---
   /// A kereső és az azt körülvevő filterek kulcsa
   final GlobalKey searchContainerKey = GlobalKey();
   final GlobalKey<RefreshIndicatorState> refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
-  // Kulcs a ListPanelGrid eléréséhez az exportáláshoz
+
+  /// Kulcs a ListPanelGrid eléréséhez az exportáláshoz / másoláshoz
   final GlobalKey<ListPanelGridState<dynamic>> gridKey =
       GlobalKey<ListPanelGridState<dynamic>>();
 
-  FocusNode searchFocus = FocusNode();
+  /// A panel ID-jétől függő kulcs
+  String get listPanelKey =>
+      'list_panel_search_filters_${widget.listPanel.disrtibutedId}';
 
   /// Frissítés timer
   Timer? refreshTimer;
@@ -61,10 +69,6 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
 
   /// True -> Lekérdezések még folyamatban vannak
   bool loading = true;
-
-  /// A panel ID-jétől függő kulcs
-  String get listPanelKey =>
-      'list_panel_search_filters_${widget.listPanel.disrtibutedId}';
 
   /// A mentett keresési opciók betöltése
   Future<void> loadSearchOptions() async {
@@ -147,9 +151,11 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
     }
   }
 
+  /// Keresési filterek alkalmazása
   void applySearchFilter() {
     if (listPanelData == null || listPanelFields == null) return;
 
+    /// Keresett kifejezés
     final String query = searchController.text.toLowerCase().trim();
 
     if (query.isEmpty) {

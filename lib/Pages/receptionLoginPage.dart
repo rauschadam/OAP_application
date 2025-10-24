@@ -20,9 +20,11 @@ class ReceptionLoginPage extends StatefulWidget {
 class _ReceptionLoginPageState extends State<ReceptionLoginPage> {
   final formKey = GlobalKey<FormState>();
 
+  // --- KONTROLLEREK ---
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
+  // --- FOCUSNODE ---
   FocusNode emailFocus = FocusNode();
   FocusNode passwordFocus = FocusNode();
   FocusNode nextPageButtonFocus = FocusNode();

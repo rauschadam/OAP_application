@@ -33,7 +33,12 @@ class DesktopView extends StatelessWidget {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
-                                // A buildTodoList-et tartalmazó rész (korlátozva max magasságban)
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                      top: AppPadding.small,
+                                      bottom: AppPadding.medium),
+                                  child: homePageState.newReservationButton(),
+                                ),
                                 ConstrainedBox(
                                   constraints: BoxConstraints(maxHeight: 350.0),
                                   child: homePageState.buildTodoList(
@@ -46,12 +51,6 @@ class DesktopView extends StatelessWidget {
                                             homePageState.now.day)
                                         .add(const Duration(days: 1)),
                                   ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.only(
-                                      top: AppPadding.small,
-                                      bottom: AppPadding.medium),
-                                  child: homePageState.newReservationButton(),
                                 ),
                               ],
                             ),

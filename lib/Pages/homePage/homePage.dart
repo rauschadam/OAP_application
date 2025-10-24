@@ -500,10 +500,8 @@ class HomePageState extends State<HomePage> {
         borderRadius: BorderRadius.circular(AppBorderRadius.medium),
         color: AppColors.secondary,
       ),
-      constraints: BoxConstraints(
-        maxHeight: maxHeight ?? double.infinity,
-      ),
       child: ReservationList(
+        maxHeight: maxHeight,
         listTitle: listTitle,
         emptyText: "Nem várható bejelentett ügyfél.",
         reservations: expectedReservations,
@@ -527,6 +525,15 @@ class HomePageState extends State<HomePage> {
                 arriveDate.isAfter(startTime) && arriveDate.isBefore(endTime);
             return isArriveToday ? 'Érkezés' : 'Távozás';
           },
+        },
+        onRowTap: (ValidReservation tappedReservation) {
+          showReservationOptionsDialog(
+            context,
+            tappedReservation,
+            onArrival: attemptRegisterArrival,
+            onLeave: attemptRegisterLeave,
+            onChangeLicense: attemptChangeLicensePlate,
+          );
         },
       ),
     );

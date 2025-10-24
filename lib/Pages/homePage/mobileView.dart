@@ -54,6 +54,7 @@ class MobileView extends StatelessWidget {
               // 4. Foglalás rögzítése gomb
               homePageState.newReservationButton(),
               SizedBox(height: AppPadding.medium),
+
               // 5. Mai teendők lista
               SafeArea(
                 child: homePageState.buildTodoList(
@@ -63,7 +64,6 @@ class MobileView extends StatelessWidget {
                   endTime: DateTime(homePageState.now.year,
                           homePageState.now.month, homePageState.now.day)
                       .add(const Duration(days: 1)),
-                  maxHeight: 500.0,
                 ),
               ),
               SizedBox(height: AppPadding.medium),

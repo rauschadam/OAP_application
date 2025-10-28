@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:airport_test/api_services/api_classes/platform_setting.dart';
 import 'package:airport_test/api_services/api_classes/car_wash_service.dart';
 import 'package:airport_test/api_services/api_classes/list_panel_field.dart';
 import 'package:airport_test/api_services/api_classes/login_data.dart';
@@ -545,6 +546,76 @@ class ApiService {
       ).show();
     }
     return null;
+  }
+
+  /// Platform specifikus Lista Panel megjelenés lekérdezése
+  Future<List<PlatformSetting>?> fetchPlatformSettings({
+    required BuildContext context,
+    required int listPanelId,
+    required int platformId,
+    required String errorDialogTitle,
+  }) async {
+    final uri = Uri.http(baseUrl,
+        '/service/v1/eslist/$listPanelId/$platformId/platformsettings');
+
+    try {
+      final response = await client.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '$ReceptionistToken',
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+
+        // Ellenőrzés, hogy a válasz szerkezete megfelelő-e
+        final responseContent = data['responseContent'];
+        if (responseContent != null &&
+            responseContent['fieldSettings'] != null) {
+          final fieldSettingsJson =
+              responseContent['fieldSettings'] as List<dynamic>;
+          final List<PlatformSetting> fieldSettingsData = fieldSettingsJson
+              .map((json) => PlatformSetting.fromJson(json))
+              .toList();
+          return fieldSettingsData;
+        } else {
+          // Ha nincs "fieldSettings" kulcs, hiba dobása
+          AwesomeDialog(
+            context: context,
+            width: 300,
+            dialogType: DialogType.error,
+            title: errorDialogTitle,
+            desc: "A válasz nem tartalmaz 'fieldSettings' kulcsot.",
+          ).show();
+          return null;
+        }
+      } else {
+        // Ha nem 200/201 a státuszkód
+        final responseBody = json.decode(response.body);
+        final errorMessage =
+            responseBody['responseMessage'] ?? 'Ismeretlen hiba történt.';
+        AwesomeDialog(
+          context: context,
+          width: 300,
+          dialogType: DialogType.error,
+          title: errorDialogTitle,
+          desc: errorMessage,
+        ).show();
+        return null;
+      }
+    } catch (e) {
+      // Hálózati vagy feldolgozási hiba
+      AwesomeDialog(
+        context: context,
+        width: 300,
+        dialogType: DialogType.error,
+        title: errorDialogTitle,
+        desc: "Hálózati hiba: $e",
+      ).show();
+      return null;
+    }
   }
 
   Map<String, dynamic> createListPanelDataQuery(int listPanelId) {

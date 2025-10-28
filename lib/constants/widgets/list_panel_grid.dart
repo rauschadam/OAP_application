@@ -1,4 +1,5 @@
-import 'package:airport_test/api_services/api_classes/list_panel_field.dart';
+import 'package:airport_test/api_services/api_classes/platform_setting.dart';
+import 'package:airport_test/constants/formatters.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,7 +7,7 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 class ListPanelGrid<T> extends StatefulWidget {
   final List<T> rows;
-  final List<ListPanelField> listPanelFields;
+  final List<PlatformSetting> listPanelFields;
   final ValueChanged<T?>? onRowSelected;
   final void Function(T selectedItem)? onRightClick;
 
@@ -82,6 +83,7 @@ class ListPanelGridState<T> extends State<ListPanelGrid<T>> {
     return ListPanelDataSource<T>(
       items: widget.rows,
       columnOrder: gridColumns.map((c) => c.columnName).toList(),
+      listPanelFields: widget.listPanelFields,
     );
   }
 
@@ -207,12 +209,17 @@ class ListPanelDataSource<T> extends DataGridSource {
   ListPanelDataSource({
     required List<T> items,
     required this.columnOrder,
+    required this.listPanelFields,
   }) : _items = items {
+    // Gyors keresési térkép létrehozása
+    _fieldMap = {for (var f in listPanelFields) f.listFieldName: f};
     buildRows();
   }
 
   List<T> _items;
   final List<String> columnOrder;
+  final List<PlatformSetting> listPanelFields;
+  late Map<String, PlatformSetting> _fieldMap;
   late List<DataGridRow> _rows;
   final Map<DataGridRow, T> _rowToItemMap = {};
 
@@ -225,15 +232,58 @@ class ListPanelDataSource<T> extends DataGridSource {
     notifyListeners();
   }
 
+  // --- FORMÁZÓ SEGÉDFÜGGVÉNY ---
+  String _formatCell(dynamic rawValue, PlatformSetting? field) {
+    if (field == null) return rawValue?.toString() ?? '-';
+
+    final String dataType = field.formatString ?? '';
+
+    // 1. Logika a 'bool' típusra
+    if (dataType.toLowerCase() == 'bool') {
+      bool? boolValue;
+      if (rawValue is bool) {
+        boolValue = rawValue;
+      } else if (rawValue is int) {
+        boolValue = rawValue == 1; // Támogatja a 0/1 értékeket
+      } else if (rawValue is String) {
+        boolValue =
+            rawValue.toLowerCase() == 'true'; // Támogatja a "true" stringet
+      }
+      return listPanelBoolFormatter(boolValue);
+    }
+
+    // 2. Logika a 'dateTime' típusra
+    if (dataType.toLowerCase() == 'datetime') {
+      if (rawValue == null || rawValue is! String || rawValue.isEmpty) {
+        return '-';
+      }
+      try {
+        // A JSON-ból érkező ISO 8601 stringet DateTime objektummá alakítjuk
+        final DateTime parsedDate = DateTime.parse(rawValue);
+        return listPanelDateFormatter(parsedDate);
+      } catch (e) {
+        debugPrint('Dátum formázási hiba: $rawValue -> $e');
+        return rawValue; // Hiba esetén a nyers string
+      }
+    }
+
+    // 3. Alapértelmezett eset (minden más típus)
+    return rawValue?.toString() ?? '-';
+  }
+
   void buildRows() {
     _rowToItemMap.clear();
     _rows = _items.map((item) {
       final row = DataGridRow(
         cells: columnOrder.map((col) {
           final value = extractValue(item, col);
+          final field = _fieldMap[col];
+          final formattedValue = _formatCell(value, field);
+
           return DataGridCell<String>(
+            // A cella típusa mindig String lesz
             columnName: col,
-            value: value?.toString() ?? '-',
+            value: formattedValue, // <-- A FORMÁZOTT ÉRTÉKET HASZNÁLJUK
           );
         }).toList(),
       );

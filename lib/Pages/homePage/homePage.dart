@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:airport_test/Pages/homePage/desktopView.dart';
 import 'package:airport_test/Pages/homePage/mobileView.dart';
 import 'package:airport_test/Pages/reservationForm/reservationOptionPage.dart';
-import 'package:airport_test/api_Services/api_service.dart';
+import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/api_services/api_classes/service_templates.dart';
 import 'package:airport_test/api_services/api_classes/valid_reservation.dart';
 import 'package:airport_test/constants/dialogs/reservation_options_dialog.dart';

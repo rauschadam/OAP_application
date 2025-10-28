@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 String formatPhone(String? phoneText) {
   if (phoneText == null) return '';
   if (phoneText.startsWith('+')) {
@@ -5,4 +7,14 @@ String formatPhone(String? phoneText) {
   } else {
     return phoneText;
   }
+}
+
+String listPanelBoolFormatter(bool? value) {
+  if (value == null) return '-';
+  return value ? 'Igen' : 'Nem';
+}
+
+String listPanelDateFormatter(DateTime? date) {
+  if (date == null) return '-';
+  return DateFormat('yyyy.MM.dd HH:mm').format(date);
 }

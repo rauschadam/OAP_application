@@ -1,8 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:airport_test/api_services/api_classes/available_list_panel.dart';
-import 'package:airport_test/api_services/api_classes/list_panel_field.dart';
+import 'package:airport_test/api_services/api_classes/platform_setting.dart';
+import 'package:airport_test/api_services/api_classes/valid_reservation.dart';
 import 'package:airport_test/api_services/api_service.dart';
+import 'package:airport_test/api_services/api_classes/available_list_panel.dart';
+import 'package:airport_test/constants/dialogs/reservation_options_dialog.dart';
+
+import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/list_panel_grid.dart';
@@ -46,11 +50,11 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
   String get listPanelKey =>
       'list_panel_search_filters_${widget.listPanel.disrtibutedId}';
 
-  /// Frissítés timer
-  Timer? refreshTimer;
+  // /// Frissítés timer
+  // Timer? refreshTimer;
 
   /// Lista Panel mezőinek adatai
-  List<ListPanelField>? listPanelFields;
+  List<PlatformSetting>? listPanelFields;
 
   /// Lekérdezett lista panel adatok
   List<dynamic>? listPanelData;
@@ -69,6 +73,35 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
 
   /// True -> Lekérdezések még folyamatban vannak
   bool loading = true;
+
+  /// Egyedi objectId-k a mezőkből
+  final Set<int> availableObjectIds = {};
+
+  /// Ellenőrzi, hogy van-e legalább egy aktív keresési filter
+  bool get areAnyFiltersActive =>
+      searchOptions.values.any((isActive) => isActive == true);
+
+  /// Érkezése rögzítése
+  Future<void> attemptRegisterArrival(String licensePlate) async {
+    final api = ApiService();
+    await api.logCustomerArrival(context, licensePlate);
+    fetchData();
+  }
+
+  /// Távozás rögzítése
+  Future<void> attemptRegisterLeave(String licensePlate) async {
+    final api = ApiService();
+    await api.logCustomerLeave(context, licensePlate);
+    fetchData();
+  }
+
+  /// Rendszám változtatása
+  Future<void> attemptChangeLicensePlate(
+      int webParkingId, String newLicensePlate) async {
+    final api = ApiService();
+    await api.changeLicensePlate(context, webParkingId, newLicensePlate);
+    fetchData();
+  }
 
   /// A mentett keresési opciók betöltése
   Future<void> loadSearchOptions() async {
@@ -114,11 +147,16 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
 
   /// Adatok lekérdezése
   Future<void> fetchData() async {
+    // Töröljük a régi ID-kat minden frissítéskor
+    availableObjectIds.clear();
+
     final api = ApiService();
-    final List<ListPanelField>? fieldsData = await api.fetchListPanelFields(
+    final List<PlatformSetting>? fieldData = await api.fetchPlatformSettings(
       context: context,
       listPanelId: widget.listPanel.disrtibutedId,
-      errorDialogTitle: "Lista Panel Mezők lekérdezése sikertelen!",
+      platformId: IsMobile ? 1 : 3,
+      errorDialogTitle:
+          "Lista Panel Platform Beállítások lekérdezése sikertelen!",
     );
 
     final List<dynamic>? panelData = await api.fetchListPanelData(
@@ -127,16 +165,23 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
       errorDialogTitle: "Lista panel adatok lekérése sikertelen!",
     );
 
-    if (panelData != null && fieldsData != null) {
+    if (panelData != null && fieldData != null) {
       // SearchOptions automatikus feltöltése a látható mezőkből
       final generatedSearchOptions = {
-        for (var f in fieldsData.where((f) => f.fieldVisible))
+        for (var f in fieldData.where((f) => f.fieldVisible))
           f.listFieldName: false,
       };
 
+      // Összegyűjtjük az egyedi, nem null objectId-kat
+      for (var field in fieldData) {
+        if (field.objectId != null) {
+          availableObjectIds.add(field.objectId!);
+        }
+      }
+
       setState(() {
         listPanelData = panelData;
-        listPanelFields = fieldsData;
+        listPanelFields = fieldData;
         searchOptions
           ..clear()
           ..addAll(generatedSearchOptions);
@@ -189,6 +234,65 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
     });
   }
 
+  // // --- Műveleti gombok generálása ---
+  // List<Widget> _buildActionButtons() {
+  //   List<Widget> buttons = [];
+
+  //   // Csak akkor adjuk hozzá a gombokat, ha van kiválasztott sor
+  //   if (selectedRow == null) {
+  //     return [];
+  //   }
+
+  //   // --- 1200 ---
+  //   if (availableObjectIds.contains(1200)) {
+  //     buttons.add(
+  //       IconButton(
+  //         // Használhatsz más ikont is, pl. Icons.more_vert
+  //         icon: Icon(Icons.car_rental_outlined, color: AppColors.primary),
+  //         tooltip: 'Foglalási Műveletek', // Vagy specifikusabb tooltip
+  //         onPressed: () {
+  //           // Ellenőrizzük, hogy a selectedRow tényleg Map-e
+  //           if (selectedRow is Map<String, dynamic>) {
+  //             try {
+  //               // Megpróbáljuk létrehozni a ValidReservation objektumot a Map-ból
+  //               final ValidReservation reservation = ValidReservation.fromJson(
+  //                   selectedRow as Map<String, dynamic>);
+
+  //               // Meghívjuk a dialógust a létrehozott objektummal és a placeholder funkciókkal
+  //               showReservationOptionsDialog(context, reservation,
+  //                   onArrival: (licensePlate) =>
+  //                       attemptRegisterArrival(licensePlate),
+  //                   onLeave: (licensePlate) =>
+  //                       attemptRegisterLeave(licensePlate),
+  //                   onChangeLicense: (webParkingId, newLicensePlate) =>
+  //                       attemptChangeLicensePlate(
+  //                         webParkingId,
+  //                         newLicensePlate,
+  //                       ));
+  //             } catch (e) {
+  //               // Hibakezelés, ha a Map nem alakítható ValidReservation objektummá
+  //               print("Hiba a ValidReservation létrehozásakor: $e");
+  //               ScaffoldMessenger.of(context).showSnackBar(
+  //                 SnackBar(
+  //                     content:
+  //                         Text('Hiba az adatok feldolgozásakor a művelethez.')),
+  //               );
+  //             }
+  //           } else {
+  //             ScaffoldMessenger.of(context).showSnackBar(
+  //               SnackBar(
+  //                   content: Text(
+  //                       'A kiválasztott sor adatai nem megfelelő formátumúak.')),
+  //             );
+  //           }
+  //         },
+  //       ),
+  //     );
+  //   }
+
+  //   return buttons;
+  // }
+
   @override
   void initState() {
     super.initState();
@@ -203,16 +307,10 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
     });
 
     fetchData();
-
-    refreshTimer = Timer.periodic(Duration(minutes: 1), (_) {
-      fetchData();
-      print('Frissítve');
-    });
   }
 
   @override
   void dispose() {
-    refreshTimer?.cancel();
     searchController.removeListener(applySearchFilter);
     searchController.dispose();
     searchFocus.dispose();
@@ -308,6 +406,15 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
                                         ),
                                       ),
                                       copyGridButton(),
+                                      // // Térkitöltő, hogy a gombok jobbra kerüljenek
+                                      // const Spacer(),
+                                      // // Műveleti gombok
+                                      // // Betesszük őket egy Row-ba, ha több van
+                                      // Row(
+                                      //   mainAxisSize: MainAxisSize
+                                      //       .min, // Ne nyúljon el feleslegesen
+                                      //   children: _buildActionButtons(),
+                                      // ),
                                     ],
                                   ),
                                 ),
@@ -383,7 +490,8 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
             ),
           ),
           controller: searchController,
-          hintText: 'Keresés...',
+          hintText:
+              areAnyFiltersActive ? 'Keresés...' : 'Kapcsolj be filtereket',
           leading: Icon(
             Icons.search,
             size: 20,

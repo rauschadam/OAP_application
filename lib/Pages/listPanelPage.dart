@@ -234,64 +234,61 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
     });
   }
 
-  // // --- Műveleti gombok generálása ---
-  // List<Widget> _buildActionButtons() {
-  //   List<Widget> buttons = [];
+  // --- Műveleti gombok generálása ---
+  List<Widget> _buildActionButtons() {
+    List<Widget> buttons = [];
 
-  //   // Csak akkor adjuk hozzá a gombokat, ha van kiválasztott sor
-  //   if (selectedRow == null) {
-  //     return [];
-  //   }
+    // Csak akkor adjuk hozzá a gombokat, ha van kiválasztott sor
+    if (selectedRow == null) {
+      return [];
+    }
 
-  //   // --- 1200 ---
-  //   if (availableObjectIds.contains(1200)) {
-  //     buttons.add(
-  //       IconButton(
-  //         // Használhatsz más ikont is, pl. Icons.more_vert
-  //         icon: Icon(Icons.car_rental_outlined, color: AppColors.primary),
-  //         tooltip: 'Foglalási Műveletek', // Vagy specifikusabb tooltip
-  //         onPressed: () {
-  //           // Ellenőrizzük, hogy a selectedRow tényleg Map-e
-  //           if (selectedRow is Map<String, dynamic>) {
-  //             try {
-  //               // Megpróbáljuk létrehozni a ValidReservation objektumot a Map-ból
-  //               final ValidReservation reservation = ValidReservation.fromJson(
-  //                   selectedRow as Map<String, dynamic>);
+    // --- 1200 ---
+    if (availableObjectIds.contains(1200)) {
+      buttons.add(
+        IconButton(
+          icon: Icon(Icons.car_rental_outlined, color: AppColors.primary),
+          onPressed: () {
+            // Ellenőrizzük, hogy a selectedRow tényleg Map-e
+            if (selectedRow is Map<String, dynamic>) {
+              try {
+                // Megpróbáljuk létrehozni a ValidReservation objektumot a Map-ból
+                final ValidReservation reservation = ValidReservation.fromJson(
+                    selectedRow as Map<String, dynamic>);
 
-  //               // Meghívjuk a dialógust a létrehozott objektummal és a placeholder funkciókkal
-  //               showReservationOptionsDialog(context, reservation,
-  //                   onArrival: (licensePlate) =>
-  //                       attemptRegisterArrival(licensePlate),
-  //                   onLeave: (licensePlate) =>
-  //                       attemptRegisterLeave(licensePlate),
-  //                   onChangeLicense: (webParkingId, newLicensePlate) =>
-  //                       attemptChangeLicensePlate(
-  //                         webParkingId,
-  //                         newLicensePlate,
-  //                       ));
-  //             } catch (e) {
-  //               // Hibakezelés, ha a Map nem alakítható ValidReservation objektummá
-  //               print("Hiba a ValidReservation létrehozásakor: $e");
-  //               ScaffoldMessenger.of(context).showSnackBar(
-  //                 SnackBar(
-  //                     content:
-  //                         Text('Hiba az adatok feldolgozásakor a művelethez.')),
-  //               );
-  //             }
-  //           } else {
-  //             ScaffoldMessenger.of(context).showSnackBar(
-  //               SnackBar(
-  //                   content: Text(
-  //                       'A kiválasztott sor adatai nem megfelelő formátumúak.')),
-  //             );
-  //           }
-  //         },
-  //       ),
-  //     );
-  //   }
+                showReservationOptionsDialog(context, reservation,
+                    onArrival: (licensePlate) =>
+                        attemptRegisterArrival(licensePlate),
+                    onLeave: (licensePlate) =>
+                        attemptRegisterLeave(licensePlate),
+                    onChangeLicense: (webParkingId, newLicensePlate) =>
+                        attemptChangeLicensePlate(
+                          webParkingId,
+                          newLicensePlate,
+                        ));
+              } catch (e) {
+                // Hibakezelés, ha a Map nem alakítható ValidReservation objektummá
+                print("Hiba a ValidReservation létrehozásakor: $e");
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content:
+                          Text('Hiba az adatok feldolgozásakor a művelethez.')),
+                );
+              }
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                    content: Text(
+                        'A kiválasztott sor adatai nem megfelelő formátumúak.')),
+              );
+            }
+          },
+        ),
+      );
+    }
 
-  //   return buttons;
-  // }
+    return buttons;
+  }
 
   @override
   void initState() {
@@ -378,6 +375,7 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
                                 Positioned(
                                   top: 3,
                                   left: AppPadding.medium,
+                                  right: AppPadding.medium,
                                   child: Row(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -406,15 +404,15 @@ class _ReservationListPageState extends State<GenericListPanelPage> {
                                         ),
                                       ),
                                       copyGridButton(),
-                                      // // Térkitöltő, hogy a gombok jobbra kerüljenek
-                                      // const Spacer(),
-                                      // // Műveleti gombok
-                                      // // Betesszük őket egy Row-ba, ha több van
-                                      // Row(
-                                      //   mainAxisSize: MainAxisSize
-                                      //       .min, // Ne nyúljon el feleslegesen
-                                      //   children: _buildActionButtons(),
-                                      // ),
+                                      // Térkitöltő, hogy a gombok jobbra kerüljenek
+                                      const Spacer(),
+                                      // Műveleti gombok
+                                      // Betesszük őket egy Row-ba, ha több van
+                                      Row(
+                                        mainAxisSize: MainAxisSize
+                                            .min, // Ne nyúljon el feleslegesen
+                                        children: _buildActionButtons(),
+                                      ),
                                     ],
                                   ),
                                 ),

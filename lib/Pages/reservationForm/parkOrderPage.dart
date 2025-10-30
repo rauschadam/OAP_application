@@ -804,8 +804,10 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
                     value: payType.payTypeId,
                     groupValue: selectedPayTypeId,
                     onChanged: (value) {
+                      if (value == null) return;
+
                       setState(() {
-                        selectedPayTypeId = value!;
+                        selectedPayTypeId = value;
                         fetchParkingPrices();
                       });
                     },

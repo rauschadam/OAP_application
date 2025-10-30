@@ -328,7 +328,8 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final List parkingPrices = data['responseContent'];
+        final parkingPrices = data['responseContent'];
+
         return parkingPrices;
       } else {
         print('HTTP hibakód: ${response.statusCode}');

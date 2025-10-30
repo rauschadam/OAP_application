@@ -44,7 +44,7 @@ class _ReservationOptionPageState extends ConsumerState<ReservationOptionPage> {
           buildRadioListTiles(),
           NextPageButton(
             onPressed: onNextPageButtonPressed,
-            pushReplacement: false,
+            pushAndRemoveAll: false,
           ),
         ],
       ),

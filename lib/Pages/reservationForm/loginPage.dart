@@ -98,7 +98,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               NextPageButton(
                 focusNode: nextPageButtonFocus,
                 onPressed: OnNextPageButtonPressed,
-                pushReplacement: false,
+                pushAndRemoveAll: false,
               ),
             ],
           ),

@@ -16,33 +16,35 @@ class SideDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Drawer(
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-      backgroundColor: AppColors.background,
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          SizedBox(
-            height: 80,
-            child: Align(
-              alignment: Alignment.center,
-              child: Text(
-                "Orha Airport Parking",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+    return SafeArea(
+      child: Drawer(
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+        backgroundColor: AppColors.background,
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            SizedBox(
+              height: 80,
+              child: Align(
+                alignment: Alignment.center,
+                child: Text(
+                  "Orha Airport Parking",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                ),
               ),
             ),
-          ),
-          SideMenuTile(
-            title: "Fő oldal",
-            destination: HomePage(),
-            currentTitle: currentTitle,
-          ),
-          for (final panel in AvailableListPanels)
             SideMenuTile(
-              listPanel: panel,
+              title: "Fő oldal",
+              destination: HomePage(),
               currentTitle: currentTitle,
             ),
-        ],
+            for (final panel in AvailableListPanels)
+              SideMenuTile(
+                listPanel: panel,
+                currentTitle: currentTitle,
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -77,11 +79,11 @@ class SideMenuTile extends StatelessWidget {
       ),
       onTap: () {
         destination != null
-            ? Navigation(context: context, page: destination).pushReplacement()
+            ? Navigation(context: context, page: destination).pushAndRemoveAll()
             : Navigation(
                     context: context,
                     page: GenericListPanelPage(listPanel: listPanel!))
-                .pushReplacement();
+                .pushAndRemoveAll();
       },
       hoverColor: AppColors.primary.withAlpha(25),
       splashColor: AppColors.primary.withAlpha(50),

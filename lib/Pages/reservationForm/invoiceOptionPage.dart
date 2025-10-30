@@ -74,7 +74,7 @@ class _InvoiceOptionPageState extends ConsumerState<InvoiceOptionPage> {
 
   /// HomePage-re navigálás
   void goToHomePage() async {
-    Navigation(context: context, page: HomePage()).pushReplacement();
+    Navigation(context: context, page: HomePage()).pushAndRemoveAll();
   }
 
   /// Foglalás rögzítése

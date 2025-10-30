@@ -49,7 +49,7 @@ class _ReceptionLoginPageState extends State<ReceptionLoginPage> {
         PayTypes = await api.getPayTypes(context) ?? [];
 
         CarWashServices = await api.getCarWashServices(context) ?? [];
-        Navigation(context: context, page: HomePage()).pushReplacement();
+        Navigation(context: context, page: HomePage()).pushAndRemoveAll();
       } catch (e) {
         debugPrint("Hiba az adatok lekérése közben: $e");
         if (!mounted) return loginData;
@@ -78,7 +78,7 @@ class _ReceptionLoginPageState extends State<ReceptionLoginPage> {
     if (formKey.currentState!.validate()) {
       final LoginData? loginData = await loginReceptionist();
       if (loginData != null) {
-        Navigation(context: context, page: HomePage()).pushReplacement();
+        Navigation(context: context, page: HomePage()).pushAndRemoveAll();
       }
     }
   }

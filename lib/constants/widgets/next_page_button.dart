@@ -7,7 +7,7 @@ class NextPageButton extends StatelessWidget {
   final Widget? nextPage;
   final VoidCallback? onPressed;
   final FocusNode? focusNode;
-  final bool pushReplacement;
+  final bool pushAndRemoveAll;
 
   const NextPageButton({
     super.key,
@@ -15,7 +15,7 @@ class NextPageButton extends StatelessWidget {
     this.nextPage,
     this.onPressed,
     this.focusNode,
-    this.pushReplacement = true,
+    this.pushAndRemoveAll = true,
   });
 
   @override
@@ -36,9 +36,9 @@ class NextPageButton extends StatelessWidget {
                 onPressed!();
               }
               if (nextPage != null) {
-                if (pushReplacement) {
+                if (pushAndRemoveAll) {
                   Navigation(context: context, page: nextPage!)
-                      .pushReplacement();
+                      .pushAndRemoveAll();
                   return;
                 } else {
                   Navigation(context: context, page: nextPage!).push();

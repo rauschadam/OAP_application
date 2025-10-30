@@ -1,5 +1,6 @@
 import 'package:airport_test/Pages/reservationForm/invoiceOptionPage.dart';
 import 'package:airport_test/api_services/api_classes/car_wash_service.dart';
+import 'package:airport_test/api_services/api_classes/parking_zone.dart';
 import 'package:airport_test/api_services/api_classes/reservation.dart';
 import 'package:airport_test/api_services/api_classes/service_templates.dart';
 import 'package:airport_test/api_services/api_classes/user_data.dart';
@@ -135,6 +136,84 @@ class WashOrderPageState extends ConsumerState<WashOrderPage> {
               hour: selectedWashDate!.hour, minute: selectedWashDate!.minute)
           : null;
     });
+  }
+
+  /// Parkolási ár újraszámítása, ha a fizetési mód változik "both" (parkolás+mosás) esetben
+  Future<void> refetchParkingPrice(String newPayTypeId) async {
+    final reservationState = ref.read(reservationProvider);
+
+    // Csak akkor fut le, ha parkolás és mosás is van, és minden adat megvan
+    if (reservationState.bookingOption != BookingOption.both ||
+        reservationState.arriveDate == null ||
+        reservationState.leaveDate == null ||
+        reservationState.parkingArticleId == null) {
+      // Ha hiányoznak az adatok, csak a helyi összköltséget számoljuk újra
+      CalculateTotalCost();
+      return;
+    }
+
+    final api = ApiService();
+    final parkingPriceData = await api.getParkingPrices(
+      context,
+      reservationState.authToken,
+      reservationState.arriveDate!,
+      reservationState.leaveDate!,
+      reservationState.partnerId,
+      newPayTypeId, // <- Az új fizetési móddal számoljuk újra
+    );
+
+    if (parkingPriceData != null && ServiceTemplates.isNotEmpty) {
+      List<ParkingZone> parkingZones = mapParkingZones(parkingPriceData);
+
+      try {
+        // Megkeressük a korábban kiválasztott zóna új árát
+        final selectedZone = parkingZones.firstWhere(
+          (z) => z.articleId == reservationState.parkingArticleId,
+        );
+
+        final int parkingDays = reservationState.leaveDate!
+            .difference(reservationState.arriveDate!)
+            .inDays;
+
+        // Kiszámoljuk az új parkolási alapárat
+        final int newParkingBaseCost =
+            selectedZone.totalPrice.toInt() * parkingDays;
+
+        // Hozzáadjuk az extrákat (VIP, Bőrönd), ahogy a parkOrderPage-n is történt
+        int finalParkingCost = newParkingBaseCost;
+        if (reservationState.vip) {
+          finalParkingCost += 5000; // (Hardcoded érték a parkOrderPage alapján)
+        }
+        finalParkingCost += reservationState.suitcaseWrappingCount *
+            1000; // (Hardcoded érték a parkOrderPage alapján)
+
+        // Frissítjük a Riverpod állapotot az ÚJ parkolási költséggel és az ÚJ fizetési móddal
+        // Fontos, hogy a többi parkolási adatot változatlanul hagyjuk
+        ref.read(reservationProvider.notifier).updateParking(
+              // Meglévő adatok átörökítése
+              arriveDate: reservationState.arriveDate!,
+              leaveDate: reservationState.leaveDate!,
+              parkingArticleId: reservationState.parkingArticleId,
+              transferPersonCount: reservationState.transferPersonCount,
+              vip: reservationState.vip,
+              suitcaseWrappingCount: reservationState.suitcaseWrappingCount,
+              description: reservationState
+                  .description, // A parkolás leírásának megőrzése
+
+              // Változott adatok frissítése
+              parkingCost: finalParkingCost,
+              payTypeId: newPayTypeId,
+            );
+      } catch (e) {
+        debugPrint("Hiba a parkolási zóna újraárazásakor: $e");
+        // Itt kezelhetnénk, ha pl. az új fizetési móddal az a zóna már nem elérhető
+        // Jelenleg csak logolunk, és a CalculateTotalCost lefut az esetleges régi árral
+      }
+    }
+
+    // Miután a Riverpod állapot frissült az új parkolási árral,
+    // újraszámoljuk a Teljes Költséget (új parkolási ár + mosás ára)
+    CalculateTotalCost();
   }
 
   /// Telített időpontok kiszámítása – mivel csak egy zóna van, nem bontjuk szét.
@@ -508,9 +587,13 @@ class WashOrderPageState extends ConsumerState<WashOrderPage> {
               value: payType.payTypeId,
               groupValue: selectedPayTypeId,
               onChanged: (value) {
+                if (value == null) return;
+
                 setState(() {
-                  selectedPayTypeId = value!;
+                  selectedPayTypeId = value;
                 });
+
+                refetchParkingPrice(value);
               },
               dense: true,
             );

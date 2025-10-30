@@ -63,7 +63,7 @@ class _RegistrationOptionPageState
           NextPageButton(
             text: 'Tovább',
             onPressed: onNextPageButtonPressed,
-            pushReplacement: false,
+            pushAndRemoveAll: false,
           ),
         ],
       ),

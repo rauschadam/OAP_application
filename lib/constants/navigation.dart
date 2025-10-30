@@ -20,14 +20,26 @@ class Navigation {
     );
   }
 
-  void pushReplacement() {
-    Navigator.pushReplacement(
+  // void pushReplacement() {
+  //   Navigator.pushReplacement(
+  //     context,
+  //     PageRouteBuilder(
+  //       pageBuilder: (context, animation1, animation2) => page,
+  //       transitionDuration: Duration.zero,
+  //       reverseTransitionDuration: Duration.zero,
+  //     ),
+  //   );
+  // }
+
+  void pushAndRemoveAll() {
+    Navigator.pushAndRemoveUntil(
       context,
       PageRouteBuilder(
         pageBuilder: (context, animation1, animation2) => page,
         transitionDuration: Duration.zero,
         reverseTransitionDuration: Duration.zero,
       ),
+      (Route<dynamic> route) => false,
     );
   }
 }

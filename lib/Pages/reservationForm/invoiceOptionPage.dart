@@ -74,6 +74,7 @@ class _InvoiceOptionPageState extends ConsumerState<InvoiceOptionPage> {
 
   /// HomePage-re navigálás
   void goToHomePage() async {
+    ref.read(reservationProvider.notifier).resetState();
     Navigation(context: context, page: HomePage()).pushAndRemoveAll();
   }
 

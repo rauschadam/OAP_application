@@ -234,8 +234,115 @@ class _MyDateRangePickerDialogState extends State<MyDateRangePickerDialog> {
     }
   }
 
+  Widget _buildContentColumn() {
+    return Column(
+      children: [
+        SfDateRangePicker(
+          headerStyle: const DateRangePickerHeaderStyle(
+            backgroundColor: Colors.white,
+          ),
+          backgroundColor: Colors.white,
+          initialSelectedRange: tempArriveDate != null && tempLeaveDate != null
+              ? PickerDateRange(tempArriveDate, tempLeaveDate)
+              : null,
+          selectionMode: DateRangePickerSelectionMode.range,
+          todayHighlightColor: AppColors.primary,
+          startRangeSelectionColor: AppColors.primary,
+          endRangeSelectionColor: AppColors.primary,
+          rangeSelectionColor: AppColors.secondary,
+          enablePastDates: false,
+          maxDate: DateTime.now().add(const Duration(days: 120)),
+          onSelectionChanged: (args) {
+            if (args.value is PickerDateRange) {
+              final start = args.value.startDate;
+              final end = args.value.endDate;
+
+              setState(() {
+                tempArriveDate = start;
+                tempLeaveDate = end;
+                tempArriveTime = null; // Reseteljük
+
+                if (tempArriveDate != null && tempLeaveDate != null) {
+                  updateAvailableSlots();
+                }
+              });
+            }
+          },
+        ),
+
+        // Időpont választás
+        if (tempArriveDate != null && tempLeaveDate != null)
+          availableSlots.isNotEmpty
+              ? buildTimeSlotPicker(availableSlots) // Ez már Expanded
+              : const Text('Ezen a napon nincs szabad időpont')
+        else
+          const Text(
+              'Válasszon ki érkezési és távozási dátumot, az időpontok megtekintéséhez'),
+
+        const SizedBox(height: 10),
+
+        // Oké gomb
+        if (tempArriveDate != null &&
+            tempLeaveDate != null &&
+            tempArriveTime != null)
+          SafeArea(
+            child: SizedBox(
+              height: 50,
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all(AppColors.primary),
+                  foregroundColor:
+                      WidgetStateProperty.all(AppColors.background),
+                ),
+                onPressed: onConfirmSelection,
+                child: const Text("Időpont kiválasztása"),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // --- MOBIL NÉZET ---
+    if (IsMobile) {
+      return Container(
+        height: MediaQuery.of(context).size.height * 0.9,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(AppBorderRadius.medium),
+            topRight: Radius.circular(AppBorderRadius.medium),
+          ),
+        ),
+        child: Column(
+          children: [
+            // "Fogantyú" a tetején
+            Container(
+              width: 40,
+              height: 5,
+              margin: const EdgeInsets.symmetric(vertical: 12.0),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            // Tartalom
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                    AppPadding.medium, 0, AppPadding.medium, AppPadding.medium),
+                child: _buildContentColumn(),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // --- DESKTOP NÉZET ---
     return Dialog(
       backgroundColor: Colors.white,
       insetPadding: EdgeInsets.zero,
@@ -249,72 +356,7 @@ class _MyDateRangePickerDialogState extends State<MyDateRangePickerDialog> {
             ? MediaQuery.of(context).size.height
             : 750,
         padding: const EdgeInsets.all(AppPadding.medium),
-        child: Column(
-          children: [
-            SfDateRangePicker(
-              headerStyle: const DateRangePickerHeaderStyle(
-                backgroundColor: Colors.white,
-              ),
-              backgroundColor: Colors.white,
-              initialSelectedRange:
-                  tempArriveDate != null && tempLeaveDate != null
-                      ? PickerDateRange(tempArriveDate, tempLeaveDate)
-                      : null,
-              selectionMode: DateRangePickerSelectionMode.range,
-              todayHighlightColor: AppColors.primary,
-              startRangeSelectionColor: AppColors.primary,
-              endRangeSelectionColor: AppColors.primary,
-              rangeSelectionColor: AppColors.secondary,
-              enablePastDates: false,
-              maxDate: DateTime.now().add(const Duration(days: 120)),
-              onSelectionChanged: (args) {
-                if (args.value is PickerDateRange) {
-                  final start = args.value.startDate;
-                  final end = args.value.endDate;
-
-                  setState(() {
-                    tempArriveDate = start;
-                    tempLeaveDate = end;
-                    tempArriveTime = null; // Reseteljük
-
-                    if (tempArriveDate != null && tempLeaveDate != null) {
-                      updateAvailableSlots();
-                    }
-                  });
-                }
-              },
-            ),
-
-            // Időpont választás
-            if (tempArriveDate != null && tempLeaveDate != null)
-              availableSlots.isNotEmpty
-                  ? buildTimeSlotPicker(availableSlots)
-                  : const Text('Ezen a napon nincs szabad időpont')
-            else
-              const Text(
-                  'Válasszon ki érkezési és távozási dátumot, az időpontok megtekintéséhez'),
-
-            const SizedBox(height: 10),
-
-            // Oké gomb
-            if (tempArriveDate != null &&
-                tempLeaveDate != null &&
-                tempArriveTime != null)
-              SizedBox(
-                height: 50,
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all(AppColors.primary),
-                    foregroundColor:
-                        WidgetStateProperty.all(AppColors.background),
-                  ),
-                  onPressed: onConfirmSelection,
-                  child: const Text("Időpont kiválasztása"),
-                ),
-              ),
-          ],
-        ),
+        child: _buildContentColumn(),
       ),
     );
   }

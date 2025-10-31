@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:airport_test/Pages/homePage/desktopView.dart';
 import 'package:airport_test/Pages/homePage/mobileView.dart';
 import 'package:airport_test/Pages/reservationForm/reservationOptionPage.dart';
+import 'package:airport_test/api_services/api_classes/reservation.dart';
 import 'package:airport_test/api_services/api_service.dart';
 import 'package:airport_test/api_services/api_classes/service_templates.dart';
 import 'package:airport_test/api_services/api_classes/valid_reservation.dart';
@@ -18,16 +19,17 @@ import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => HomePageState();
+  ConsumerState<HomePage> createState() => HomePageState();
 }
 
-class HomePageState extends State<HomePage> {
+class HomePageState extends ConsumerState<HomePage> {
   // --- FOCUSNODE ---
   FocusNode searchFocus = FocusNode();
   FocusNode keyboardFocus = FocusNode();
@@ -637,6 +639,7 @@ class HomePageState extends State<HomePage> {
         icon: Icons.add_rounded,
         labelText: "Foglalás rögzítése",
         onPressed: () {
+          ref.read(reservationProvider.notifier).resetState();
           Navigation(context: context, page: const ReservationOptionPage())
               .push();
         },

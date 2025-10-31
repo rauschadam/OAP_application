@@ -191,6 +191,11 @@ class ReservationNotifier extends StateNotifier<ReservationFormState> {
       description: description,
     );
   }
+
+  /// Visszaállítja az állapotot a kiinduló helyzetbe
+  void resetState() {
+    state = ReservationFormState();
+  }
 }
 
 // Globális Provider

@@ -276,25 +276,42 @@ class WashOrderPageState extends ConsumerState<WashOrderPage> {
     });
   }
 
-  /// Dátum választó pop-up dialog
+  /// Dátum választó dialog
   void showDatePickerDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => MyDatePickerDialog(
-        initialWashDate: selectedWashDate,
-        initialWashTime: selectedWashTime,
-        fullyBookedDateTimes: fullyBookedDateTimes,
-        onDateSelected: (washDate, washTime) {
-          setState(() {
-            selectedWashDate = washDate;
-            selectedWashTime = washTime;
-          });
-          CalculateTotalCost();
-        },
-      ),
-    ).then((_) {
-      FocusScope.of(context).requestFocus(descriptionFocus);
-    });
+    // 1. Létrehozzuk a widgetet
+    final datePickerWidget = MyDatePickerDialog(
+      initialWashDate: selectedWashDate,
+      initialWashTime: selectedWashTime,
+      fullyBookedDateTimes: fullyBookedDateTimes,
+      onDateSelected: (washDate, washTime) {
+        setState(() {
+          selectedWashDate = washDate;
+          selectedWashTime = washTime;
+        });
+        CalculateTotalCost();
+      },
+    );
+
+    // 2. Logika szétválasztása
+    if (IsMobile) {
+      // MOBILON: BottomSheet
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => datePickerWidget,
+      ).then((_) {
+        FocusScope.of(context).requestFocus(descriptionFocus);
+      });
+    } else {
+      // DESKTOPON: Dialog
+      showDialog(
+        context: context,
+        builder: (context) => datePickerWidget,
+      ).then((_) {
+        FocusScope.of(context).requestFocus(descriptionFocus);
+      });
+    }
   }
 
   void OnNextPageButtonPressed() async {

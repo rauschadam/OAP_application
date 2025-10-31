@@ -215,8 +215,110 @@ class _MyDatePickerDialogState extends State<MyDatePickerDialog> {
     }
   }
 
+  /// KISZERVEZETT TARTALOM
+  Widget _buildContentColumn() {
+    return Column(
+      children: [
+        SfDateRangePicker(
+          headerStyle: const DateRangePickerHeaderStyle(
+            backgroundColor: Colors.white,
+          ),
+          backgroundColor: Colors.white,
+          initialDisplayDate: tempWashDate,
+          initialSelectedDate: tempWashDate,
+          selectionMode: DateRangePickerSelectionMode.single,
+          todayHighlightColor: AppColors.primary,
+          selectionColor: AppColors.primary,
+          showNavigationArrow: true,
+          enablePastDates: false,
+          maxDate: DateTime.now().add(const Duration(days: 120)),
+          onSelectionChanged: (args) {
+            if (args.value is DateTime) {
+              final DateTime selectedDate = args.value;
+
+              setState(() {
+                tempWashDate = selectedDate;
+                tempWashTime = null;
+
+                if (tempWashDate != null) {
+                  updateAvailableSlots();
+                }
+              });
+            }
+          },
+        ),
+
+        // Időpont választás
+        if (tempWashDate != null)
+          availableSlots.isNotEmpty
+              ? buildTimeSlotPicker(availableSlots)
+              : const Text('Ezen a napon nincs szabad időpont')
+        else
+          const Text(
+              'Válasszon ki érkezési dátumot az időpontok megtekintéséhez'),
+
+        const SizedBox(height: 10),
+
+        // Oké gomb
+        if (tempWashDate != null && tempWashTime != null)
+          SafeArea(
+            child: SizedBox(
+              height: 50,
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all(AppColors.primary),
+                  foregroundColor:
+                      WidgetStateProperty.all(AppColors.background),
+                ),
+                onPressed: onConfirmSelection,
+                child: const Text("Időpont kiválasztása"),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // MOBIL NÉZET
+    if (IsMobile) {
+      return Container(
+        height: MediaQuery.of(context).size.height * 0.9,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(AppBorderRadius.medium),
+            topRight: Radius.circular(AppBorderRadius.medium),
+          ),
+        ),
+        child: Column(
+          children: [
+            // "Fogantyú"
+            Container(
+              width: 40,
+              height: 5,
+              margin: const EdgeInsets.symmetric(vertical: 12.0),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            // Tartalom
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                    AppPadding.medium, 0, AppPadding.medium, AppPadding.medium),
+                child: _buildContentColumn(),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // DESKTOP NÉZET
     return Dialog(
       backgroundColor: Colors.white,
       insetPadding: EdgeInsets.zero,
@@ -230,65 +332,7 @@ class _MyDatePickerDialogState extends State<MyDatePickerDialog> {
             ? MediaQuery.of(context).size.height
             : 750,
         padding: const EdgeInsets.all(AppPadding.medium),
-        child: Column(
-          children: [
-            SfDateRangePicker(
-              headerStyle: const DateRangePickerHeaderStyle(
-                backgroundColor: Colors.white,
-              ),
-              backgroundColor: Colors.white,
-              initialDisplayDate: tempWashDate,
-              initialSelectedDate: tempWashDate,
-              selectionMode: DateRangePickerSelectionMode.single,
-              todayHighlightColor: AppColors.primary,
-              selectionColor: AppColors.primary,
-              showNavigationArrow: true,
-              enablePastDates: false,
-              maxDate: DateTime.now().add(const Duration(days: 120)),
-              onSelectionChanged: (args) {
-                if (args.value is DateTime) {
-                  final DateTime selectedDate = args.value;
-
-                  setState(() {
-                    tempWashDate = selectedDate;
-                    tempWashTime = null; // Reseteljük
-
-                    if (tempWashDate != null) {
-                      updateAvailableSlots();
-                    }
-                  });
-                }
-              },
-            ),
-
-            // Időpont választás
-            if (tempWashDate != null)
-              availableSlots.isNotEmpty
-                  ? buildTimeSlotPicker(availableSlots)
-                  : const Text('Ezen a napon nincs szabad időpont')
-            else
-              const Text(
-                  'Válasszon ki érkezési dátumot az időpontok megtekintéséhez'),
-
-            const SizedBox(height: 10),
-
-            // Oké gomb
-            if (tempWashDate != null && tempWashTime != null)
-              SizedBox(
-                height: 50,
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all(AppColors.primary),
-                    foregroundColor:
-                        WidgetStateProperty.all(AppColors.background),
-                  ),
-                  onPressed: onConfirmSelection,
-                  child: const Text("Időpont kiválasztása"),
-                ),
-              ),
-          ],
-        ),
+        child: _buildContentColumn(),
       ),
     );
   }

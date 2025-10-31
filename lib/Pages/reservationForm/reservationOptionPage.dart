@@ -27,6 +27,17 @@ class _ReservationOptionPageState extends ConsumerState<ReservationOptionPage> {
           alreadyRegistered: false, // Ezt a következő oldalon felülírjuk
           withoutRegistration: false, // Ezt a következő oldalon felülírjuk
         );
+
+    if (selectedBookingOption == BookingOption.parking) {
+      // Töröljük a mosási adatokat, ezzel elkerülve a rossz foglalást
+      ref.read(reservationProvider.notifier).resetWash();
+    }
+
+    if (selectedBookingOption == BookingOption.washing) {
+      // Töröljük a parkolási adatokat, ezzel elkerülve a rossz foglalást
+      ref.read(reservationProvider.notifier).resetParking();
+    }
+
     // Navigálás
     Navigation(
       context: context,

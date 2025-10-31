@@ -192,6 +192,70 @@ class ReservationNotifier extends StateNotifier<ReservationFormState> {
     );
   }
 
+// Parkolás adatok resetelése
+// (Megadtunk parkolási adatokat aztán rájöttünk hogy csak mosást akarunk)
+// A [payTaypeId]-t, [description]-t meghagyjuk
+  void resetParking() {
+    state = ReservationFormState(
+      // Megtartjuk a meglévő, nem-parkolási adatokat
+      authToken: state.authToken,
+      partnerId: state.partnerId,
+      personId: state.personId,
+      alreadyRegistered: state.alreadyRegistered,
+      withoutRegistration: state.withoutRegistration,
+      bookingOption: state.bookingOption,
+      name: state.name,
+      email: state.email,
+      phone: state.phone,
+      licensePlate: state.licensePlate,
+      carWashArticleId: state.carWashArticleId,
+      washDateTime: state.washDateTime,
+      payTypeId: state.payTypeId, // Meghagyjuk
+      description: state.description, // Meghagyjuk
+
+      // Töröljük/alaphelyzetbe állítjuk a parkolási adatokat
+      arriveDate: null,
+      leaveDate: null,
+      parkingArticleId: null,
+      transferPersonCount: 1, // Alapértelmezett
+      vip: false, // Alapértelmezett
+      suitcaseWrappingCount: 0, // Alapértelmezett
+      parkingCost: 0, // Alapértelmezett
+    );
+  }
+
+  // Mosás adatok
+  // (Megadtunk mosási adatokat aztán rájöttünk hogy csak parkolást akarunk)
+// A [payTaypeId]-t, [description]-t meghagyjuk
+  void resetWash() {
+    state = ReservationFormState(
+      // Megtartjuk a meglévő, nem-mosási adatokat
+      authToken: state.authToken,
+      partnerId: state.partnerId,
+      personId: state.personId,
+      alreadyRegistered: state.alreadyRegistered,
+      withoutRegistration: state.withoutRegistration,
+      bookingOption: state.bookingOption,
+      name: state.name,
+      email: state.email,
+      phone: state.phone,
+      licensePlate: state.licensePlate,
+      arriveDate: state.arriveDate,
+      leaveDate: state.leaveDate,
+      parkingArticleId: state.parkingArticleId,
+      transferPersonCount: state.transferPersonCount,
+      vip: state.vip,
+      suitcaseWrappingCount: state.suitcaseWrappingCount,
+      parkingCost: state.parkingCost,
+      payTypeId: state.payTypeId, // Meghagyjuk
+      description: state.description, // Meghagyjuk
+
+      // Töröljük a mosási adatokat
+      carWashArticleId: null,
+      washDateTime: null,
+    );
+  }
+
   /// Visszaállítja az állapotot a kiinduló helyzetbe
   void resetState() {
     state = ReservationFormState();

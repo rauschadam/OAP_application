@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:airport_test/Pages/homePage/desktopView.dart';
-import 'package:airport_test/Pages/homePage/mobileView.dart';
+import 'package:airport_test/Pages/homePage/desktop_view.dart';
+import 'package:airport_test/Pages/homePage/mobile_view.dart';
 import 'package:airport_test/Pages/reservationForm/reservationOptionPage.dart';
 import 'package:airport_test/api_services/api_classes/reservation.dart';
 import 'package:airport_test/api_services/api_service.dart';

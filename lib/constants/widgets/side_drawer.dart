@@ -1,5 +1,5 @@
 import 'package:airport_test/Pages/homePage/homePage.dart';
-import 'package:airport_test/Pages/listPanelPage.dart';
+import 'package:airport_test/Pages/listPanelPage/listPanelPage.dart';
 import 'package:airport_test/api_services/api_classes/available_list_panel.dart';
 import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/navigation.dart';
@@ -82,7 +82,7 @@ class SideMenuTile extends StatelessWidget {
             ? Navigation(context: context, page: destination).pushAndRemoveAll()
             : Navigation(
                     context: context,
-                    page: GenericListPanelPage(listPanel: listPanel!))
+                    page: ListPanelPage(listPanel: listPanel!))
                 .pushAndRemoveAll();
       },
       hoverColor: AppColors.primary.withAlpha(25),

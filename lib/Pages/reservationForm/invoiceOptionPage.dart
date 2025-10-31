@@ -6,6 +6,7 @@ import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/my_radio_list_tile.dart';
 import 'package:airport_test/constants/widgets/next_page_button.dart';
 import 'package:airport_test/constants/enums/parkingFormEnums.dart';
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -79,12 +80,14 @@ class _InvoiceOptionPageState extends ConsumerState<InvoiceOptionPage> {
   }
 
   /// Foglalás rögzítése
-  void submitReservation() async {
+  Future<String?> submitReservation() async {
     final state =
         ref.read(reservationProvider); // Minden adat olvasása az állapotból
 
+    int parkingService = getParkingService(state.bookingOption);
+
     final reservation = Reservation(
-      parkingService: 1,
+      parkingService: parkingService,
       partnerId: state.partnerId,
       alreadyRegistered: state.alreadyRegistered,
       withoutRegistration: state.withoutRegistration,
@@ -92,10 +95,10 @@ class _InvoiceOptionPageState extends ConsumerState<InvoiceOptionPage> {
       email: state.email,
       phone: state.phone,
       licensePlate: state.licensePlate,
-      arriveDate: state.arriveDate!,
-      leaveDate: state.leaveDate!,
+      arriveDate: state.arriveDate,
+      leaveDate: state.leaveDate,
       parkingArticleId: state.parkingArticleId,
-      parkingArticleVolume: "1",
+      parkingArticleVolume: state.parkingArticleId != null ? "1" : "0",
       transferPersonCount: state.transferPersonCount,
       vip: state.vip,
       suitcaseWrappingCount: state.suitcaseWrappingCount,
@@ -103,10 +106,26 @@ class _InvoiceOptionPageState extends ConsumerState<InvoiceOptionPage> {
       payTypeId: state.payTypeId,
       description: state.description,
       carWashArticleId: state.carWashArticleId,
+      webReserve: false,
     );
 
-    await ApiService().submitReservation(
-        context, reservation, state.authToken); // AuthToken is az állapotból
+    // await ApiService().submitReservation(context, reservation, state.authToken);
+
+    // Hívja meg a módosított ApiService metódust és adja vissza az eredményét
+    String? errorMessage =
+        await ApiService().submitReservation(reservation, state.authToken);
+    return errorMessage;
+  }
+
+  int getParkingService(BookingOption selectedBookingOption) {
+    switch (selectedBookingOption) {
+      case BookingOption.parking:
+        return 0;
+      case BookingOption.washing:
+        return 1;
+      case BookingOption.both:
+        return 2;
+    }
   }
 
   @override
@@ -139,12 +158,29 @@ class _InvoiceOptionPageState extends ConsumerState<InvoiceOptionPage> {
           ),
           NextPageButton(
             text: "Foglalás küldése",
-            onPressed: () {
-              submitReservation();
-              if (checkCustomerArrivalIsSoon()) {
-                showArrivalDialog();
+            onPressed: () async {
+              // 1. Várja be az eredményt (ami siker esetén null, hiba esetén string)
+              String? errorMessage = await submitReservation();
+
+              // 2. Ellenőrizze, hogy a widget még "mounted"
+              if (!mounted) return;
+
+              if (errorMessage == null) {
+                // 3. Siker esetén (nincs hibaüzenet) navigáljon
+                if (checkCustomerArrivalIsSoon()) {
+                  showArrivalDialog();
+                } else {
+                  goToHomePage();
+                }
               } else {
-                goToHomePage();
+                // 4. Hiba esetén jelenítsen meg egy dialógust a hibaüzenettel
+                AwesomeDialog(
+                  context: context,
+                  width: 300,
+                  dialogType: DialogType.error,
+                  title: "Foglalás rögzítése sikertelen",
+                  desc: errorMessage,
+                ).show();
               }
             },
           ),

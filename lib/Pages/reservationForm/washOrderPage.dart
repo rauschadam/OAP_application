@@ -155,7 +155,7 @@ class WashOrderPageState extends ConsumerState<WashOrderPage> {
     final api = ApiService();
     final parkingPriceData = await api.getParkingPrices(
       context,
-      reservationState.authToken,
+      ReceptionistToken,
       reservationState.arriveDate!,
       reservationState.leaveDate!,
       reservationState.partnerId,

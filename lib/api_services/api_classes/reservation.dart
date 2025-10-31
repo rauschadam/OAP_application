@@ -276,10 +276,10 @@ class Reservation {
   final String email;
   final String phone;
   final String licensePlate;
-  final DateTime arriveDate;
-  final DateTime leaveDate;
+  final DateTime? arriveDate;
+  final DateTime? leaveDate;
   final String? parkingArticleId;
-  final String parkingArticleVolume;
+  final String? parkingArticleVolume;
   final int? transferPersonCount;
   final bool vip;
   final int? suitcaseWrappingCount;
@@ -287,6 +287,7 @@ class Reservation {
   final DateTime? washDateTime;
   final String payTypeId;
   final String description;
+  final bool webReserve;
 
   Reservation({
     required this.parkingService,
@@ -308,6 +309,7 @@ class Reservation {
     this.washDateTime,
     required this.payTypeId,
     required this.description,
+    this.webReserve = false,
   });
 
   Map<String, dynamic> toJson() {
@@ -320,8 +322,8 @@ class Reservation {
       "Email": email,
       "Phone": phone,
       "LicensePlate": licensePlate,
-      "ArriveDate": arriveDate.toIso8601String(),
-      "LeaveDate": leaveDate.toIso8601String(),
+      "ArriveDate": arriveDate?.toIso8601String(),
+      "LeaveDate": leaveDate?.toIso8601String(),
       "ParkingArticleId": parkingArticleId,
       "ParkingArticleVolume": parkingArticleVolume,
       "TransferPersonCount": transferPersonCount,

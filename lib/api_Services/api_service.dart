@@ -124,8 +124,8 @@ class ApiService {
   }
 
   /// Foglalás rögzítése
-  Future<void> submitReservation(
-      BuildContext context, Reservation reservation, String? token) async {
+  Future<String?> submitReservation(
+      Reservation reservation, String? token) async {
     final uri = Uri.http(baseUrl, '/service/v1/airport/reserve');
 
     try {
@@ -139,25 +139,16 @@ class ApiService {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        return null;
       } else {
         final errorMessage =
             jsonDecode(response.body)['responseMessage'] ?? 'Ismeretlen hiba';
-        AwesomeDialog(
-          context: context,
-          width: 300,
-          dialogType: DialogType.error,
-          title: "Foglalás rögzítése sikertelen",
-          desc: errorMessage,
-        ).show();
+        debugPrint("Foglalás rögzítése sikertelen: $errorMessage");
+        return errorMessage;
       }
     } catch (e) {
-      AwesomeDialog(
-        context: context,
-        width: 300,
-        dialogType: DialogType.error,
-        title: 'Foglalás rögzítése sikertelen',
-        desc: e.toString(),
-      ).show();
+      debugPrint("Foglalás rögzítése hiba: $e");
+      return e.toString();
     }
   }
 

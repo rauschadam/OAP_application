@@ -86,8 +86,6 @@ class _ReservationOptionPageState extends ConsumerState<ReservationOptionPage> {
           ),
           MyRadioListTile<BookingOption>(
             title: 'Mosás',
-            subtitle:
-                'Jelenleg kötelező a parkolás megadása, ne ezzel tesztelj',
             value: BookingOption.washing,
             groupValue: selectedBookingOption,
             onChanged: (BookingOption? value) {

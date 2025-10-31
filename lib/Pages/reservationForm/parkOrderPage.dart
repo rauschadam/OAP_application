@@ -155,7 +155,7 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
     // Parkoló zóna árak lekérdezése
     final parkingPriceData = await api.getParkingPrices(
       context,
-      reservationState.authToken,
+      ReceptionistToken,
       beginInterval,
       endInterval,
       reservationState.partnerId,

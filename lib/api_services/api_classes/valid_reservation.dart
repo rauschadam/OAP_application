@@ -5,15 +5,15 @@ class ValidReservation {
   final String partnerId;
   final String partner_Sortname;
   final String licensePlate;
-  final String parkingArticleId;
-  final String articleNameHUN;
-  final int state;
-  final String stateName;
-  final DateTime arriveDate;
-  final DateTime leaveDate;
-  final String webParkingPaperId;
-  final String webParkingPaperNumber;
-  final String webParkingPaperTypeName;
+  final String? parkingArticleId;
+  final String? articleNameHUN;
+  final int? state;
+  final String? stateName;
+  final DateTime? arriveDate;
+  final DateTime? leaveDate;
+  final String? webParkingPaperId;
+  final String? webParkingPaperNumber;
+  final String? webParkingPaperTypeName;
   final String? webParkingAdvancePaperId;
   final String? webParkingAdvancePaperNumber;
   final String? webParkingAdvancePaperTypeName;
@@ -31,15 +31,15 @@ class ValidReservation {
     required this.partnerId,
     required this.partner_Sortname,
     required this.licensePlate,
-    required this.parkingArticleId,
-    required this.articleNameHUN,
-    required this.state,
-    required this.stateName,
-    required this.arriveDate,
-    required this.leaveDate,
-    required this.webParkingPaperId,
-    required this.webParkingPaperNumber,
-    required this.webParkingPaperTypeName,
+    this.parkingArticleId,
+    this.articleNameHUN,
+    this.state,
+    this.stateName,
+    this.arriveDate,
+    this.leaveDate,
+    this.webParkingPaperId,
+    this.webParkingPaperNumber,
+    this.webParkingPaperTypeName,
     this.webParkingAdvancePaperId,
     this.webParkingAdvancePaperNumber,
     this.webParkingAdvancePaperTypeName,
@@ -62,8 +62,8 @@ class ValidReservation {
       "ParkingArticleId": parkingArticleId,
       "ArticleNameHUN": articleNameHUN,
       "State": state,
-      "ArriveDate": arriveDate.toIso8601String(),
-      "LeaveDate": leaveDate.toIso8601String(),
+      "ArriveDate": arriveDate?.toIso8601String(),
+      "LeaveDate": leaveDate?.toIso8601String(),
       "WebParkingPaperId": webParkingPaperId,
       "WebParkingPaperNumber": webParkingPaperNumber,
       "WebParkingPaperTypeName": webParkingPaperTypeName,
@@ -91,8 +91,11 @@ class ValidReservation {
       articleNameHUN: json['ArticleNameHUN'],
       state: json['State'],
       stateName: json['StateName'],
-      arriveDate: DateTime.parse(json['ArriveDate']),
-      leaveDate: DateTime.parse(json['LeaveDate']),
+      arriveDate: json['ArriveDate'] != null
+          ? DateTime.parse(json['ArriveDate'])
+          : null,
+      leaveDate:
+          json['LeaveDate'] != null ? DateTime.parse(json['LeaveDate']) : null,
       webParkingPaperId: json['WebParkingPaperId'],
       webParkingPaperNumber: json['WebParkingPaperNumber'],
       webParkingPaperTypeName: json['WebParkingPaperTypeName'],
@@ -123,23 +126,27 @@ class ValidReservation {
       case 'LicensePlate':
         return r.licensePlate;
       case 'ParkingArticleId':
-        return r.parkingArticleId;
+        return r.parkingArticleId ?? '-';
       case 'ArticleNameHUN':
-        return r.articleNameHUN;
+        return r.articleNameHUN ?? '-';
       case 'State':
         return r.state.toString();
       case 'StateName':
-        return r.stateName;
+        return r.stateName ?? '-';
       case 'ArriveDate':
-        return DateFormat('yyyy.MM.dd HH:mm').format(r.arriveDate);
+        return r.arriveDate != null
+            ? DateFormat('yyyy.MM.dd HH:mm').format(r.arriveDate!)
+            : '-';
       case 'LeaveDate':
-        return DateFormat('yyyy.MM.dd HH:mm').format(r.leaveDate);
+        return r.leaveDate != null
+            ? DateFormat('yyyy.MM.dd HH:mm').format(r.leaveDate!)
+            : '-';
       case 'WebParkingPaperId':
-        return r.webParkingPaperId;
+        return r.webParkingPaperId ?? '-';
       case 'WebParkingPaperNumber':
-        return r.webParkingPaperNumber;
+        return r.webParkingPaperNumber ?? '-';
       case 'WebParkingPaperTypeName':
-        return r.webParkingPaperTypeName;
+        return r.webParkingPaperTypeName ?? '-';
       case 'WebParkingAdvancePaperId':
         return r.webParkingAdvancePaperId ?? '-';
       case 'WebParkingAdvancePaperNumber':

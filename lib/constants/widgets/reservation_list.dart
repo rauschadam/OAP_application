@@ -240,10 +240,14 @@ class _ReservationListState extends State<ReservationList> {
         value = reservation.state;
         break;
       case 'arriveDate':
-        value = DateFormat('yyyy.MM.dd HH:mm').format(reservation.arriveDate);
+        value = reservation.arriveDate != null
+            ? DateFormat('yyyy.MM.dd HH:mm').format(reservation.arriveDate!)
+            : null;
         break;
       case 'leaveDate':
-        value = DateFormat('yyyy.MM.dd HH:mm').format(reservation.leaveDate);
+        value = reservation.leaveDate != null
+            ? DateFormat('yyyy.MM.dd HH:mm').format(reservation.leaveDate!)
+            : null;
         break;
       case 'email':
         value = reservation.email;

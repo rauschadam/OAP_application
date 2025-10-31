@@ -93,10 +93,11 @@ class HomePageState extends ConsumerState<HomePage> {
   Map<String, int> mapCurrentOccupancyByZones(List<dynamic> reservations) {
     zoneCounters = {};
     for (ValidReservation reservation in reservations) {
+      if (reservation.parkingArticleId == null) continue;
       final parkingArticleId = reservation.parkingArticleId;
       final bool isParking = (reservation.state == 1 || reservation.state == 2);
       if (isParking) {
-        zoneCounters[parkingArticleId] =
+        zoneCounters[parkingArticleId!] =
             (zoneCounters[parkingArticleId] ?? 0) + 1;
       }
     }
@@ -116,20 +117,25 @@ class HomePageState extends ConsumerState<HomePage> {
     Map<String, Map<DateTime, int>> counters = {};
 
     for (ValidReservation reservation in reservations) {
+      if (reservation.parkingArticleId == null ||
+          reservation.arriveDate == null ||
+          reservation.leaveDate == null) {
+        continue;
+      }
       final parkingArticleId = reservation.parkingArticleId;
       final arrive = reservation.arriveDate;
       final leave = reservation.leaveDate;
-      counters.putIfAbsent(parkingArticleId, () => {});
+      counters.putIfAbsent(parkingArticleId!, () => {});
 
       DateTime current = DateTime(
-        arrive.year,
+        arrive!.year,
         arrive.month,
         arrive.day,
         arrive.hour,
         arrive.minute - (arrive.minute % 30),
       );
 
-      while (current.isBefore(leave)) {
+      while (current.isBefore(leave!)) {
         counters[parkingArticleId]![current] =
             (counters[parkingArticleId]![current] ?? 0) + 1;
         current = current.add(const Duration(minutes: 30));
@@ -466,37 +472,68 @@ class HomePageState extends ConsumerState<HomePage> {
       return Center(child: Text('Nem találhatóak foglalások'));
     }
 
+    // 1. Foglalások időbeli rendezése
+    reservations!.sort((a, b) {
+      if (a.arriveDate == null && b.arriveDate == null) return 0;
+      if (a.arriveDate == null) return 1;
+      if (b.arriveDate == null) return -1;
+      return a.arriveDate!.compareTo(b.arriveDate!);
+    });
+
     final List<ValidReservation> expectedReservations = [];
 
-    DateTime getEarliestTime(
-        DateTime arrive, DateTime leave, DateTime startTime) {
-      final bool isArriveInFuture = arrive.isAfter(startTime);
-      return isArriveInFuture ? arrive : leave;
+    final Set<String> processedLicensePlates = {};
+
+    DateTime getActionTime(ValidReservation reservation) {
+      final bool isArrivalAction =
+          (reservation.state == 0 || reservation.state == 3);
+      return isArrivalAction ? reservation.arriveDate! : reservation.leaveDate!;
     }
 
-    for (ValidReservation reservation in reservations!) {
+    String getActionType(ValidReservation reservation) {
+      final bool isArrivalAction =
+          (reservation.state == 0 || reservation.state == 3);
+      return isArrivalAction ? 'Érkezés' : 'Távozás';
+    }
+
+    // 2. Foglalások átnézése (Idő, státusz)
+    for (ValidReservation reservation in reservations) {
+      // --- Duplikáció ellenőrzése ---
+      final String licensePlate = reservation.licensePlate;
+      if (processedLicensePlates.contains(licensePlate)) {
+        continue;
+      }
+      if (reservation.arriveDate == null || reservation.leaveDate == null) {
+        continue;
+      }
+
       final arriveDate = reservation.arriveDate;
       final leaveDate = reservation.leaveDate;
 
       final bool isArriveToday =
-          arriveDate.isAfter(startTime) && arriveDate.isBefore(endTime);
+          arriveDate!.isAfter(startTime) && arriveDate.isBefore(endTime);
       final bool isLeaveToday =
-          leaveDate.isAfter(startTime) && leaveDate.isBefore(endTime);
+          leaveDate!.isAfter(startTime) && leaveDate.isBefore(endTime);
 
-      if ((isArriveToday &&
-              (reservation.state == 0 || reservation.state == 3)) ||
-          (isLeaveToday &&
-              (reservation.state == 1 || reservation.state == 2))) {
+      if (
+          // Ma érkezik
+          (isArriveToday &&
+                  (reservation.state == 0 || reservation.state == 3)) ||
+              // Ma távozik
+              (isLeaveToday &&
+                  (reservation.state == 1 || reservation.state == 2))) {
         expectedReservations.add(reservation);
+        processedLicensePlates.add(licensePlate);
       }
     }
 
     expectedReservations.sort((a, b) {
-      final aEarliest = getEarliestTime(a.arriveDate, a.leaveDate, startTime);
-      final bEarliest = getEarliestTime(b.arriveDate, b.leaveDate, startTime);
-      return aEarliest.compareTo(bEarliest);
+      final aActionTime = getActionTime(a);
+      final bActionTime = getActionTime(b);
+      return aActionTime.compareTo(bActionTime);
     });
 
+    // A Widget felépítése (változatlan)
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppBorderRadius.medium),
@@ -505,7 +542,7 @@ class HomePageState extends ConsumerState<HomePage> {
       child: ReservationList(
         maxHeight: maxHeight,
         listTitle: listTitle,
-        emptyText: "Nem várható bejelentett ügyfél.",
+        emptyText: "Nincs mára várható teendő.",
         reservations: expectedReservations,
         columns: {
           'Név': 'Name',
@@ -515,17 +552,10 @@ class HomePageState extends ConsumerState<HomePage> {
         },
         formatters: {
           'Time': (reservation) {
-            final arriveDate = reservation.arriveDate;
-            final isArriveToday =
-                arriveDate.isAfter(startTime) && arriveDate.isBefore(endTime);
-            return DateFormat('HH:mm')
-                .format(isArriveToday ? arriveDate : reservation.leaveDate);
+            return DateFormat('HH:mm').format(getActionTime(reservation));
           },
           'Type': (reservation) {
-            final arriveDate = reservation.arriveDate;
-            final isArriveToday =
-                arriveDate.isAfter(startTime) && arriveDate.isBefore(endTime);
-            return isArriveToday ? 'Érkezés' : 'Távozás';
+            return getActionType(reservation);
           },
         },
         onRowTap: (ValidReservation tappedReservation) {
@@ -559,7 +589,7 @@ class HomePageState extends ConsumerState<HomePage> {
                 final selectedReservation = entry.value;
                 final licensePlate = selectedReservation.licensePlate;
                 final state = selectedReservation.state;
-                final stateName = getStateName(state);
+                final stateName = getStateName(state!);
 
                 return Container(
                   color: (selectedSearchIndex == index)

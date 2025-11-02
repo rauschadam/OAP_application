@@ -4,7 +4,6 @@ import 'package:airport_test/constants/widgets/search_bar.dart';
 import 'package:flutter/material.dart';
 
 class DesktopView extends StatelessWidget {
-  // Fogadjuk a szülő State osztályát, hogy elérjük az állapotot és a metódusokat
   final HomePageState homePageState;
 
   const DesktopView({
@@ -28,32 +27,55 @@ class DesktopView extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.all(AppPadding.medium),
                       child: Column(
+                        // Fő oszlop
                         children: [
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Padding(
-                                  padding: EdgeInsets.only(
-                                      top: AppPadding.small,
-                                      bottom: AppPadding.medium),
-                                  child: homePageState.newReservationButton(),
-                                ),
-                                ConstrainedBox(
-                                  constraints: BoxConstraints(maxHeight: 350.0),
-                                  child: homePageState.buildTodoList(
-                                    listTitle: 'Ma',
-                                    reservations: homePageState.reservations,
-                                    startTime: homePageState.now,
-                                    endTime: DateTime(
-                                            homePageState.now.year,
-                                            homePageState.now.month,
-                                            homePageState.now.day)
-                                        .add(const Duration(days: 1)),
-                                  ),
-                                ),
-                              ],
+                          // Hely a keresőnek
+                          SizedBox(height: 60),
+
+                          // Ez a widget kitölti a rendelkezésre álló
+                          // üres helyet, és lejjebb tolja a gombot és a listákat.
+                          Spacer(),
+
+                          // Gomb
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                  top: AppPadding.small,
+                                  bottom: AppPadding.medium),
+                              child: homePageState.newReservationButton(),
                             ),
+                          ),
+
+                          // Listák
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              ConstrainedBox(
+                                constraints: BoxConstraints(maxHeight: 250.0),
+                                child: homePageState.buildTaskList(
+                                    listTitle: 'Múltbeli',
+                                    reservations: homePageState.reservations,
+                                    startTime: null,
+                                    endTime: homePageState.now
+                                        .subtract(const Duration(hours: 3)),
+                                    maxHeight: 250.0,
+                                    fullDateFormat: true),
+                              ),
+                              SizedBox(height: AppPadding.medium),
+                              ConstrainedBox(
+                                constraints: BoxConstraints(maxHeight: 350.0),
+                                child: homePageState.buildTaskList(
+                                  listTitle: 'Ma',
+                                  reservations: homePageState.reservations,
+                                  startTime: homePageState.now
+                                      .subtract(const Duration(hours: 3)),
+                                  endTime: homePageState.now
+                                      .add(const Duration(days: 1)),
+                                  maxHeight: 350.0,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),

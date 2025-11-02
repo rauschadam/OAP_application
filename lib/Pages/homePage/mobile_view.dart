@@ -55,15 +55,24 @@ class MobileView extends StatelessWidget {
               homePageState.newReservationButton(),
               SizedBox(height: AppPadding.medium),
 
-              // 5. Mai teendők lista
+              // 5. Múltbeli teendők lista
               SafeArea(
-                child: homePageState.buildTodoList(
+                child: homePageState.buildTaskList(
+                  listTitle: 'Múlt',
+                  reservations: homePageState.reservations,
+                  endTime: homePageState.now.subtract(const Duration(hours: 3)),
+                ),
+              ),
+              SizedBox(height: AppPadding.medium),
+
+              // 6. Mai teendők lista
+              SafeArea(
+                child: homePageState.buildTaskList(
                   listTitle: 'Ma',
                   reservations: homePageState.reservations,
-                  startTime: homePageState.now,
-                  endTime: DateTime(homePageState.now.year,
-                          homePageState.now.month, homePageState.now.day)
-                      .add(const Duration(days: 1)),
+                  startTime:
+                      homePageState.now.subtract(const Duration(hours: 3)),
+                  endTime: homePageState.now.add(const Duration(days: 1)),
                 ),
               ),
               SizedBox(height: AppPadding.medium),

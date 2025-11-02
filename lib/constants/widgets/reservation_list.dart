@@ -34,52 +34,56 @@ class ReservationList extends StatefulWidget {
 class _ReservationListState extends State<ReservationList> {
   @override
   Widget build(BuildContext context) {
-    // Ha a maxHeight null, akkor zsugorodjon (mobil), egyébként töltse ki (desktop).
+    // Ha a maxHeight null, akkor "zsugorodik" (mobil)
     final bool shrink = widget.maxHeight == null;
+
+    // A lista belső tartalma (Cím + Fejléc + Sorok)
+    // Ez a Column mindig "zsugorodik" a tartalmához.
+    Widget listContent = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (widget.listTitle != null)
+          Padding(
+            padding: const EdgeInsets.only(left: AppPadding.small),
+            child: Text(
+              widget.listTitle!,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
+        const SizedBox(height: AppPadding.medium),
+        widget.reservations.isEmpty
+            ? Container(
+                padding: const EdgeInsets.all(AppBorderRadius.small),
+                width: double.infinity,
+                child: Text(widget.emptyText ?? 'Nincsenek foglalások'),
+              )
+            : Column(
+                children: [
+                  _buildColumnTitles(widget.columns),
+                  _buildRows(widget.reservations),
+                ],
+              ),
+      ],
+    );
+
+    // A külső konténer
     return Container(
       padding: const EdgeInsets.all(AppPadding.medium),
       decoration: const BoxDecoration(
-        borderRadius: BorderRadius.all(Radius.circular(AppBorderRadius.small)),
-      ),
-      constraints: shrink ? null : BoxConstraints(maxHeight: widget.maxHeight!),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: shrink ? MainAxisSize.min : MainAxisSize.max,
-        children: [
-          if (widget.listTitle != null)
-            Padding(
-              padding: const EdgeInsets.only(left: AppPadding.small),
-              child: Text(
-                widget.listTitle!,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
+          borderRadius:
+              BorderRadius.all(Radius.circular(AppBorderRadius.small)),
+          color: AppColors.secondary),
+      // Alkalmazzuk a max magasság korlátot, HA meg van adva (desktop)
+      constraints: (shrink || widget.maxHeight == double.infinity)
+          ? null
+          : BoxConstraints(maxHeight: widget.maxHeight!),
+      child: shrink
+          ? listContent // Mobilon nem kell görgetni (a szülő 'SingleChildScrollView' görget)
+          : SingleChildScrollView(
+              // Desktopon a 'listContent'-et görgethetővé tesszük
+              child: listContent,
             ),
-          const SizedBox(height: AppPadding.medium),
-          widget.reservations.isEmpty
-              ? Container(
-                  padding: const EdgeInsets.all(AppBorderRadius.small),
-                  width: double.infinity,
-                  child: Text(widget.emptyText ?? 'Nincsenek foglalások'),
-                )
-              : (shrink
-                  // --- MOBIL (SHRINK) ÚTVONAL ---
-                  ? Column(
-                      children: [
-                        _buildColumnTitles(widget.columns),
-                        _buildRows(widget.reservations, shrink: true),
-                      ],
-                    )
-                  // --- DESKTOP (FILL) ÚTVONAL ---
-                  : Expanded(
-                      child: Column(
-                        children: [
-                          _buildColumnTitles(widget.columns),
-                          _buildRows(widget.reservations, shrink: false),
-                        ],
-                      ),
-                    )),
-        ],
-      ),
     );
   }
 
@@ -110,104 +114,49 @@ class _ReservationListState extends State<ReservationList> {
     );
   }
 
-  Widget _buildRows(List<ValidReservation> reservations,
-      {required bool shrink}) {
-    if (shrink) {
-      // --- MOBIL (SHRINK) ÚTVONAL ---
-      return ListView.builder(
-        shrinkWrap: true, // <-- FONTOS
-        physics: const NeverScrollableScrollPhysics(), // <-- FONTOS
-        itemCount: reservations.length,
-        itemBuilder: (context, index) {
-          // ... (A meglévő builder tartalom) ...
-          final reservation = reservations[index];
-          return Column(
-            children: [
-              InkWell(
-                onTap: widget.onRowTap != null
-                    ? () => widget.onRowTap!(reservation)
-                    : null,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: AppPadding.small,
-                    horizontal: AppPadding.medium,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _getRowColor(reservation, index),
-                    borderRadius: index == reservations.length - 1
-                        ? const BorderRadius.only(
-                            bottomLeft: Radius.circular(AppBorderRadius.small),
-                            bottomRight: Radius.circular(AppBorderRadius.small),
-                          )
-                        : null,
-                  ),
-                  child: Row(
-                    children: [
-                      for (var fieldName in widget.columns.values)
-                        Expanded(
-                          child: _buildCell(reservation, fieldName),
-                        ),
-                    ],
-                  ),
+  Widget _buildRows(List<ValidReservation> reservations) {
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: reservations.length,
+      itemBuilder: (context, index) {
+        final reservation = reservations[index];
+        return Column(
+          children: [
+            InkWell(
+              onTap: widget.onRowTap != null
+                  ? () => widget.onRowTap!(reservation)
+                  : null,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  vertical: AppPadding.small,
+                  horizontal: AppPadding.medium,
+                ),
+                decoration: BoxDecoration(
+                  color: _getRowColor(reservation, index),
+                  borderRadius: index == reservations.length - 1
+                      ? const BorderRadius.only(
+                          bottomLeft: Radius.circular(AppBorderRadius.small),
+                          bottomRight: Radius.circular(AppBorderRadius.small),
+                        )
+                      : null,
+                ),
+                child: Row(
+                  children: [
+                    for (var fieldName in widget.columns.values)
+                      Expanded(
+                        child: _buildCell(reservation, fieldName),
+                      ),
+                  ],
                 ),
               ),
-              if (index < reservations.length - 1)
-                const Divider(height: 1, thickness: 1),
-            ],
-          );
-        },
-      );
-    } else {
-      // --- DESKTOP (FILL) ÚTVONAL ---
-      // Mivel a `build` metódusban `Expanded`-be van csomagolva,
-      // itt is `Expanded`-et kell használnunk a ListView-n.
-      return Expanded(
-        child: ListView.builder(
-          shrinkWrap: false,
-          physics: const AlwaysScrollableScrollPhysics(),
-          itemCount: reservations.length,
-          itemBuilder: (context, index) {
-            final reservation = reservations[index];
-            return Column(
-              children: [
-                InkWell(
-                  onTap: widget.onRowTap != null
-                      ? () => widget.onRowTap!(reservation)
-                      : null,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: AppPadding.small,
-                      horizontal: AppPadding.medium,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _getRowColor(reservation, index),
-                      borderRadius: index == reservations.length - 1
-                          ? const BorderRadius.only(
-                              bottomLeft:
-                                  Radius.circular(AppBorderRadius.small),
-                              bottomRight:
-                                  Radius.circular(AppBorderRadius.small),
-                            )
-                          : null,
-                    ),
-                    child: Row(
-                      children: [
-                        for (var fieldName in widget.columns.values)
-                          Expanded(
-                            child: _buildCell(reservation, fieldName),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-                if (index < reservations.length - 1)
-                  const Divider(height: 1, thickness: 1),
-              ],
-            );
-          },
-        ),
-      );
-    }
+            ),
+            if (index < reservations.length - 1)
+              const Divider(height: 1, thickness: 1),
+          ],
+        );
+      },
+    );
   }
 
   Widget _buildCell(ValidReservation reservation, String fieldName) {

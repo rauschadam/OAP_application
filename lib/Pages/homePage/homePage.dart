@@ -457,11 +457,12 @@ class HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  Widget buildTodoList({
+  Widget buildTaskList({
     required List<dynamic>? reservations,
-    required DateTime startTime,
+    DateTime? startTime,
     required DateTime endTime,
     required String listTitle,
+    bool fullDateFormat = false,
     double? maxHeight,
   }) {
     if (loading) {
@@ -510,10 +511,13 @@ class HomePageState extends ConsumerState<HomePage> {
       final arriveDate = reservation.arriveDate;
       final leaveDate = reservation.leaveDate;
 
+      // Ha startTime null, csak az endTime-ot nézzük
       final bool isArriveToday =
-          arriveDate!.isAfter(startTime) && arriveDate.isBefore(endTime);
+          (startTime == null || arriveDate!.isAfter(startTime)) &&
+              arriveDate!.isBefore(endTime);
       final bool isLeaveToday =
-          leaveDate!.isAfter(startTime) && leaveDate.isBefore(endTime);
+          (startTime == null || leaveDate!.isAfter(startTime)) &&
+              leaveDate!.isBefore(endTime);
 
       if (
           // Ma érkezik
@@ -533,41 +537,38 @@ class HomePageState extends ConsumerState<HomePage> {
       return aActionTime.compareTo(bActionTime);
     });
 
-    // A Widget felépítése (változatlan)
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppBorderRadius.medium),
-        color: AppColors.secondary,
-      ),
-      child: ReservationList(
-        maxHeight: maxHeight,
-        listTitle: listTitle,
-        emptyText: "Nincs mára várható teendő.",
-        reservations: expectedReservations,
-        columns: {
-          'Név': 'Name',
-          'Rendszám': 'LicensePlate',
-          'Időpont': 'Time',
-          'Típus': 'Type',
+    return ReservationList(
+      maxHeight: maxHeight,
+      listTitle: listTitle,
+      emptyText: "Nincs mára várható teendő.",
+      reservations: expectedReservations,
+      columns: {
+        'Név': 'Name',
+        'Rendszám': 'LicensePlate',
+        'Időpont': 'Time',
+        'Típus': 'Type',
+      },
+      formatters: {
+        'Time': (reservation) {
+          if (fullDateFormat) {
+            return DateFormat('yyyy.MM.dd HH:mm')
+                .format(getActionTime(reservation));
+          }
+          return DateFormat('HH:mm').format(getActionTime(reservation));
         },
-        formatters: {
-          'Time': (reservation) {
-            return DateFormat('HH:mm').format(getActionTime(reservation));
-          },
-          'Type': (reservation) {
-            return getActionType(reservation);
-          },
+        'Type': (reservation) {
+          return getActionType(reservation);
         },
-        onRowTap: (ValidReservation tappedReservation) {
-          showReservationOptionsDialog(
-            context,
-            tappedReservation,
-            onArrival: attemptRegisterArrival,
-            onLeave: attemptRegisterLeave,
-            onChangeLicense: attemptChangeLicensePlate,
-          );
-        },
-      ),
+      },
+      onRowTap: (ValidReservation tappedReservation) {
+        showReservationOptionsDialog(
+          context,
+          tappedReservation,
+          onArrival: attemptRegisterArrival,
+          onLeave: attemptRegisterLeave,
+          onChangeLicense: attemptChangeLicensePlate,
+        );
+      },
     );
   }
 

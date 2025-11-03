@@ -69,6 +69,7 @@ class MobileView extends StatelessWidget {
               SafeArea(
                 child: homePageState.buildTaskList(
                   listTitle: 'Ma',
+                  emptyText: "Nincs hivatalos teendő",
                   reservations: homePageState.reservations,
                   startTime:
                       homePageState.now.subtract(const Duration(hours: 3)),

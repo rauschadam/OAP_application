@@ -463,6 +463,7 @@ class HomePageState extends ConsumerState<HomePage> {
     required DateTime endTime,
     required String listTitle,
     bool fullDateFormat = false,
+    String? emptyText,
     double? maxHeight,
   }) {
     if (loading) {
@@ -537,10 +538,17 @@ class HomePageState extends ConsumerState<HomePage> {
       return aActionTime.compareTo(bActionTime);
     });
 
+    if (expectedReservations.isEmpty && emptyText == null) {
+      return const SizedBox(
+        height: 0,
+        width: 0,
+      );
+    }
+
     return ReservationList(
       maxHeight: maxHeight,
       listTitle: listTitle,
-      emptyText: "Nincs mára várható teendő.",
+      emptyText: emptyText,
       reservations: expectedReservations,
       columns: {
         'Név': 'Name',
@@ -580,9 +588,9 @@ class HomePageState extends ConsumerState<HomePage> {
     return Padding(
       padding: const EdgeInsets.only(top: AppPadding.small),
       child: SizedBox(
-        width: 300,
+        width: 250,
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: 300),
+          constraints: BoxConstraints(maxHeight: 250),
           child: SingleChildScrollView(
             child: Column(
               children: searchResults!.asMap().entries.map((entry) {

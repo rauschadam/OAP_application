@@ -1,6 +1,11 @@
 import 'package:airport_test/Pages/reservationForm/loginPage.dart';
+import 'package:airport_test/Pages/reservationForm/parkOrderPage.dart';
 import 'package:airport_test/Pages/reservationForm/registrationPage.dart';
+import 'package:airport_test/Pages/reservationForm/washOrderPage.dart';
+import 'package:airport_test/api_services/api_classes/login_data.dart';
 import 'package:airport_test/api_services/api_classes/reservation.dart';
+import 'package:airport_test/api_services/api_service.dart';
+import 'package:airport_test/constants/globals.dart';
 import 'package:airport_test/constants/navigation.dart';
 import 'package:airport_test/constants/widgets/base_page.dart';
 import 'package:airport_test/constants/widgets/my_radio_list_tile.dart';
@@ -22,6 +27,19 @@ class _RegistrationOptionPageState
     extends ConsumerState<RegistrationOptionPage> {
   RegistrationOption selectedRegistrationOption = RegistrationOption.registered;
 
+  Future<void> loginWithReceptionist() async {
+    final api = ApiService();
+    final LoginData? loginData =
+        await api.loginUser(context, ReceptionistEmail!, ReceptionistPassword!);
+    if (loginData != null) {
+      ref.read(reservationProvider.notifier).updateAuth(
+            authToken: loginData.authorizationToken,
+            partnerId: loginData.partnerId,
+            personId: loginData.personId,
+          );
+    }
+  }
+
   void onNextPageButtonPressed() {
     Widget? nextPage;
     bool alreadyRegistered = false;
@@ -36,7 +54,11 @@ class _RegistrationOptionPageState
         alreadyRegistered = true;
         break;
       case RegistrationOption.withoutRegistration:
-        nextPage = const LoginPage();
+        loginWithReceptionist();
+        nextPage =
+            ref.read(reservationProvider).bookingOption == BookingOption.parking
+                ? ParkOrderPage()
+                : WashOrderPage();
         withoutRegistration = true;
         break;
     }
@@ -111,7 +133,6 @@ class _RegistrationOptionPageState
           ),
           MyRadioListTile<RegistrationOption>(
             title: 'Regisztráció nélkül vásárolok',
-            subtitle: 'Még nem működik',
             value: RegistrationOption.withoutRegistration,
             groupValue: selectedRegistrationOption,
             onChanged: (RegistrationOption? value) {

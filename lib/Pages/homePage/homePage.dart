@@ -224,6 +224,23 @@ class HomePageState extends ConsumerState<HomePage> {
     );
   }
 
+  // Foglalás Teljes Részletek
+  void showFullDetails(ValidReservation tappedReservation) {
+    showReservationDetails(
+      context,
+      tappedReservation,
+      detailFields: ReservationFieldSettings,
+      onArrival: attemptRegisterArrival,
+      onLeave: attemptRegisterLeave,
+      onChangeLicense: attemptChangeLicensePlate,
+    );
+    // A kereső bezárása, ha a felhasználó a találatok közül választott
+    if (searchController.text.isNotEmpty) {
+      searchController.clear();
+      selectedSearchIndex = null;
+    }
+  }
+
   void onKeyEventHandler(KeyEvent event) async {
     if (event is! KeyDownEvent) return;
 
@@ -574,6 +591,9 @@ class HomePageState extends ConsumerState<HomePage> {
           onChangeLicense: attemptChangeLicensePlate,
         );
       },
+      // MÁSODLAGOS MŰVELET (Hosszú nyomás / Jobb klikk) -> Teljes részletek
+      onRowLongPress: IsMobile ? showFullDetails : null,
+      onRowSecondaryTap: IsMobile ? null : showFullDetails,
     );
   }
 
@@ -612,6 +632,12 @@ class HomePageState extends ConsumerState<HomePage> {
                       );
                       searchController.clear();
                     },
+                    onLongPress: IsMobile
+                        ? () => showFullDetails(selectedReservation)
+                        : null,
+                    onSecondaryTap: IsMobile
+                        ? null
+                        : () => showFullDetails(selectedReservation),
                     child: Column(
                       children: [
                         Padding(

@@ -10,7 +10,14 @@ class ReservationList extends StatefulWidget {
   final Map<String, String Function(ValidReservation)>? formatters;
   final double? maxHeight;
   final double? maxWidth;
+  // Elsődleges tap/click (gyors akciók)
   final Function(ValidReservation)? onRowTap;
+
+  // Hosszú nyomás (mobil részletek)
+  final Function(ValidReservation)? onRowLongPress;
+
+  // Másodlagos tap/click (desktop jobb klikk/részletek)
+  final Function(ValidReservation)? onRowSecondaryTap;
   final ValidReservation? selectedReservation;
   final String? emptyText;
 
@@ -23,6 +30,8 @@ class ReservationList extends StatefulWidget {
     this.maxHeight,
     this.maxWidth,
     this.onRowTap,
+    this.onRowLongPress,
+    this.onRowSecondaryTap,
     this.selectedReservation,
     this.emptyText,
   });
@@ -126,6 +135,14 @@ class _ReservationListState extends State<ReservationList> {
             InkWell(
               onTap: widget.onRowTap != null
                   ? () => widget.onRowTap!(reservation)
+                  : null,
+              // Hosszú nyomás a mobil részletekért
+              onLongPress: widget.onRowLongPress != null
+                  ? () => widget.onRowLongPress!(reservation)
+                  : null,
+              // Jobb klikk a desktop részletekért
+              onSecondaryTap: widget.onRowSecondaryTap != null
+                  ? () => widget.onRowSecondaryTap!(reservation)
                   : null,
               child: Container(
                 padding: const EdgeInsets.symmetric(

@@ -3,6 +3,7 @@
 import 'package:airport_test/api_services/api_classes/car_wash_service.dart';
 import 'package:airport_test/api_services/api_classes/available_list_panel.dart';
 import 'package:airport_test/api_services/api_classes/pay_type.dart';
+import 'package:airport_test/api_services/api_classes/platform_setting.dart';
 import 'package:airport_test/api_services/api_classes/service_templates.dart';
 import 'package:flutter/material.dart';
 
@@ -41,3 +42,5 @@ List<PayType> PayTypes = [];
 List<ServiceTemplate> ServiceTemplates = [];
 
 List<CarWashService> CarWashServices = [];
+
+List<PlatformSetting> ReservationFieldSettings = [];

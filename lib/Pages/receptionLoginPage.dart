@@ -49,6 +49,16 @@ class _ReceptionLoginPageState extends State<ReceptionLoginPage> {
         PayTypes = await api.getPayTypes(context) ?? [];
 
         CarWashServices = await api.getCarWashServices(context) ?? [];
+
+        ReservationFieldSettings = await api.fetchPlatformSettings(
+              context: context,
+              listPanelId: 107, // Érvényes foglalású autók
+              platformId: 3, // Desktop settings
+              errorDialogTitle:
+                  "Foglalás részletező mezők lekérdezése sikertelen!",
+            ) ??
+            [];
+
         Navigation(context: context, page: HomePage()).pushAndRemoveAll();
       } catch (e) {
         debugPrint("Hiba az adatok lekérése közben: $e");

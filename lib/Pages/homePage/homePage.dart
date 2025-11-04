@@ -457,7 +457,7 @@ class HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  Widget buildTaskList({
+  Widget? buildTaskList({
     required List<dynamic>? reservations,
     DateTime? startTime,
     required DateTime endTime,
@@ -539,10 +539,7 @@ class HomePageState extends ConsumerState<HomePage> {
     });
 
     if (expectedReservations.isEmpty && emptyText == null) {
-      return const SizedBox(
-        height: 0,
-        width: 0,
-      );
+      return null;
     }
 
     return ReservationList(
@@ -551,7 +548,7 @@ class HomePageState extends ConsumerState<HomePage> {
       emptyText: emptyText,
       reservations: expectedReservations,
       columns: {
-        'Név': 'Name',
+        if (!IsMobile) 'Név': 'Name',
         'Rendszám': 'LicensePlate',
         'Időpont': 'Time',
         'Típus': 'Type',

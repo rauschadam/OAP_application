@@ -13,6 +13,23 @@ class DesktopView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // --- Létrehozzuk a listákat ---
+    final Widget? pastTaskList = homePageState.buildTaskList(
+        listTitle: 'Múltbeli',
+        reservations: homePageState.reservations,
+        startTime: null,
+        endTime: homePageState.now.subtract(const Duration(hours: 3)),
+        maxHeight: 250.0,
+        fullDateFormat: true);
+
+    final Widget? todayTaskList = homePageState.buildTaskList(
+      listTitle: 'Ma',
+      emptyText: "Nincs hivatalos teendő",
+      reservations: homePageState.reservations,
+      startTime: homePageState.now.subtract(const Duration(hours: 3)),
+      endTime: homePageState.now.add(const Duration(days: 1)),
+      maxHeight: 350.0,
+    );
     return homePageState.detectClicks(
       homePageState.buildRefreshIndicator(
         KeyboardListener(
@@ -51,30 +68,19 @@ class DesktopView extends StatelessWidget {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              ConstrainedBox(
-                                constraints: BoxConstraints(maxHeight: 250.0),
-                                child: homePageState.buildTaskList(
-                                    listTitle: 'Múltbeli',
-                                    reservations: homePageState.reservations,
-                                    startTime: null,
-                                    endTime: homePageState.now
-                                        .subtract(const Duration(hours: 3)),
-                                    maxHeight: 250.0,
-                                    fullDateFormat: true),
-                              ),
-                              SizedBox(height: AppPadding.medium),
+                              // --- Múltbeli lista (feltételes) ---
+                              if (pastTaskList != null)
+                                ConstrainedBox(
+                                  constraints: BoxConstraints(maxHeight: 250.0),
+                                  child: pastTaskList,
+                                ),
+                              if (pastTaskList != null)
+                                SizedBox(height: AppPadding.medium),
+
+                              // --- Mai lista (mindig megjelenik) ---
                               ConstrainedBox(
                                 constraints: BoxConstraints(maxHeight: 350.0),
-                                child: homePageState.buildTaskList(
-                                  listTitle: 'Ma',
-                                  emptyText: "Nincs hivatalos teendő",
-                                  reservations: homePageState.reservations,
-                                  startTime: homePageState.now
-                                      .subtract(const Duration(hours: 3)),
-                                  endTime: homePageState.now
-                                      .add(const Duration(days: 1)),
-                                  maxHeight: 350.0,
-                                ),
+                                child: todayTaskList!,
                               ),
                             ],
                           ),

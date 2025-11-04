@@ -14,6 +14,21 @@ class MobileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // --- Létrehozzuk a listákat ---
+    final Widget? pastTaskList = homePageState.buildTaskList(
+      listTitle: 'Múlt',
+      reservations: homePageState.reservations,
+      endTime: homePageState.now.subtract(const Duration(hours: 3)),
+    );
+
+    final Widget? todayTaskList = homePageState.buildTaskList(
+      listTitle: 'Ma',
+      emptyText: "Nincs hivatalos teendő",
+      reservations: homePageState.reservations,
+      startTime: homePageState.now.subtract(const Duration(hours: 3)),
+      endTime: homePageState.now.add(const Duration(days: 1)),
+    );
+
     return homePageState.buildRefreshIndicator(
       SingleChildScrollView(
         child: Padding(
@@ -55,30 +70,18 @@ class MobileView extends StatelessWidget {
               homePageState.newReservationButton(),
               SizedBox(height: AppPadding.medium),
 
-              // 5. Múltbeli teendők lista
+              // 5. Mai teendők lista (mindig)
               SafeArea(
-                child: homePageState.buildTaskList(
-                  listTitle: 'Múlt',
-                  reservations: homePageState.reservations,
-                  endTime: homePageState.now.subtract(const Duration(hours: 3)),
-                ),
+                bottom: pastTaskList == null,
+                child: todayTaskList!, // Nem lesz null
               ),
               SizedBox(height: AppPadding.medium),
 
-              // 6. Mai teendők lista
-              SafeArea(
-                child: homePageState.buildTaskList(
-                  listTitle: 'Ma',
-                  emptyText: "Nincs hivatalos teendő",
-                  reservations: homePageState.reservations,
-                  startTime:
-                      homePageState.now.subtract(const Duration(hours: 3)),
-                  endTime: homePageState.now.add(const Duration(days: 1)),
+              // 6. Múltbeli teendők lista (feltételes)
+              if (pastTaskList != null)
+                SafeArea(
+                  child: pastTaskList,
                 ),
-              ),
-              SizedBox(height: AppPadding.medium),
-
-              SizedBox(height: AppPadding.medium),
 
               // // 6. Telített időpontok lista
               // homePageState.buildFullyBookedTimeList(

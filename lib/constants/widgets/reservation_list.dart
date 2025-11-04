@@ -72,7 +72,7 @@ class _ReservationListState extends State<ReservationList> {
       padding: const EdgeInsets.all(AppPadding.medium),
       decoration: const BoxDecoration(
           borderRadius:
-              BorderRadius.all(Radius.circular(AppBorderRadius.small)),
+              BorderRadius.all(Radius.circular(AppBorderRadius.medium)),
           color: AppColors.secondary),
       // Alkalmazzuk a max magasság korlátot, HA meg van adva (desktop)
       constraints: (shrink || widget.maxHeight == double.infinity)

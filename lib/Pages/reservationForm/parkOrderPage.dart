@@ -858,7 +858,8 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
             ? Column(
                 children: PayTypes.map((payType) {
                   return MyRadioListTile<String>(
-                    title: payType.payTypeName,
+                    title: payType
+                        .payTypeName, // payType. == 0 ? payType.payTypeName : "$payType.payTypeName - $payType.discount",
                     value: payType.payTypeId,
                     groupValue: selectedPayTypeId,
                     onChanged: (value) {

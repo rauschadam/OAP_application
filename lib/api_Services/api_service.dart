@@ -350,6 +350,52 @@ class ApiService {
     return null;
   }
 
+  /// Egyenleg feltöltés
+  Future<void> UploadBalance(
+      BuildContext context, String partnerId, int uploadVolume) async {
+    final uri = Uri.http(baseUrl, '/service/v1/airport/uploadseasonticket');
+
+    try {
+      final response = await client.post(uri,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': '$ReceptionistToken!',
+          },
+          body: jsonEncode({
+            "PartnerId": partnerId,
+            "UploadVolume": uploadVolume,
+          }));
+
+      if (response.statusCode == 200) {
+        AwesomeDialog(
+          context: context,
+          width: 300,
+          dialogType: DialogType.success,
+          title: 'Sikeres egyenleg feltöltés',
+        ).show();
+      } else {
+        final responseBody = json.decode(response.body);
+        final errorMessage =
+            responseBody['responseMessage'] ?? 'Ismeretlen hiba';
+        AwesomeDialog(
+          context: context,
+          width: 300,
+          dialogType: DialogType.error,
+          title: 'Egyenleg feltöltése sikertelen',
+          desc: errorMessage,
+        ).show();
+      }
+    } catch (e) {
+      AwesomeDialog(
+        context: context,
+        width: 300,
+        dialogType: DialogType.error,
+        title: 'Egyenleg feltöltése sikertelen',
+        desc: "Hálózati hiba: $e",
+      ).show();
+    }
+  }
+
   /// Szolgáltatások lekérdezése
   Future<List<ServiceTemplate>?> getServiceTemplates(
       BuildContext context) async {

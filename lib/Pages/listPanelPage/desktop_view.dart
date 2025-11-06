@@ -46,13 +46,13 @@ class DesktopView extends StatelessWidget {
 
             // 2. Kereső és Gombok
             Positioned(
-              top: 3,
+              top: AppPadding.small,
               left: AppPadding.medium,
               right: AppPadding.medium,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1.
+                  // 1. Kereső
                   SearchBarContainer(
                     searchContainerKey: listPanelPageState.searchContainerKey,
                     transparency: listPanelPageState.showFilters,

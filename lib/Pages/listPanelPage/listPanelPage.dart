@@ -27,11 +27,9 @@ class ListPanelPage extends StatefulWidget {
   });
 
   @override
-  // Módosítva: Public State Class
   State<ListPanelPage> createState() => ListPanelPageState();
 }
 
-// Módosítva: Public State Class (_ReservationListPageState -> GenericListPanelPageState)
 class ListPanelPageState extends State<ListPanelPage> {
   // --- FOCUSNODEOK ---
   FocusNode keyboardFocus = FocusNode();
@@ -76,7 +74,7 @@ class ListPanelPageState extends State<ListPanelPage> {
   bool loading = true;
 
   /// Egyedi objectId-k a mezőkből
-  final Set<int> availableObjectIds = {};
+  final Map<int, String> availableObjectIds = {};
 
   /// Ellenőrzi, hogy van-e legalább egy aktív keresési filter
   bool get areAnyFiltersActive =>
@@ -176,7 +174,7 @@ class ListPanelPageState extends State<ListPanelPage> {
       // Összegyűjtjük az egyedi, nem null objectId-kat
       for (var field in fieldData) {
         if (field.objectId != null) {
-          availableObjectIds.add(field.objectId!);
+          availableObjectIds[field.objectId!] = field.listFieldName;
         }
       }
 
@@ -235,6 +233,7 @@ class ListPanelPageState extends State<ListPanelPage> {
     });
   }
 
+  /// Műveleti gombok (Érkeztetés, kiléptetés stb.)
   List<Widget> buildActionButtons() {
     List<Widget> buttons = [];
 
@@ -244,18 +243,29 @@ class ListPanelPageState extends State<ListPanelPage> {
     }
 
     // --- 1 ---
-    if (availableObjectIds.contains(1) && !IsMobile) {
+    if (availableObjectIds.containsKey(1) && !IsMobile) {
       buttons.add(
         IconButton(
           icon: Icon(Icons.receipt, color: AppColors.primary),
           onPressed: () {
             if (selectedRow is Map<String, dynamic>) {
-              final String? partnerId = selectedRow['Partner_Id'];
-              if (partnerId != null) {
-                uploadToBalanceDialog(context, partnerId);
+              final String? fieldName = availableObjectIds[1];
+              if (fieldName != null) {
+                final String? partnerId = selectedRow![fieldName];
+                if (partnerId != null) {
+                  uploadToBalanceDialog(context, partnerId);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text(
+                            'A partner azonosító mező ($fieldName) értéke hiányzik.')),
+                  );
+                }
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('A partner azonosító nem található.')),
+                  SnackBar(
+                      content:
+                          Text('A 1-es objektumhoz nincs hozzárendelt mező.')),
                 );
               }
             } else {
@@ -272,7 +282,7 @@ class ListPanelPageState extends State<ListPanelPage> {
 
     // --- 1200 ---
     // Módosítva: Mobilon ezek a gombok a bottom sheet-en belül jelennek meg
-    if (availableObjectIds.contains(1200) && !IsMobile) {
+    if (availableObjectIds.containsKey(1200) && !IsMobile) {
       buttons.add(
         IconButton(
           icon: Icon(Icons.car_rental_outlined, color: AppColors.primary),
@@ -373,7 +383,7 @@ class ListPanelPageState extends State<ListPanelPage> {
 
     // --- Akció gombok logikája (ide áthozva) ---
     ValidReservation? reservation;
-    if (availableObjectIds.contains(1200)) {
+    if (availableObjectIds.containsKey(1200)) {
       try {
         reservation = ValidReservation.fromJson(rowData);
       } catch (e) {
@@ -383,10 +393,8 @@ class ListPanelPageState extends State<ListPanelPage> {
     }
 
     String? partnerId;
-    if (availableObjectIds.contains(1)) {
-      if (rowData is Map<String, dynamic>) {
-        partnerId = rowData['Partner_Id'];
-      }
+    if (availableObjectIds.containsKey(1)) {
+      partnerId = rowData['Partner_Id'];
     }
 
     final List<Widget> actionButtons = [];
@@ -420,7 +428,7 @@ class ListPanelPageState extends State<ListPanelPage> {
         actionButtons.add(
           ElevatedButton(
             onPressed: () {
-              Navigator.of(context).pop(); // Bezárja a bottom sheet-et
+              Navigator.of(context).pop();
               attemptRegisterLeave(reservation!.licensePlate);
             },
             style: ElevatedButton.styleFrom(
@@ -439,7 +447,7 @@ class ListPanelPageState extends State<ListPanelPage> {
         actionButtons.add(
           ElevatedButton(
             onPressed: () {
-              Navigator.of(context).pop(); // Bezárja a bottom sheet-et
+              Navigator.of(context).pop();
               attemptRegisterArrival(reservation!.licensePlate);
             },
             style: ElevatedButton.styleFrom(
@@ -454,11 +462,11 @@ class ListPanelPageState extends State<ListPanelPage> {
       }
     }
 
-    if (availableObjectIds.contains(1)) {
+    if (availableObjectIds.containsKey(1)) {
       actionButtons.add(
         ElevatedButton(
           onPressed: () {
-            Navigator.of(context).pop(); // Bezárja a bottom sheet-et
+            Navigator.of(context).pop();
             uploadToBalanceDialog(context, partnerId!);
           },
           style: ElevatedButton.styleFrom(
@@ -483,7 +491,6 @@ class ListPanelPageState extends State<ListPanelPage> {
       builder: (ctx) {
         return ConstrainedBox(
           constraints: BoxConstraints(
-            // Max magasság a képernyő 80%-a
             maxHeight: MediaQuery.of(context).size.height * 0.9,
           ),
           child: Padding(
@@ -583,10 +590,10 @@ class ListPanelPageState extends State<ListPanelPage> {
     );
   }
 
-  // --- Módosítva: Public metódus (_buildMobileListView -> buildMobileListView)
+  /// Telefonon grid helyett lista formában mutatjuk az adatokat
   Widget buildMobileListView() {
     final data = filteredData ?? listPanelData!;
-    if (listPanelFields == null) return Container(); // Biztonsági ellenőrzés
+    if (listPanelFields == null) return Container();
 
     // Keressük meg az első látható mezőt, ez lesz a címe a listának
     final PlatformSetting? firstVisibleField =
@@ -858,7 +865,8 @@ class ListPanelPageState extends State<ListPanelPage> {
       return Container();
     }
     return Padding(
-      padding: const EdgeInsets.only(left: AppPadding.medium, top: 4),
+      padding:
+          const EdgeInsets.only(left: AppPadding.medium, top: AppPadding.small),
       child: Tooltip(
         message: "Másolás vágólapra",
         child: IconButton(
@@ -868,7 +876,6 @@ class ListPanelPageState extends State<ListPanelPage> {
           icon: const Icon(
             Icons.copy,
             color: AppColors.primary,
-            size: 30,
           ),
         ),
       ),

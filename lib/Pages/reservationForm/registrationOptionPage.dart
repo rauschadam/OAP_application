@@ -27,7 +27,10 @@ class _RegistrationOptionPageState
     extends ConsumerState<RegistrationOptionPage> {
   RegistrationOption selectedRegistrationOption = RegistrationOption.registered;
 
-  Future<void> loginWithReceptionist() async {
+  /// Ha épp folyamatban a bejelentkezés
+  bool _isSubmitting = false;
+
+  Future<bool> loginWithReceptionist() async {
     final api = ApiService();
     final LoginData? loginData =
         await api.loginUser(context, ReceptionistEmail!, ReceptionistPassword!);
@@ -37,40 +40,64 @@ class _RegistrationOptionPageState
             partnerId: loginData.partnerId,
             personId: loginData.personId,
           );
+      return true; // Sikeres bejelentkezés
     }
+    return false; // Sikertelen bejelentkezés
   }
 
-  void onNextPageButtonPressed() {
-    Widget? nextPage;
-    bool alreadyRegistered = false;
-    bool withoutRegistration = false;
+  void onNextPageButtonPressed() async {
+    if (_isSubmitting) return; // <-- VISSZALÉPÉS
 
-    switch (selectedRegistrationOption) {
-      case RegistrationOption.registerNow:
-        nextPage = const RegistrationPage();
-        break;
-      case RegistrationOption.registered:
-        nextPage = const LoginPage();
-        alreadyRegistered = true;
-        break;
-      case RegistrationOption.withoutRegistration:
-        loginWithReceptionist();
-        nextPage =
-            ref.read(reservationProvider).bookingOption == BookingOption.parking
-                ? ParkOrderPage()
-                : WashOrderPage();
-        withoutRegistration = true;
-        break;
+    setState(() {
+      _isSubmitting = true; // <-- MŰVELET ELINDÍTÁSA
+    });
+
+    try {
+      Widget? nextPage;
+      bool alreadyRegistered = false;
+      bool withoutRegistration = false;
+      bool shouldNavigate = true;
+
+      switch (selectedRegistrationOption) {
+        case RegistrationOption.registerNow:
+          nextPage = const RegistrationPage();
+          break;
+        case RegistrationOption.registered:
+          nextPage = const LoginPage();
+          alreadyRegistered = true;
+          break;
+        case RegistrationOption.withoutRegistration:
+          bool success = await loginWithReceptionist();
+          if (!success) {
+            shouldNavigate = false;
+            break;
+          }
+
+          nextPage = ref.read(reservationProvider).bookingOption ==
+                  BookingOption.parking
+              ? ParkOrderPage()
+              : WashOrderPage();
+          withoutRegistration = true;
+          break;
+      }
+
+      // A foglalás opciók frissítése (hozzáadva a regisztrációs opciókat)
+      ref.read(reservationProvider.notifier).updateOptions(
+            bookingOption: ref.read(reservationProvider).bookingOption,
+            alreadyRegistered: alreadyRegistered,
+            withoutRegistration: withoutRegistration,
+          );
+
+      if (shouldNavigate && nextPage != null) {
+        Navigation(context: context, page: nextPage).push();
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false; // <-- MŰVELET BEFEJEZÉSE
+        });
+      }
     }
-
-    // A foglalás opciók frissítése (hozzáadva a regisztrációs opciókat)
-    ref.read(reservationProvider.notifier).updateOptions(
-          bookingOption: ref.read(reservationProvider).bookingOption,
-          alreadyRegistered: alreadyRegistered,
-          withoutRegistration: withoutRegistration,
-        );
-
-    Navigation(context: context, page: nextPage).push();
   }
 
   @override
@@ -86,6 +113,7 @@ class _RegistrationOptionPageState
             text: 'Tovább',
             onPressed: onNextPageButtonPressed,
             pushAndRemoveAll: false,
+            isLoading: _isSubmitting,
           ),
         ],
       ),

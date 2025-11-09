@@ -66,6 +66,8 @@ class WashOrderPageState extends ConsumerState<WashOrderPage> {
   /// A teljes fizetendő összeg
   int totalCost = 0;
 
+  bool _isSubmitting = false;
+
   /// Foglalások lekérdezése és a Riverpod állapot inicializálása
   Future<void> fetchData() async {
     final api = ApiService();
@@ -315,40 +317,57 @@ class WashOrderPageState extends ConsumerState<WashOrderPage> {
   }
 
   void OnNextPageButtonPressed() async {
+    if (_isSubmitting) return; // <-- VISSZALÉPÉS, ha a művelet már fut
+
     if (formKey.currentState!.validate()) {
       if (selectedWashDate != null &&
           selectedWashTime != null &&
           selectedCarWashService != null) {
-        final reservationState = ref.read(reservationProvider);
+        setState(() {
+          _isSubmitting = true; // <-- MŰVELET ELINDÍTÁSA
+        });
 
-        // Kontakt és Rendszám adatok mentése, ha csak mosás (washing)
-        if (reservationState.bookingOption == BookingOption.washing) {
-          ref.read(reservationProvider.notifier).updateContactAndLicense(
-                name: nameController.text,
-                email: reservationState.email,
-                phone: '+${phoneController.text}',
-                licensePlate: licensePlateController.text,
+        try {
+          final reservationState = ref.read(reservationProvider);
+
+          // Kontakt és Rendszám adatok mentése, ha csak mosás (washing)
+          if (reservationState.bookingOption == BookingOption.washing) {
+            ref.read(reservationProvider.notifier).updateContactAndLicense(
+                  name: nameController.text,
+                  email: reservationState.email,
+                  phone: '+${phoneController.text}',
+                  licensePlate: licensePlateController.text,
+                );
+          }
+
+          // Mosási adatok mentése a Riverpodba
+          ref.read(reservationProvider.notifier).updateWash(
+                carWashArticleId: selectedCarWashService!.article_Id,
+                washDateTime: DateTime(
+                    selectedWashDate!.year,
+                    selectedWashDate!.month,
+                    selectedWashDate!.day,
+                    selectedWashTime!.hour,
+                    selectedWashTime!.minute),
+                payTypeId: selectedPayTypeId,
+                description: descriptionController.text,
               );
+
+          // Navigálás a következő oldalra
+          Navigation(
+            context: context,
+            page: const InvoiceOptionPage(),
+          ).push();
+        } catch (e) {
+          debugPrint("WashOrderPage submission error: $e");
+        } finally {
+          // A gomb állapotának visszaállítása
+          if (mounted) {
+            setState(() {
+              _isSubmitting = false; // <-- MŰVELET BEFEJEZÉSE
+            });
+          }
         }
-
-        // Mosási adatok mentése a Riverpodba
-        ref.read(reservationProvider.notifier).updateWash(
-              carWashArticleId: selectedCarWashService!.article_Id,
-              washDateTime: DateTime(
-                  selectedWashDate!.year,
-                  selectedWashDate!.month,
-                  selectedWashDate!.day,
-                  selectedWashTime!.hour,
-                  selectedWashTime!.minute),
-              payTypeId: selectedPayTypeId,
-              description: descriptionController.text,
-            );
-
-        // Navigálás a következő oldalra
-        Navigation(
-          context: context,
-          page: const InvoiceOptionPage(),
-        ).push();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Válassz ki időpontot és mosást!')),

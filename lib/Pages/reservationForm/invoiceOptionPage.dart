@@ -20,6 +20,9 @@ class InvoiceOptionPage extends ConsumerStatefulWidget {
 class _InvoiceOptionPageState extends ConsumerState<InvoiceOptionPage> {
   InvoiceOption selectedInvoiceOption = InvoiceOption.no;
 
+  /// Ha épp folyamatban a foglalás elküldése
+  bool _isSubmitting = false;
+
   /// Megnzézzük, hogy lehet-e egyből érkeztetni
   bool checkCustomerArrivalIsSoon() {
     final state = ref.read(reservationProvider);
@@ -77,6 +80,46 @@ class _InvoiceOptionPageState extends ConsumerState<InvoiceOptionPage> {
   void goToHomePage() async {
     ref.read(reservationProvider.notifier).resetState();
     Navigation(context: context, page: HomePage()).pushAndRemoveAll();
+  }
+
+  void OnNextPageButtonPressed() async {
+    if (_isSubmitting) return; // <-- VISSZALÉPÉS
+
+    setState(() {
+      _isSubmitting = true; // <-- MŰVELET ELINDÍTÁSA
+    });
+
+    try {
+      // 1. Várja be az eredményt
+      String? errorMessage = await submitReservation();
+
+      // 2. Ellenőrizze, hogy a widget még "mounted"
+      if (!mounted) return;
+
+      // 3. Siker esetén (nincs hibaüzenet) navigáljon
+      if (errorMessage == null) {
+        if (checkCustomerArrivalIsSoon()) {
+          showArrivalDialog();
+        } else {
+          goToHomePage();
+        }
+      } else {
+        // 4. Hiba esetén jelenítsen meg egy dialógust a hibaüzenettel
+        AwesomeDialog(
+          context: context,
+          width: 300,
+          dialogType: DialogType.error,
+          title: "Foglalás rögzítése sikertelen",
+          desc: errorMessage,
+        ).show();
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false; // <-- MŰVELET BEFEJEZÉSE
+        });
+      }
+    }
   }
 
   /// Foglalás rögzítése
@@ -158,31 +201,8 @@ class _InvoiceOptionPageState extends ConsumerState<InvoiceOptionPage> {
           ),
           NextPageButton(
             text: "Foglalás küldése",
-            onPressed: () async {
-              // 1. Várja be az eredményt (ami siker esetén null, hiba esetén string)
-              String? errorMessage = await submitReservation();
-
-              // 2. Ellenőrizze, hogy a widget még "mounted"
-              if (!mounted) return;
-
-              if (errorMessage == null) {
-                // 3. Siker esetén (nincs hibaüzenet) navigáljon
-                if (checkCustomerArrivalIsSoon()) {
-                  showArrivalDialog();
-                } else {
-                  goToHomePage();
-                }
-              } else {
-                // 4. Hiba esetén jelenítsen meg egy dialógust a hibaüzenettel
-                AwesomeDialog(
-                  context: context,
-                  width: 300,
-                  dialogType: DialogType.error,
-                  title: "Foglalás rögzítése sikertelen",
-                  desc: errorMessage,
-                ).show();
-              }
-            },
+            onPressed: OnNextPageButtonPressed,
+            isLoading: _isSubmitting,
           ),
         ],
       ),

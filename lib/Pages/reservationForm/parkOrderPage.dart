@@ -95,6 +95,8 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
   /// A teljes fizetendő összeg
   int totalCost = 0;
 
+  bool _isSubmitting = false;
+
   /// Foglalások és szolgáltatások lekérdezése
   Future<void> fetchData() async {
     final api = ApiService();
@@ -331,64 +333,91 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
   }
 
   void OnNextPageButtonPressed() async {
+    if (_isSubmitting) return;
+
     if (formKey.currentState!.validate()) {
-      if (selectedArriveDate == null || selectedLeaveDate == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Válassz ki Parkolási intervallumot!')),
-        );
-        return;
-      }
-      if (selectedParkingArticleId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Válassz ki egy parkoló zónát!')),
-        );
-        return;
-      }
+      setState(() {
+        _isSubmitting = true; // <-- MŰVELET ELINDÍTÁSA
+      });
 
-      // 1. Kontakt és Rendszám adatok mentése
-      ref.read(reservationProvider.notifier).updateContactAndLicense(
-            name: nameController.text,
-            email: ref.read(reservationProvider).email,
-            phone: '+${phoneController.text}',
-            licensePlate: licensePlateController.text,
-          );
+      try {
+        if (selectedArriveDate == null || selectedLeaveDate == null) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content: Text('Válassz ki Parkolási intervallumot!')),
+            );
+          }
+          return;
+        }
+        if (selectedParkingArticleId == null) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Válassz ki egy parkoló zónát!')),
+            );
+          }
+          return;
+        }
 
-      // 2. Parkolás adatok mentése
-      ref.read(reservationProvider.notifier).updateParking(
-            arriveDate: selectedArriveDate!,
-            leaveDate: selectedLeaveDate!,
-            parkingArticleId: selectedParkingArticleId,
-            transferPersonCount: transferCount,
-            vip: VIPDriverRequested,
-            suitcaseWrappingCount: suitcaseWrappingCount,
-            parkingCost: totalCost,
-            payTypeId: selectedPayTypeId,
-            description: descriptionController.text,
-          );
+        // 1. Kontakt és Rendszám adatok mentése
+        ref.read(reservationProvider.notifier).updateContactAndLicense(
+              name: nameController.text,
+              email: ref.read(reservationProvider).email,
+              phone: '+${phoneController.text}',
+              licensePlate: licensePlateController.text,
+            );
 
-      // 3. Navigálás a következő oldalra a bookingOption alapján
-      Widget? nextPage;
-      final bookingOption = ref.read(reservationProvider).bookingOption;
+        // 2. Parkolás adatok mentése
+        ref.read(reservationProvider.notifier).updateParking(
+              arriveDate: selectedArriveDate!,
+              leaveDate: selectedLeaveDate!,
+              parkingArticleId: selectedParkingArticleId,
+              transferPersonCount: transferCount,
+              vip: VIPDriverRequested,
+              suitcaseWrappingCount: suitcaseWrappingCount,
+              parkingCost: totalCost,
+              payTypeId: selectedPayTypeId,
+              description: descriptionController.text,
+            );
 
-      if (bookingOption == BookingOption.parking) {
-        nextPage = const InvoiceOptionPage();
-      } else if (bookingOption == BookingOption.both) {
-        nextPage = const WashOrderPage();
-      }
+        // 3. Navigálás a következő oldalra a bookingOption alapján
+        Widget? nextPage;
+        final bookingOption = ref.read(reservationProvider).bookingOption;
 
-      if (nextPage != null) {
-        Navigation(context: context, page: nextPage).push();
-      } else {
-        // Ez az ág elvileg sosem fut le, ha a bookingOption helyesen van kezelve
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Hiba: Ismeretlen foglalási opció.')),
-        );
+        if (bookingOption == BookingOption.parking) {
+          nextPage = const InvoiceOptionPage();
+        } else if (bookingOption == BookingOption.both) {
+          nextPage = const WashOrderPage();
+        }
+
+        if (nextPage != null) {
+          Navigation(context: context, page: nextPage).push();
+        } else {
+          // Ez az ág elvileg sosem fut le, ha a bookingOption helyesen van kezelve
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content: Text('Hiba: Ismeretlen foglalási opció.')),
+            );
+          }
+        }
+      } catch (e) {
+        debugPrint("ParkOrderPage submission error: $e");
+      } finally {
+        // 4. Állapot visszaállítása, ha még ezen az oldalon vagyunk.
+        if (mounted) {
+          setState(() {
+            _isSubmitting = false; // <-- MŰVELET BEFEJEZÉSE
+          });
+        }
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Sikertelen foglalás! Ellenőrizd az adatokat.')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Sikertelen foglalás! Ellenőrizd az adatokat.')),
+        );
+      }
     }
   }
 
@@ -439,6 +468,7 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
                     child: NextPageButton(
                       focusNode: nextPageButtonFocus,
                       onPressed: OnNextPageButtonPressed,
+                      isLoading: _isSubmitting,
                     ),
                   ),
                 ),

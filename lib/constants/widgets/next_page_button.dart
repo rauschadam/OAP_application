@@ -8,6 +8,7 @@ class NextPageButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final FocusNode? focusNode;
   final bool pushAndRemoveAll;
+  final bool isLoading;
 
   const NextPageButton({
     super.key,
@@ -16,6 +17,7 @@ class NextPageButton extends StatelessWidget {
     this.onPressed,
     this.focusNode,
     this.pushAndRemoveAll = true,
+    this.isLoading = false,
   });
 
   @override
@@ -31,23 +33,34 @@ class NextPageButton extends StatelessWidget {
               foregroundColor: WidgetStateProperty.all(AppColors.background),
             ),
             focusNode: focusNode,
-            onPressed: () {
-              if (onPressed != null) {
-                onPressed!();
-              }
-              if (nextPage != null) {
-                if (pushAndRemoveAll) {
-                  Navigation(context: context, page: nextPage!)
-                      .pushAndRemoveAll();
-                  return;
-                } else {
-                  Navigation(context: context, page: nextPage!).push();
-                }
-              }
-            },
-            child: Text(
-              text,
-            ),
+            onPressed: isLoading
+                ? null
+                : () {
+                    if (onPressed != null) {
+                      onPressed!();
+                    }
+                    if (nextPage != null) {
+                      if (pushAndRemoveAll) {
+                        Navigation(context: context, page: nextPage!)
+                            .pushAndRemoveAll();
+                        return;
+                      } else {
+                        Navigation(context: context, page: nextPage!).push();
+                      }
+                    }
+                  },
+            child: isLoading // Betöltésjelző
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      color: AppColors.background,
+                      strokeWidth: 3,
+                    ),
+                  )
+                : Text(
+                    text,
+                  ),
           ),
         ),
       ),

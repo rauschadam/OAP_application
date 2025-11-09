@@ -51,7 +51,11 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
   final houseNumberFocus = FocusNode();
   final nextPageButtonFocus = FocusNode();
 
+  /// Jelszó elrejtése
   bool obscurePassword = true;
+
+  /// Ha épp folyamatban a bejelentkezés
+  bool _isSubmitting = false;
 
   /// Regisztráció
   Future<LoginData?> RegisterUser() async {
@@ -93,36 +97,52 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
   }
 
   void OnNextPageButtonPressed() async {
+    if (_isSubmitting) return; // <-- VISSZALÉPÉS
+
     if (formKey.currentState!.validate()) {
-      final loginData = await RegisterUser();
-      if (loginData != null) {
-        // Állapot frissítése hitelesítési és kapcsolati adatokkal
-        final currentState = ref.read(reservationProvider);
+      setState(() {
+        _isSubmitting = true; // <-- MŰVELET ELINDÍTÁSA
+      });
 
-        ref.read(reservationProvider.notifier).updateAuth(
-              authToken: loginData.authorizationToken,
-              partnerId: loginData.partnerId,
-              personId: loginData.personId,
-            );
+      try {
+        final loginData = await RegisterUser();
+        if (!mounted) return;
 
-        ref.read(reservationProvider.notifier).updateContactAndLicense(
-              name: nameController.text,
-              email: emailController.text,
-              phone: '+${phoneController.text}',
-              licensePlate: favoriteLicensePlateNumberController.text,
-            );
+        if (loginData != null) {
+          // Állapot frissítése hitelesítési és kapcsolati adatokkal
+          final currentState = ref.read(reservationProvider);
 
-        Widget nextPage;
-        switch (currentState.bookingOption) {
-          case BookingOption.parking:
-          case BookingOption.both:
-            nextPage = const ParkOrderPage();
-            break;
-          case BookingOption.washing:
-            nextPage = const WashOrderPage();
-            break;
+          ref.read(reservationProvider.notifier).updateAuth(
+                authToken: loginData.authorizationToken,
+                partnerId: loginData.partnerId,
+                personId: loginData.personId,
+              );
+
+          ref.read(reservationProvider.notifier).updateContactAndLicense(
+                name: nameController.text,
+                email: emailController.text,
+                phone: '+${phoneController.text}',
+                licensePlate: favoriteLicensePlateNumberController.text,
+              );
+
+          Widget nextPage;
+          switch (currentState.bookingOption) {
+            case BookingOption.parking:
+            case BookingOption.both:
+              nextPage = const ParkOrderPage();
+              break;
+            case BookingOption.washing:
+              nextPage = const WashOrderPage();
+              break;
+          }
+          Navigation(context: context, page: nextPage).push();
         }
-        Navigation(context: context, page: nextPage).push();
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isSubmitting = false; // <-- MŰVELET BEFEJEZÉSE
+          });
+        }
       }
     }
   }
@@ -150,6 +170,7 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
               NextPageButton(
                 focusNode: nextPageButtonFocus,
                 onPressed: OnNextPageButtonPressed,
+                isLoading: _isSubmitting,
               ),
             ],
           ),

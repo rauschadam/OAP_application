@@ -32,6 +32,9 @@ class _ReceptionLoginPageState extends State<ReceptionLoginPage> {
   /// Jelszó elrejtése
   bool obscurePassword = true;
 
+  /// Ha épp folyamatban a bejelentkezés
+  bool _isSubmitting = false;
+
   /// Recepciós bejelentkeztetése
   Future<LoginData?> loginReceptionist() async {
     final api = ApiService();
@@ -85,10 +88,26 @@ class _ReceptionLoginPageState extends State<ReceptionLoginPage> {
   }
 
   void OnNextPageButtonPressed() async {
+    if (_isSubmitting) return; // <-- VISSZALÉPÉS, ha már fut
+
     if (formKey.currentState!.validate()) {
-      final LoginData? loginData = await loginReceptionist();
-      if (loginData != null) {
-        Navigation(context: context, page: HomePage()).pushAndRemoveAll();
+      setState(() {
+        _isSubmitting = true; // <-- MŰVELET ELINDÍTÁSA
+      });
+
+      try {
+        final LoginData? loginData = await loginReceptionist();
+        if (!mounted) return;
+
+        if (loginData != null) {
+          Navigation(context: context, page: HomePage()).pushAndRemoveAll();
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isSubmitting = false; // <-- MŰVELET BEFEJEZÉSE
+          });
+        }
       }
     }
   }
@@ -107,6 +126,7 @@ class _ReceptionLoginPageState extends State<ReceptionLoginPage> {
             NextPageButton(
               focusNode: nextPageButtonFocus,
               onPressed: OnNextPageButtonPressed,
+              isLoading: _isSubmitting,
             ),
           ],
         ),

@@ -25,6 +25,9 @@ class ReservationFormState {
   final int suitcaseWrappingCount;
   final int parkingCost; // A parkolás teljes költsége
 
+  final int vipPrice;
+  final int suitcaseWrappingPrice;
+
   // Mosási adatok
   final String? carWashArticleId;
   final DateTime? washDateTime;
@@ -51,6 +54,8 @@ class ReservationFormState {
     this.vip = false,
     this.suitcaseWrappingCount = 0,
     this.parkingCost = 0,
+    this.vipPrice = 0,
+    this.suitcaseWrappingPrice = 0,
     this.carWashArticleId,
     this.washDateTime,
     this.payTypeId = '',
@@ -75,6 +80,8 @@ class ReservationFormState {
     bool? vip,
     int? suitcaseWrappingCount,
     int? parkingCost,
+    int? vipPrice,
+    int? suitcaseWrappingPrice,
     String? carWashArticleId,
     DateTime? washDateTime,
     String? payTypeId,
@@ -99,6 +106,9 @@ class ReservationFormState {
       suitcaseWrappingCount:
           suitcaseWrappingCount ?? this.suitcaseWrappingCount,
       parkingCost: parkingCost ?? this.parkingCost,
+      vipPrice: vipPrice ?? this.vipPrice,
+      suitcaseWrappingPrice:
+          suitcaseWrappingPrice ?? this.suitcaseWrappingPrice,
       carWashArticleId: carWashArticleId ?? this.carWashArticleId,
       washDateTime: washDateTime ?? this.washDateTime,
       payTypeId: payTypeId ?? this.payTypeId,
@@ -174,6 +184,17 @@ class ReservationNotifier extends StateNotifier<ReservationFormState> {
       parkingCost: parkingCost,
       payTypeId: payTypeId,
       description: description,
+    );
+  }
+
+  /// Kiegészítő szolgáltatások árainak frissítése
+  void updateServicePrices({
+    required int vip,
+    required int suitcase,
+  }) {
+    state = state.copyWith(
+      vipPrice: vip,
+      suitcaseWrappingPrice: suitcase,
     );
   }
 

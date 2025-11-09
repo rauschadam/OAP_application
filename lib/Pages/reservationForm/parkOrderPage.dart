@@ -99,6 +99,8 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
 
   /// Foglalások és szolgáltatások lekérdezése
   Future<void> fetchData() async {
+    await fetchServicePrices();
+
     final api = ApiService();
     // Adatok olvasása a Riverpod állapotból
     final reservationState = ref.read(reservationProvider);
@@ -140,6 +142,56 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
         fetchParkingPrices();
       }
     });
+  }
+
+  /// VIP sofőr és bőrönd fóliázás árainak lekérdezése
+  Future<void> fetchServicePrices() async {
+    // 1. Árak lekérdezése ListaPanelből
+    final api = ApiService();
+    final List<dynamic>? panelData = await api.fetchListPanelData(
+      context: context,
+      listPanelId: 101,
+      errorDialogTitle: "Szolgáltatási árak lekérése sikertelen!",
+    );
+
+    if (panelData == null || !mounted) return;
+
+    int tempVIPPrice = 0;
+    int tempSuitcasePrice = 0;
+
+    // 2. Keresés és ár frissítése
+    try {
+      // PV: VIP sofőr
+      final vipItem = panelData.firstWhere(
+        (item) => item['ArticleCode1'] == 'PV',
+        orElse: () => null,
+      );
+      // PB: Bőrönd fóliázás
+      final pbItem = panelData.firstWhere(
+        (item) => item['ArticleCode1'] == 'PB',
+        orElse: () => null,
+      );
+
+      setState(() {
+        if (vipItem != null && vipItem['ArticleSellPrice1'] != null) {
+          tempVIPPrice = (vipItem['ArticleSellPrice1'] as num).toInt();
+        }
+        if (pbItem != null && pbItem['ArticleSellPrice1'] != null) {
+          tempSuitcasePrice = (pbItem['ArticleSellPrice1'] as num).toInt();
+        }
+      });
+
+      // 3. Árak megjegyzése a reservationState-ben
+      ref.read(reservationProvider.notifier).updateServicePrices(
+            vip: tempVIPPrice,
+            suitcase: tempSuitcasePrice,
+          );
+    } catch (e) {
+      debugPrint("Hiba a szolgáltatási árak feldolgozása közben: $e");
+    }
+
+    // 4. Teljes ár újrakalkulálása
+    CalculateTotalCost();
   }
 
   /// Parkoló zóna árak lekérdezése
@@ -211,6 +263,8 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
 
   /// Teljes összeg kalkulálása, az árakat később adatbázisból fogja előhívni.
   void CalculateTotalCost() {
+    final reservationState = ref.read(reservationProvider);
+
     int baseCost = 0;
 
     // Hozzáadjuk a parkolás árát
@@ -220,11 +274,11 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
 
     // Hozzáadjuk a VIP sofőr árát, amennyiben igénylik
     if (VIPDriverRequested) {
-      baseCost += 5000;
+      baseCost += reservationState.vipPrice;
     }
 
     // Hozzáadjuk a bőrönd fóliázás árát, amennyiszer igénylik
-    baseCost += suitcaseWrappingCount * 1000;
+    baseCost += suitcaseWrappingCount * reservationState.suitcaseWrappingPrice;
 
     setState(() {
       totalCost = baseCost;

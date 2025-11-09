@@ -73,10 +73,15 @@ class _RegistrationOptionPageState
             break;
           }
 
-          nextPage = ref.read(reservationProvider).bookingOption ==
-                  BookingOption.parking
-              ? ParkOrderPage()
-              : WashOrderPage();
+          final bookingOption = ref.read(reservationProvider).bookingOption;
+          if (bookingOption == BookingOption.parking ||
+              bookingOption == BookingOption.both) {
+            // Ha 'parking' VAGY 'both', a ParkOrderPage-re megyünk
+            nextPage = const ParkOrderPage();
+          } else {
+            // Ha csak mosás
+            nextPage = const WashOrderPage();
+          }
           withoutRegistration = true;
           break;
       }

@@ -184,10 +184,10 @@ class WashOrderPageState extends ConsumerState<WashOrderPage> {
         // Hozzáadjuk az extrákat (VIP, Bőrönd), ahogy a parkOrderPage-n is történt
         int finalParkingCost = newParkingBaseCost;
         if (reservationState.vip) {
-          finalParkingCost += 5000; // (Hardcoded érték a parkOrderPage alapján)
+          finalParkingCost += reservationState.vipPrice;
         }
         finalParkingCost += reservationState.suitcaseWrappingCount *
-            1000; // (Hardcoded érték a parkOrderPage alapján)
+            reservationState.suitcaseWrappingPrice;
 
         // Frissítjük a Riverpod állapotot az ÚJ parkolási költséggel és az ÚJ fizetési móddal
         // Fontos, hogy a többi parkolási adatot változatlanul hagyjuk

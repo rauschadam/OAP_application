@@ -66,21 +66,25 @@ class WashOrderPageState extends ConsumerState<WashOrderPage> {
   /// A teljes fizetendő összeg
   int totalCost = 0;
 
+  /// Tovább gomb műveletei épp folyamatban vannak
   bool _isSubmitting = false;
 
   /// Foglalások lekérdezése és a Riverpod állapot inicializálása
   Future<void> fetchData() async {
-    final api = ApiService();
+    // 1. Adatok olvasása a Riverpod állapotból
     final reservationState = ref.read(reservationProvider);
 
-    /// Érvényes foglalások lekérdezése (a foglalt időkhoz)
+    // 2. Érvényes foglalások lekérdezése (a foglalt időkhoz)
+    final api = ApiService();
     final reservationData = await api.getValidReservations(context);
 
     if (reservationData == null) {
       debugPrint('Nem sikerült a lekérdezés');
     } else {
       setState(() {
+        // 3. Foglalások elmentése
         reservations = reservationData;
+        // 4. Telített időpontok generálása
         fullyBookedDateTimes = listFullyBookedDateTimes(reservations!);
       });
     }

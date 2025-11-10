@@ -95,23 +95,25 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
   /// A teljes fizetendő összeg
   int totalCost = 0;
 
+  /// Tovább gomb műveletei épp folyamatban vannak
   bool _isSubmitting = false;
 
   /// Foglalások és szolgáltatások lekérdezése
   Future<void> fetchData() async {
+    // 1. VIP és bőrönd fóliázás árak beállítása
     await fetchServicePrices();
 
     final api = ApiService();
-    // Adatok olvasása a Riverpod állapotból
+    // 2. Adatok olvasása a Riverpod állapotból
     final reservationState = ref.read(reservationProvider);
     final String personId = reservationState.personId;
 
-    // Felhasználói adatok lekérése a `personId` alapján
+    // 3. Felhasználói adatok lekérése a `personId` alapján
     final UserData? userData = await api.getUserData(context, personId);
 
     if (userData != null) {
       setState(() {
-        // Controllerek feltöltése
+        // 4. Controllerek feltöltése
         nameController.text = userData.person_Name;
         phoneController.text = formatPhone(userData.phone);
         licensePlateController.text = reservationState.licensePlate;
@@ -119,7 +121,7 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
       });
     }
 
-    // Állapot betöltése a Riverpodból
+    // 5. Állapot betöltése a Riverpodból
     setState(() {
       selectedArriveDate = reservationState.arriveDate;
       selectedLeaveDate = reservationState.leaveDate;
@@ -138,6 +140,7 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
           : PayTypes.first.payTypeId;
 
       if (selectedArriveDate != null && selectedLeaveDate != null) {
+        // 6. Parkolás, árak frissítése
         UpdateParkingDays();
         fetchParkingPrices();
       }

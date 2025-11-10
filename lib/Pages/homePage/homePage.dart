@@ -69,16 +69,18 @@ class HomePageState extends ConsumerState<HomePage> {
   }
 
   /// Érkezése rögzítése
-  Future<void> attemptRegisterArrival(String licensePlate) async {
+  Future<void> attemptRegisterArrival(
+      int webParkingId, String licensePlate) async {
     final api = ApiService();
-    await api.logCustomerArrival(context, licensePlate);
+    await api.logCustomerArrival(context, webParkingId, licensePlate);
     fetchData();
   }
 
   /// Távozás rögzítése
-  Future<void> attemptRegisterLeave(String licensePlate) async {
+  Future<void> attemptRegisterLeave(
+      int webParkingId, String licensePlate) async {
     final api = ApiService();
-    await api.logCustomerLeave(context, licensePlate);
+    await api.logCustomerLeave(context, webParkingId, licensePlate);
     fetchData();
   }
 

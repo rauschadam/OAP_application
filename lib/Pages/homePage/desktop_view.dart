@@ -71,7 +71,10 @@ class DesktopView extends StatelessWidget {
                               // --- Múltbeli lista (feltételes) ---
                               if (pastTaskList != null)
                                 ConstrainedBox(
-                                  constraints: BoxConstraints(maxHeight: 250.0),
+                                  constraints: BoxConstraints(
+                                      maxHeight:
+                                          MediaQuery.of(context).size.height *
+                                              0.3),
                                   child: pastTaskList,
                                 ),
                               if (pastTaskList != null)
@@ -79,7 +82,10 @@ class DesktopView extends StatelessWidget {
 
                               // --- Mai lista (mindig megjelenik) ---
                               ConstrainedBox(
-                                constraints: BoxConstraints(maxHeight: 350.0),
+                                constraints: BoxConstraints(
+                                    maxHeight:
+                                        MediaQuery.of(context).size.height *
+                                            0.4),
                                 child: todayTaskList!,
                               ),
                             ],

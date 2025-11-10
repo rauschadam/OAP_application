@@ -202,7 +202,7 @@ class ApiService {
 
   /// Ügyfél érkeztetése
   Future<void> logCustomerArrival(
-      BuildContext context, String licensePlateNumber) async {
+      BuildContext context, int webParkingId, String licensePlate) async {
     final uri = Uri.http(baseUrl, '/service/v1/airport/arriving');
 
     try {
@@ -212,7 +212,10 @@ class ApiService {
           'Content-Type': 'application/json',
           'Authorization': '$ReceptionistToken',
         },
-        body: jsonEncode(licensePlateNumber),
+        body: jsonEncode({
+          "WebparkId": webParkingId,
+          "LicenceNumber": licensePlate,
+        }),
       );
 
       final responseBody = json.decode(response.body);
@@ -225,7 +228,7 @@ class ApiService {
           width: 300,
           dialogType: DialogType.success,
           title: 'Sikeres érkeztetés',
-          desc: licensePlateNumber,
+          desc: licensePlate,
         ).show();
       } else {
         AwesomeDialog(
@@ -249,7 +252,7 @@ class ApiService {
 
   /// Ügyfél kiléptetése
   Future<void> logCustomerLeave(
-      BuildContext context, String licensePlateNumber) async {
+      BuildContext context, int webParkingId, String licensePlate) async {
     final uri = Uri.http(baseUrl, '/service/v1/airport/leaving');
 
     try {
@@ -259,7 +262,10 @@ class ApiService {
           'Content-Type': 'application/json',
           'Authorization': '$ReceptionistToken',
         },
-        body: jsonEncode(licensePlateNumber),
+        body: jsonEncode({
+          "WebparkId": webParkingId,
+          "LicenceNumber": licensePlate,
+        }),
       );
 
       final responseBody = json.decode(response.body);
@@ -272,7 +278,7 @@ class ApiService {
           width: 300,
           dialogType: DialogType.success,
           title: 'Sikeres kiléptetés',
-          desc: licensePlateNumber,
+          desc: licensePlate,
         ).show();
       } else {
         AwesomeDialog(
@@ -351,15 +357,61 @@ class ApiService {
   }
 
   /// Egyenleg feltöltés
-  Future<void> UploadBalance(
-      BuildContext context, String partnerId, int uploadVolume) async {
+  // Future<void> UploadBalance(
+  //     BuildContext context, String partnerId, int uploadVolume) async {
+  //   final uri = Uri.http(baseUrl, '/service/v1/airport/uploadseasonticket');
+
+  //   try {
+  //     final response = await client.post(uri,
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //           'Authorization': '$ReceptionistToken',
+  //         },
+  //         body: jsonEncode({
+  //           "PartnerId": partnerId,
+  //           "UploadVolume": uploadVolume,
+  //         }));
+
+  //     if (response.statusCode == 200) {
+  //       AwesomeDialog(
+  //         context: context,
+  //         width: 300,
+  //         dialogType: DialogType.success,
+  //         title: 'Sikeres egyenleg feltöltés',
+  //       ).show();
+  //     } else {
+  //       final responseBody = json.decode(response.body);
+  //       final errorMessage =
+  //           responseBody['responseMessage'] ?? 'Ismeretlen hiba';
+  //       print(errorMessage);
+  //       AwesomeDialog(
+  //         context: context,
+  //         width: 300,
+  //         dialogType: DialogType.error,
+  //         title: 'Egyenleg feltöltése sikertelen',
+  //         desc: errorMessage,
+  //       ).show();
+  //     }
+  //   } catch (e) {
+  //     AwesomeDialog(
+  //       context: context,
+  //       width: 300,
+  //       dialogType: DialogType.error,
+  //       title: 'Egyenleg feltöltése sikertelen',
+  //       desc: "Hálózati hiba: $e",
+  //     ).show();
+  //   }
+  // }
+
+  /// Egyenleg feltöltés
+  Future<String?> UploadBalance(String partnerId, int uploadVolume) async {
     final uri = Uri.http(baseUrl, '/service/v1/airport/uploadseasonticket');
 
     try {
       final response = await client.post(uri,
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': '$ReceptionistToken!',
+            'Authorization': '$ReceptionistToken',
           },
           body: jsonEncode({
             "PartnerId": partnerId,
@@ -367,32 +419,16 @@ class ApiService {
           }));
 
       if (response.statusCode == 200) {
-        AwesomeDialog(
-          context: context,
-          width: 300,
-          dialogType: DialogType.success,
-          title: 'Sikeres egyenleg feltöltés',
-        ).show();
+        return null; // <-- SIKER, nincs hibaüzenet
       } else {
         final responseBody = json.decode(response.body);
         final errorMessage =
             responseBody['responseMessage'] ?? 'Ismeretlen hiba';
-        AwesomeDialog(
-          context: context,
-          width: 300,
-          dialogType: DialogType.error,
-          title: 'Egyenleg feltöltése sikertelen',
-          desc: errorMessage,
-        ).show();
+        print(errorMessage);
+        return errorMessage; // <-- HIBA, visszaadjuk a hibaüzenetet
       }
     } catch (e) {
-      AwesomeDialog(
-        context: context,
-        width: 300,
-        dialogType: DialogType.error,
-        title: 'Egyenleg feltöltése sikertelen',
-        desc: "Hálózati hiba: $e",
-      ).show();
+      return "Hálózati hiba: $e"; // <-- HIBA, visszaadjuk a hibaüzenetet
     }
   }
 

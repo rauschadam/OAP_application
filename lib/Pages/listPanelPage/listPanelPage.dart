@@ -81,16 +81,18 @@ class ListPanelPageState extends State<ListPanelPage> {
       searchOptions.values.any((isActive) => isActive == true);
 
   /// Érkezése rögzítése
-  Future<void> attemptRegisterArrival(String licensePlate) async {
+  Future<void> attemptRegisterArrival(
+      int webParkingId, String licensePlate) async {
     final api = ApiService();
-    await api.logCustomerArrival(context, licensePlate);
+    await api.logCustomerArrival(context, webParkingId, licensePlate);
     fetchData();
   }
 
   /// Távozás rögzítése
-  Future<void> attemptRegisterLeave(String licensePlate) async {
+  Future<void> attemptRegisterLeave(
+      int webParkingId, String licensePlate) async {
     final api = ApiService();
-    await api.logCustomerLeave(context, licensePlate);
+    await api.logCustomerLeave(context, webParkingId, licensePlate);
     fetchData();
   }
 
@@ -295,10 +297,10 @@ class ListPanelPageState extends State<ListPanelPage> {
                     selectedRow as Map<String, dynamic>);
 
                 showReservationOptionsDialog(context, reservation,
-                    onArrival: (licensePlate) =>
-                        attemptRegisterArrival(licensePlate),
-                    onLeave: (licensePlate) =>
-                        attemptRegisterLeave(licensePlate),
+                    onArrival: (webParkingId, licensePlate) =>
+                        attemptRegisterArrival(webParkingId, licensePlate),
+                    onLeave: (webParkingId, licensePlate) =>
+                        attemptRegisterLeave(webParkingId, licensePlate),
                     onChangeLicense: (webParkingId, newLicensePlate) =>
                         attemptChangeLicensePlate(
                           webParkingId,
@@ -429,7 +431,10 @@ class ListPanelPageState extends State<ListPanelPage> {
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
-              attemptRegisterLeave(reservation!.licensePlate);
+              if (reservation != null) {
+                attemptRegisterLeave(
+                    reservation.webParkingId, reservation.licensePlate);
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
@@ -448,7 +453,10 @@ class ListPanelPageState extends State<ListPanelPage> {
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
-              attemptRegisterArrival(reservation!.licensePlate);
+              if (reservation != null) {
+                attemptRegisterArrival(
+                    reservation.webParkingId, reservation.licensePlate);
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green,

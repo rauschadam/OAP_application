@@ -33,15 +33,15 @@ class _InvoiceOptionPageState extends ConsumerState<InvoiceOptionPage> {
   }
 
   /// Ügyfél érkeztetése
-  Future<void> attemptRegisterArrival() async {
+  Future<void> attemptRegisterArrival(int webParkingId) async {
     final state = ref.read(reservationProvider);
     final api = ApiService();
-    await api.logCustomerArrival(context, state.licensePlate);
+    await api.logCustomerArrival(context, webParkingId, state.licensePlate);
     goToHomePage();
   }
 
   /// Felveti az érkeztetés lehetőségét
-  void showArrivalDialog() {
+  void showArrivalDialog(int webParkingId) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -62,7 +62,7 @@ class _InvoiceOptionPageState extends ConsumerState<InvoiceOptionPage> {
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                attemptRegisterArrival();
+                attemptRegisterArrival(webParkingId);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
@@ -99,7 +99,28 @@ class _InvoiceOptionPageState extends ConsumerState<InvoiceOptionPage> {
       // 3. Siker esetén (nincs hibaüzenet) navigáljon
       if (errorMessage == null) {
         if (checkCustomerArrivalIsSoon()) {
-          showArrivalDialog();
+          final state = ref.read(reservationProvider);
+          final api = ApiService();
+
+          // 1. Friss foglalások lekérdezése
+          final reservationsData = await api.getValidReservations(context);
+          if (!mounted) return;
+
+          if (reservationsData != null) {
+            // 2. Megkeressük a most rögzített foglalást (rendszám + érkezési idő alapján)
+            final newReservation = reservationsData.firstWhere(
+              (r) =>
+                  r.licensePlate == state.licensePlate &&
+                  r.arriveDate == state.arriveDate,
+            );
+
+            // 3. Ha megvan a webParkingId, felajánljuk az érkeztetést
+            showArrivalDialog(newReservation.webParkingId);
+          } else {
+            // 5. Ha hiba történt a lekérdezéskor, csak hazanavigálunk
+            debugPrint("Nem sikerült lekérni a foglalásokat az érkeztetéshez.");
+            goToHomePage();
+          }
         } else {
           goToHomePage();
         }

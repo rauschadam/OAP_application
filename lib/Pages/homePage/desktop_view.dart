@@ -14,13 +14,6 @@ class DesktopView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // --- Létrehozzuk a listákat ---
-    final Widget? pastTaskList = homePageState.buildTaskList(
-        listTitle: 'Múltbeli',
-        reservations: homePageState.reservations,
-        startTime: null,
-        endTime: homePageState.now.subtract(const Duration(hours: 3)),
-        maxHeight: 250.0,
-        fullDateFormat: true);
 
     final Widget? todayTaskList = homePageState.buildTaskList(
       listTitle: 'Ma',
@@ -30,6 +23,16 @@ class DesktopView extends StatelessWidget {
       endTime: homePageState.now.add(const Duration(days: 1)),
       maxHeight: 350.0,
     );
+
+    final Widget? pastTaskList = homePageState.buildTaskList(
+      listTitle: 'Múltbeli',
+      reservations: homePageState.reservations,
+      startTime: null,
+      endTime: homePageState.now.subtract(const Duration(hours: 3)),
+      maxHeight: 250.0,
+      fullDateFormat: true,
+    );
+
     return homePageState.detectClicks(
       homePageState.buildRefreshIndicator(
         KeyboardListener(
@@ -68,18 +71,6 @@ class DesktopView extends StatelessWidget {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              // --- Múltbeli lista (feltételes) ---
-                              if (pastTaskList != null)
-                                ConstrainedBox(
-                                  constraints: BoxConstraints(
-                                      maxHeight:
-                                          MediaQuery.of(context).size.height *
-                                              0.3),
-                                  child: pastTaskList,
-                                ),
-                              if (pastTaskList != null)
-                                SizedBox(height: AppPadding.medium),
-
                               // --- Mai lista (mindig megjelenik) ---
                               ConstrainedBox(
                                 constraints: BoxConstraints(
@@ -88,6 +79,19 @@ class DesktopView extends StatelessWidget {
                                             0.4),
                                 child: todayTaskList!,
                               ),
+
+                              // --- Múltbeli lista (feltételes) ---
+                              if (pastTaskList != null)
+                                SizedBox(height: AppPadding.medium),
+
+                              if (pastTaskList != null)
+                                ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                      maxHeight:
+                                          MediaQuery.of(context).size.height *
+                                              0.3),
+                                  child: pastTaskList,
+                                ),
                             ],
                           ),
                         ],

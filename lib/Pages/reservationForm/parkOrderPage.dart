@@ -114,18 +114,17 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
     // 3. Felhasználói adatok lekérése a `personId` alapján
     final UserData? userData = await api.getUserData(context, personId);
 
-    if (userData != null) {
-      setState(() {
-        // 4. Controllerek feltöltése
-        // Csak akkor töltjük be az adatokat, ha nem vendég felhasználó
-        if (ref.read(reservationProvider).withoutRegistration == false) {
-          nameController.text = userData.person_Name;
-          phoneController.text = formatPhone(userData.phone);
-        }
-        licensePlateController.text = reservationState.licensePlate;
-        descriptionController.text = reservationState.description;
-      });
-    }
+    setState(() {
+      // 4. Controllerek feltöltése
+      // Csak akkor töltjük be az adatokat, ha nem vendég felhasználó
+      if (ref.read(reservationProvider).withoutRegistration == false &&
+          userData != null) {
+        nameController.text = userData.person_Name;
+        phoneController.text = formatPhone(userData.phone);
+      }
+      licensePlateController.text = reservationState.licensePlate;
+      descriptionController.text = reservationState.description;
+    });
 
     // 5. Állapot betöltése a Riverpodból
     setState(() {

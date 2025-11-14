@@ -249,6 +249,7 @@ class ListPanelPageState extends State<ListPanelPage> {
       buttons.add(
         IconButton(
           icon: Icon(Icons.receipt, color: AppColors.primary),
+          tooltip: "Egyenleg feltöltés",
           onPressed: () {
             if (selectedRow is Map<String, dynamic>) {
               final String? fieldName = availableObjectIds[1];
@@ -288,6 +289,7 @@ class ListPanelPageState extends State<ListPanelPage> {
       buttons.add(
         IconButton(
           icon: Icon(Icons.car_rental_outlined, color: AppColors.primary),
+          tooltip: "Foglalási műveletek",
           onPressed: () {
             // Ellenőrizzük, hogy a selectedRow tényleg Map-e
             if (selectedRow is Map<String, dynamic>) {

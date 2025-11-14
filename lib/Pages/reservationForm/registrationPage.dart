@@ -73,8 +73,9 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
       houseNumber: houseNumberController.text,
     );
 
-    final registerData = await ApiService().registerUser(context, registration);
-    if (registerData != null) {
+    final registryErrorMessage =
+        await ApiService().registerUser(context, registration);
+    if (registryErrorMessage == null) {
       final api = ApiService();
       final loginData = await api.loginUser(
         context,

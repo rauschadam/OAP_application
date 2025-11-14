@@ -48,10 +48,9 @@ class ApiService {
             title: 'Sikertelen regisztráció',
             desc: errorMessage,
           ).show();
-          return null;
+          return errorMessage;
         } else {
-          final json = jsonDecode(response.body);
-          return json['responseContent']['authorizationToken'];
+          return null; // Sikeres regisztráció, nincs hibaüzenet
         }
       } else {
         String errorMessage = 'Ismeretlen hiba';
@@ -66,7 +65,7 @@ class ApiService {
           title: 'Sikertelen regisztráció',
           desc: errorMessage,
         ).show();
-        return null;
+        return errorMessage;
       }
     } catch (e) {
       AwesomeDialog(
@@ -76,7 +75,7 @@ class ApiService {
         title: 'Sikertelen regisztráció',
         desc: "Hálózati hiba",
       ).show();
-      return null;
+      return e.toString();
     }
   }
 
@@ -482,11 +481,16 @@ class ApiService {
     final allUserData = allUserDataJson
         .map<UserData>((json) => UserData.fromJson(json))
         .toList();
-    try {
-      return allUserData.firstWhere((data) => data.personId == personId);
-    } catch (e) {
-      return null; // ha nincs ilyen personId
+
+    // Megnézzük az összes felhasználói adatot
+    for (final data in allUserData) {
+      if (data.personId == personId) {
+        return data; // Megvan a találat, visszaadjuk
+      }
     }
+
+    // Ha a ciklus végigfutott, és nem volt találat
+    return null;
   }
 
   /// Vissza adja a helyes fiókot personId alapján

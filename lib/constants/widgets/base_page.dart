@@ -23,12 +23,23 @@ class BasePage extends StatelessWidget {
     IsMobile = Responsive.isMobile(context);
 
     return TooltipVisibility(
-      visible: false,
+      visible: true,
       child: Scaffold(
         appBar: AppBar(
           title: Text(pageTitle),
           backgroundColor: AppColors.background,
           foregroundColor: AppColors.text,
+          leading: drawer != null
+              ? Builder(
+                  builder: (context) => IconButton(
+                    icon: const Icon(Icons.menu),
+                    tooltip: 'Menü',
+                    onPressed: () {
+                      Scaffold.of(context).openDrawer();
+                    },
+                  ),
+                )
+              : null,
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(1),
             child: Container(

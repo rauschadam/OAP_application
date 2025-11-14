@@ -18,6 +18,7 @@ import 'package:airport_test/constants/widgets/next_page_button.dart';
 import 'package:airport_test/constants/widgets/parking_zone_selection_card.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/constants/enums/parkingFormEnums.dart';
+import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -35,6 +36,7 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
   // --- KONTROLLEREK ---
   final TextEditingController nameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
   final TextEditingController licensePlateController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final ScrollController ParkOptionsScrollController = ScrollController();
@@ -42,6 +44,7 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
   // --- FOCUSNODE ---
   FocusNode nameFocus = FocusNode();
   FocusNode phoneFocus = FocusNode();
+  FocusNode emailFocus = FocusNode();
   FocusNode licensePlateFocus = FocusNode();
   FocusNode descriptionFocus = FocusNode();
   FocusNode datePickerFocus = FocusNode();
@@ -114,8 +117,11 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
     if (userData != null) {
       setState(() {
         // 4. Controllerek feltöltése
-        nameController.text = userData.person_Name;
-        phoneController.text = formatPhone(userData.phone);
+        // Csak akkor töltjük be az adatokat, ha nem vendég felhasználó
+        if (ref.read(reservationProvider).withoutRegistration == false) {
+          nameController.text = userData.person_Name;
+          phoneController.text = formatPhone(userData.phone);
+        }
         licensePlateController.text = reservationState.licensePlate;
         descriptionController.text = reservationState.description;
       });
@@ -419,7 +425,9 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
         // 1. Kontakt és Rendszám adatok mentése
         ref.read(reservationProvider.notifier).updateContactAndLicense(
               name: nameController.text,
-              email: ref.read(reservationProvider).email,
+              email: ref.read(reservationProvider).withoutRegistration
+                  ? emailController.text
+                  : ref.read(reservationProvider).email,
               phone: '+${phoneController.text}',
               licensePlate: licensePlateController.text,
             );
@@ -538,6 +546,7 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
   }
 
   Widget buildTextFormFields() {
+    final bool guest = ref.read(reservationProvider).withoutRegistration;
     final double sizedBoxHeight = 10;
     return Column(
       children: [
@@ -552,7 +561,7 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
           focusNode: nameFocus,
           textInputAction: TextInputAction.next,
           nextFocus: phoneFocus,
-          hintText: 'Foglaló személy neve',
+          hintText: 'Név',
         ),
         SizedBox(height: sizedBoxHeight),
         MyTextFormField(
@@ -567,10 +576,29 @@ class ParkOrderPageState extends ConsumerState<ParkOrderPage> {
           controller: phoneController,
           focusNode: phoneFocus,
           textInputAction: TextInputAction.next,
-          nextFocus: licensePlateFocus,
+          nextFocus: emailFocus,
           hintText: 'Telefonszám',
           selectedTextFormFieldType: MyTextFormFieldType.phone,
         ),
+
+        // Csak vendég felhasználóknál jelenik meg az email mező
+        if (guest) SizedBox(height: sizedBoxHeight),
+        if (guest)
+          MyTextFormField(
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Adja meg email-címét';
+              } else if (!EmailValidator.validate(value.trim())) {
+                return 'Érvénytelen email-cím';
+              }
+              return null;
+            },
+            controller: emailController,
+            focusNode: emailFocus,
+            textInputAction: TextInputAction.next,
+            nextFocus: licensePlateFocus,
+            hintText: 'Email cím',
+          ),
         SizedBox(height: sizedBoxHeight),
         MyTextFormField(
           validator: (value) {

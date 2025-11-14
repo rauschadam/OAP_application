@@ -18,6 +18,7 @@ import 'package:airport_test/constants/widgets/my_text_form_field.dart';
 import 'package:airport_test/constants/widgets/next_page_button.dart';
 import 'package:airport_test/constants/theme.dart';
 import 'package:airport_test/constants/enums/parkingFormEnums.dart';
+import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -35,6 +36,7 @@ class WashOrderPageState extends ConsumerState<WashOrderPage> {
   // --- KONTROLLEREK
   TextEditingController nameController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
+  TextEditingController emailController = TextEditingController();
   TextEditingController licensePlateController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
   final ScrollController WashOptionsScrollController = ScrollController();
@@ -42,6 +44,7 @@ class WashOrderPageState extends ConsumerState<WashOrderPage> {
   // --- FOCUSNODE ---
   FocusNode nameFocus = FocusNode();
   FocusNode phoneFocus = FocusNode();
+  FocusNode emailFocus = FocusNode();
   FocusNode licensePlateFocus = FocusNode();
   FocusNode datePickerFocus = FocusNode();
   FocusNode descriptionFocus = FocusNode();
@@ -94,7 +97,8 @@ class WashOrderPageState extends ConsumerState<WashOrderPage> {
       final UserData? userData =
           await api.getUserData(context, reservationState.personId);
 
-      if (userData != null) {
+      if (userData != null &&
+          !ref.read(reservationProvider).withoutRegistration) {
         setState(() {
           // A beviteli mezők kitöltése a felhasználói adatokkal
           nameController.text = userData.person_Name;
@@ -338,7 +342,9 @@ class WashOrderPageState extends ConsumerState<WashOrderPage> {
           if (reservationState.bookingOption == BookingOption.washing) {
             ref.read(reservationProvider.notifier).updateContactAndLicense(
                   name: nameController.text,
-                  email: reservationState.email,
+                  email: ref.read(reservationProvider).withoutRegistration
+                      ? emailController.text
+                      : ref.read(reservationProvider).email,
                   phone: '+${phoneController.text}',
                   licensePlate: licensePlateController.text,
                 );
@@ -432,6 +438,8 @@ class WashOrderPageState extends ConsumerState<WashOrderPage> {
 
   Widget buildTextFormFields() {
     final bookingOption = ref.read(reservationProvider).bookingOption;
+    final bool guest = ref.read(reservationProvider).withoutRegistration;
+    final double sizedBoxHeight = 10;
     if (bookingOption == BookingOption.both) return Container();
     return Column(
       children: [
@@ -446,8 +454,8 @@ class WashOrderPageState extends ConsumerState<WashOrderPage> {
             focusNode: nameFocus,
             textInputAction: TextInputAction.next,
             nextFocus: phoneFocus,
-            hintText: 'Foglaló személy neve'),
-        const SizedBox(height: 10),
+            hintText: 'Név'),
+        SizedBox(height: sizedBoxHeight),
         MyTextFormField(
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -460,11 +468,30 @@ class WashOrderPageState extends ConsumerState<WashOrderPage> {
           controller: phoneController,
           focusNode: phoneFocus,
           textInputAction: TextInputAction.next,
-          nextFocus: licensePlateFocus,
+          nextFocus: emailFocus,
           hintText: 'Telefonszám',
           selectedTextFormFieldType: MyTextFormFieldType.phone,
         ),
-        const SizedBox(height: 10),
+
+        // Csak vendég felhasználóknál jelenik meg az email mező
+        if (guest) SizedBox(height: sizedBoxHeight),
+        if (guest)
+          MyTextFormField(
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Adja meg email-címét';
+              } else if (!EmailValidator.validate(value.trim())) {
+                return 'Érvénytelen email-cím';
+              }
+              return null;
+            },
+            controller: emailController,
+            focusNode: emailFocus,
+            textInputAction: TextInputAction.next,
+            nextFocus: licensePlateFocus,
+            hintText: 'Email cím',
+          ),
+        SizedBox(height: sizedBoxHeight),
         MyTextFormField(
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -479,7 +506,7 @@ class WashOrderPageState extends ConsumerState<WashOrderPage> {
           hintText: 'Várható rendszám',
           selectedTextFormFieldType: MyTextFormFieldType.licensePlate,
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
       ],
     );
   }

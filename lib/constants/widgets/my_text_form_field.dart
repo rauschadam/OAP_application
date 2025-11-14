@@ -39,105 +39,122 @@ class MyTextFormField extends StatelessWidget {
           child: Text(hintText, style: TextStyle(color: AppColors.primary)),
         ),
         TextFormField(
-          controller: controller,
-          focusNode: focusNode,
-          textInputAction: textInputAction,
-          validator: validator,
-          cursorColor: AppColors.primary,
-          cursorErrorColor: AppColors.primary,
-          style: const TextStyle(fontSize: 16),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: AppColors.secondary,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-            errorStyle: TextStyle(
-              color: errorColor,
-              fontSize: 12,
-              height: 1.2,
-            ),
-            prefixText: selectedTextFormFieldType == MyTextFormFieldType.phone
-                ? '+'
-                : null,
-            prefixStyle: const TextStyle(color: Colors.black),
-            suffixIcon: onObscureToggle != null
-                ? Padding(
-                    padding: const EdgeInsets.only(right: AppPadding.small),
-                    child: IconButton(
-                      icon: Icon(
-                        obscureText ? Icons.visibility_off : Icons.visibility,
-                        color: obscureText
-                            ? Colors.grey.shade800
-                            : Colors.grey.shade900,
-                      ),
-                      onPressed: () => onObscureToggle!(),
-                    ),
-                  )
-                : null,
-          ),
-          onEditingComplete: () {
-            if (nextFocus != null) {
-              FocusScope.of(context).requestFocus(nextFocus);
-            } else {
-              FocusScope.of(context).unfocus();
-            }
-            if (onEditingComplete != null) {
-              onEditingComplete!();
-            }
-          },
-          onChanged: selectedTextFormFieldType ==
-                  MyTextFormFieldType.licensePlate
-              ? (text) {
-                  final upper = text.toUpperCase();
-                  if (text != upper) {
-                    controller.value = controller.value.copyWith(
-                      text: upper,
-                      selection: TextSelection.collapsed(offset: upper.length),
-                    );
-                  }
-                }
-              : null,
-          // decoration: InputDecoration(
-          //   // hintText: hintText,
-          //   // hintStyle: TextStyle(color: BasePage.defaultColors.primary),
-          //   prefixText: selectedTextFormFieldType == MyTextFormFieldType.phone
-          //       ? '+'
-          //       : null,
-          //   prefixStyle: selectedTextFormFieldType == MyTextFormFieldType.phone
-          //       ? TextStyle(color: Colors.black)
-          //       : null,
-          //   filled: true,
-          //   fillColor: AppColors.secondary,
-          //   border: OutlineInputBorder(
-          //       borderRadius: BorderRadius.circular(12),
-          //       borderSide: BorderSide.none),
-          //   suffixIcon: onObscureToggle != null
-          //       ? Padding(
-          //           padding: const EdgeInsets.only(right: AppPadding.small),
-          //           child: IconButton(
-          //             icon: Icon(
-          //               obscureText ? Icons.visibility_off : Icons.visibility,
-          //               color: obscureText
-          //                   ? Colors.grey.shade800
-          //                   : Colors.grey.shade900,
-          //             ),
-          //             onPressed: () {
-          //               onObscureToggle!();
-          //             },
-          //           ),
-          //         )
-          //       : null,
-          // ),
-          obscureText: obscureText,
-          inputFormatters:
-              selectedTextFormFieldType == MyTextFormFieldType.phone
-                  ? [MaskedInputFormatter('00 00 000 0000')]
+            controller: controller,
+            focusNode: focusNode,
+            textInputAction: textInputAction,
+            validator: validator,
+            cursorColor: AppColors.primary,
+            cursorErrorColor: AppColors.primary,
+            style: const TextStyle(fontSize: 16),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: AppColors.secondary,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+              errorStyle: TextStyle(
+                color: errorColor,
+                fontSize: 12,
+                height: 1.2,
+              ),
+              prefixText: selectedTextFormFieldType == MyTextFormFieldType.phone
+                  ? '+'
                   : null,
-        ),
+              prefixStyle: const TextStyle(color: Colors.black),
+              suffixIcon: onObscureToggle != null
+                  ? Padding(
+                      padding: const EdgeInsets.only(right: AppPadding.small),
+                      child: IconButton(
+                        icon: Icon(
+                          obscureText ? Icons.visibility_off : Icons.visibility,
+                          color: obscureText
+                              ? Colors.grey.shade800
+                              : Colors.grey.shade900,
+                        ),
+                        onPressed: () => onObscureToggle!(),
+                      ),
+                    )
+                  : null,
+            ),
+            onEditingComplete: () {
+              if (nextFocus != null) {
+                FocusScope.of(context).requestFocus(nextFocus);
+              } else {
+                FocusScope.of(context).unfocus();
+              }
+              if (onEditingComplete != null) {
+                onEditingComplete!();
+              }
+            },
+            onChanged:
+                selectedTextFormFieldType == MyTextFormFieldType.licensePlate
+                    ? (text) {
+                        final upper = text.toUpperCase();
+                        if (text != upper) {
+                          controller.value = controller.value.copyWith(
+                            text: upper,
+                            selection:
+                                TextSelection.collapsed(offset: upper.length),
+                          );
+                        }
+                      }
+                    : null,
+            // decoration: InputDecoration(
+            //   // hintText: hintText,
+            //   // hintStyle: TextStyle(color: BasePage.defaultColors.primary),
+            //   prefixText: selectedTextFormFieldType == MyTextFormFieldType.phone
+            //       ? '+'
+            //       : null,
+            //   prefixStyle: selectedTextFormFieldType == MyTextFormFieldType.phone
+            //       ? TextStyle(color: Colors.black)
+            //       : null,
+            //   filled: true,
+            //   fillColor: AppColors.secondary,
+            //   border: OutlineInputBorder(
+            //       borderRadius: BorderRadius.circular(12),
+            //       borderSide: BorderSide.none),
+            //   suffixIcon: onObscureToggle != null
+            //       ? Padding(
+            //           padding: const EdgeInsets.only(right: AppPadding.small),
+            //           child: IconButton(
+            //             icon: Icon(
+            //               obscureText ? Icons.visibility_off : Icons.visibility,
+            //               color: obscureText
+            //                   ? Colors.grey.shade800
+            //                   : Colors.grey.shade900,
+            //             ),
+            //             onPressed: () {
+            //               onObscureToggle!();
+            //             },
+            //           ),
+            //         )
+            //       : null,
+            // ),
+            obscureText: obscureText,
+            inputFormatters:
+                selectedTextFormFieldType == MyTextFormFieldType.phone
+                    ? [
+                        // A '+' jelet kivesszük a maszkból, mert a 'prefixText' már kezeli
+                        MaskedInputFormatter('00 00 000 0000')
+                      ]
+                    : selectedTextFormFieldType == MyTextFormFieldType.taxNumber
+                        ? [
+                            // Helyes 8-1-2 formátum
+                            MaskedInputFormatter('00000000-0-00')
+                          ]
+                        : null
+            // selectedTextFormFieldType ==
+            //         MyTextFormFieldType.licensePlate
+            //     ? [
+            //         // A rendszám nagybetűsítését az 'onChanged' kezeli
+            //         MaskedInputFormatter('AAA-000')
+            //       ]
+            // Alapértelmezett eset (nincs formázó)
+            //: null,
+            ),
       ],
     );
   }

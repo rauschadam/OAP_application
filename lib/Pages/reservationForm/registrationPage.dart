@@ -329,7 +329,8 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
           focusNode: taxNumberFocus,
           textInputAction: TextInputAction.next,
           nextFocus: postalCodeFocus,
-          hintText: 'Adóazonosító szám',
+          hintText: 'Adóazonosító szám (Opcionális)',
+          selectedTextFormFieldType: MyTextFormFieldType.taxNumber,
         ),
         SizedBox(height: sizedBoxHeight),
         FormField(

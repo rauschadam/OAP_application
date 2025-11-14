@@ -22,7 +22,4 @@ enum InvoiceOption {
   yes, // Kérek számlát
 }
 
-enum MyTextFormFieldType {
-  licensePlate,
-  phone,
-}
+enum MyTextFormFieldType { licensePlate, phone, taxNumber }
